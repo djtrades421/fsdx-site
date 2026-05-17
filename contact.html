@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FSD-X — System Support Desk</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
     body {
       background-color: #000;
@@ -14,14 +12,27 @@
   </style>
 </head>
 
-<body class="text-white bg-black min-h-screen flex flex-row overflow-x-hidden antialiased">
+<body class="text-white bg-black min-h-screen flex flex-col md:flex-row overflow-x-hidden antialiased">
 
-  <aside class="w-64 fixed inset-y-0 left-0 bg-zinc-950 border-r border-white/10 flex flex-col justify-between p-6 z-50 overflow-y-auto">
-    
+  <header class="md:hidden w-full bg-zinc-950 border-b border-white/10 p-4 sticky top-0 z-50 flex items-center justify-between">
+    <div class="text-2xl font-black tracking-wider text-green-400">
+      FSD-X
+    </div>
+    <button onclick="toggleMobileMenu()" class="border border-white/10 bg-zinc-900 px-3 py-1.5 rounded text-xs font-mono tracking-wider hover:bg-zinc-800 transition">
+      // MENU
+    </button>
+  </header>
+
+  <aside id="sidebar-panel" class="w-64 fixed inset-y-0 left-0 bg-zinc-950 border-r border-white/10 flex flex-col justify-between p-6 z-50 overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div>
-      <div class="text-4xl font-black tracking-wider mb-8 flex flex-col">
-        <span class="text-green-400">FSD-X</span>
-        <span class="text-xs uppercase text-zinc-500 tracking-[0.2em] -mt-1 font-bold">Trading</span>
+      <div class="flex justify-between items-center mb-8 md:block">
+        <div class="text-4xl font-black tracking-wider flex flex-col">
+          <span class="text-green-400">FSD-X</span>
+          <span class="text-xs uppercase text-zinc-500 tracking-[0.2em] -mt-1 font-bold">Trading</span>
+        </div>
+        <button onclick="toggleMobileMenu()" class="md:hidden text-zinc-500 hover:text-white text-xs font-mono font-bold">
+          [ESC]
+        </button>
       </div>
 
       <nav class="flex flex-col gap-4 w-full">
@@ -72,27 +83,26 @@
         Launch Discord &rarr;
       </a>
     </div>
-
   </aside>
 
-  <main class="flex-1 pl-64 w-full flex flex-col justify-between min-h-screen h-auto">
+  <main class="flex-1 md:pl-64 w-full flex flex-col justify-between min-h-screen h-auto">
 
     <div class="w-full flex-1">
       
-      <section class="pt-20 pb-12 px-12 border-b border-white/10 bg-gradient-to-b from-zinc-950 to-black">
+      <section class="pt-12 pb-10 md:pt-20 md:pb-12 px-6 md:px-12 border-b border-white/10 bg-gradient-to-b from-zinc-950 to-black">
         <div class="max-w-5xl mx-auto">
           <div class="text-green-400 uppercase tracking-[0.3em] text-xs font-bold mb-3">Communications Matrix</div>
-          <h1 class="text-4xl lg:text-5xl font-black tracking-tight">System Support & Bug Desk</h1>
-          <p class="mt-4 text-zinc-400 text-sm max-w-2xl leading-relaxed">
+          <h1 class="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight">System Support & Bug Desk</h1>
+          <p class="mt-4 text-zinc-400 text-xs md:text-sm max-w-2xl leading-relaxed">
             Encountered an optimization suite discrepancy or Whop subscription access bug? Use the dedicated channels below to log an operational alert directly with the team.
           </p>
         </div>
       </section>
 
-      <section class="py-16 px-12">
-        <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
+      <section class="py-12 md:py-16 px-6 md:px-12">
+        <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-8 flex flex-col justify-between hover:border-zinc-800 transition">
+          <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6 md:p-8 flex flex-col justify-between hover:border-zinc-800 transition">
             <div class="space-y-4">
               <div class="space-y-1">
                 <span class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 block">// ASYNCHRONOUS GATEWAY</span>
@@ -109,18 +119,18 @@
 
             <div class="mt-8 pt-4 border-t border-white/5 space-y-2 font-mono text-xs">
               <label class="text-zinc-500 uppercase tracking-wider block">Copy Desk Address</label>
-              <div class="flex gap-2">
+              <div class="flex flex-col sm:flex-row gap-2">
                 <input type="text" id="deskEmail" readonly value="fsdxteam@gmail.com" 
-                       class="flex-1 bg-black border border-white/10 text-zinc-300 px-4 py-3 rounded-xl focus:outline-none select-all font-bold tracking-wide">
+                       class="w-full sm:flex-1 bg-black border border-white/10 text-zinc-300 px-4 py-3 rounded-xl focus:outline-none select-all font-bold tracking-wide text-xs">
                 <button onclick="copyMailAddress()" id="copyBtn"
-                        class="px-5 py-3 bg-white hover:bg-zinc-200 text-black font-black uppercase tracking-wider rounded-xl transition shrink-0">
+                        class="w-full sm:w-auto px-5 py-3 bg-white hover:bg-zinc-200 text-black font-black uppercase tracking-wider rounded-xl transition shrink-0 text-xs">
                   Copy
                 </button>
               </div>
             </div>
           </div>
 
-          <div class="border border-green-500/20 bg-zinc-950/50 rounded-2xl p-8 flex flex-col justify-between hover:border-green-500/30 transition shadow-lg shadow-green-500/5">
+          <div class="border border-green-500/20 bg-zinc-950/50 rounded-2xl p-6 md:p-8 flex flex-col justify-between hover:border-green-500/30 transition shadow-lg shadow-green-500/5">
             <div class="space-y-4">
               <div class="space-y-1">
                 <span class="px-2 py-0.5 rounded bg-green-500/10 border border-green-500/30 text-green-400 text-[9px] font-mono uppercase font-bold tracking-wider inline-block">RECOMMENDED FOR SPEED</span>
@@ -149,7 +159,7 @@
 
     </div>
 
-    <footer class="bg-zinc-950 border-t border-white/10 px-12 py-12 w-full mt-auto text-[10px]">
+    <footer class="bg-zinc-950 border-t border-white/10 px-6 md:px-12 py-12 w-full mt-auto text-[10px]">
       <div class="max-w-5xl mx-auto space-y-6">
         <div>
           <span class="bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider">
@@ -169,7 +179,7 @@
           </p>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-zinc-600 gap-2 font-mono">
+        <div class="mt-8 pt-6 border-t border-white/5 flex flex-col lg:flex-row justify-between items-center text-zinc-600 gap-4 font-mono text-center lg:text-left">
           <div>FSD-X Trading Ecosystem • NinjaTrader® Vendor Ecosystem Partner</div>
           <div>&copy; 2026 FSD-X Trading. All rights reserved.</div>
         </div>
@@ -179,21 +189,29 @@
   </main>
 
   <script>
+    // Mobile Drawer Toggle Utility
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('sidebar-panel');
+      if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+      }
+    }
+
+    // Clipboard Logging Execution Function
     function copyMailAddress() {
       const emailField = document.getElementById("deskEmail");
       const copyButton = document.getElementById("copyBtn");
       
-      // Select and write value to operating system clipboard
       emailField.select();
-      emailField.setSelectionRange(0, 99999); /* For mobile screen boundaries */
+      emailField.setSelectionRange(0, 99999); /* Responsive edge-safety buffer */
       navigator.clipboard.writeText(emailField.value);
       
-      // Dynamic Visual Response
       copyButton.innerText = "Copied!";
       copyButton.classList.remove("bg-white", "hover:bg-zinc-200", "text-black");
       copyButton.classList.add("bg-green-500", "text-black");
       
-      // Return parameters to standard baseline after visual pause
       setTimeout(() => {
         copyButton.innerText = "Copy";
         copyButton.classList.remove("bg-green-500", "text-black");
