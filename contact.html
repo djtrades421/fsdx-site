@@ -1,1 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FSD-X — System Support Desk</title>
 
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      background-color: #000;
+    }
+  </style>
+</head>
+
+<body class="text-white bg-black min-h-screen flex flex-row overflow-x-hidden antialiased">
+
+  <aside class="w-64 fixed inset-y-0 left-0 bg-zinc-950 border-r border-white/10 flex flex-col justify-between p-6 z-50 overflow-y-auto">
+    
+    <div>
+      <div class="text-2xl font-black tracking-wider mb-8 flex flex-col">
+        <span class="text-green-400">FSD-X</span>
+        <span class="text-xs uppercase text-zinc-500 tracking-[0.2em] -mt-1 font-bold">Trading</span>
+      </div>
+
+      <nav class="flex flex-col gap-4 w-full">
+        <div>
+          <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// Ecosystem</div>
+          <div class="flex flex-col gap-2.5 pl-1">
+            <a href="index.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Home</a>
+            <a href="suite.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">FSD-X Suite</a>
+            <a href="memberships.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Memberships</a>
+            <a href="results.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Results</a>
+          </div>
+        </div>
+
+        <div class="mt-2">
+          <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// Resources</div>
+          <div class="flex flex-col gap-2.5 pl-1">
+            <a href="affiliates.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Affiliates</a>
+            <a href="knowledge.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Knowledge Base</a>
+            <a href="schedule.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Schedule</a>
+          </div>
+        </div>
+
+        <div class="mt-2">
+          <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// System</div>
+          <div class="flex flex-col gap-2.5 pl-1">
+            <a href="contact.html" class="text-green-400 font-bold transition text-sm block">Contact & Help</a>
+            <a href="faq.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">FAQ</a>
+            <a href="disclosures.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Disclosures</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <div class="w-full pt-4 border-t border-white/5 mt-8">
+      <a href="https://discord.gg/RePdHESvSx" class="text-xs text-zinc-500 hover:text-white transition block">
+        Launch Discord &rarr;
+      </a>
+    </div>
+
+  </aside>
+
+  <main class="flex-1 pl-64 w-full flex flex-col justify-between min-h-screen h-auto">
+
+    <div class="w-full flex-1">
+      
+      <section class="pt-20 pb-12 px-12 border-b border-white/10 bg-gradient-to-b from-zinc-950 to-black">
+        <div class="max-w-5xl mx-auto">
+          <div class="text-green-400 uppercase tracking-[0.3em] text-xs font-bold mb-3">Communications Matrix</div>
+          <h1 class="text-4xl lg:text-5xl font-black tracking-tight">System Support & Bug Desk</h1>
+          <p class="mt-4 text-zinc-400 text-sm max-w-2xl leading-relaxed">
+            Encountered a script variation discrepancy or subscription access bug? Use the verification channels below to lodge an operational alert directly with the infrastructure team.
+          </p>
+        </div>
+      </section>
+
+      <section class="py-16 px-12">
+        <div class="max-w-5xl mx-auto grid md:grid-cols-5 gap-12">
+
+          <div class="md:col-span-3 space-y-6">
+            <div>
+              <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-1">// SECURE MAIL GATEWAY</div>
+              <h2 class="text-xl font-bold tracking-tight">Submit Assistance Request</h2>
+            </div>
+
+            <form action="https://formsubmit.co/fsdxteam@gmail.com" method="POST" class="space-y-4 font-mono text-xs">
+              
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                  <label class="text-zinc-500 uppercase tracking-wider block">Operator Name</label>
+                  <input type="text" name="name" required placeholder="e.g. John Doe" 
+                         class="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-green-500/50 transition">
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-zinc-500 uppercase tracking-wider block">Secure Email</label>
+                  <input type="email" name="email" required placeholder="operator@domain.com" 
+                         class="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-green-500/50 transition">
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="text-zinc-500 uppercase tracking-wider block">Log Category</label>
+                <select name="category" class="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500/50 transition appearance-none">
+                  <option value="Indicator Configuration Issue">Indicator Suite Configuration Issue</option>
+                  <option value="Whop Platform / Discord Access Bug">Whop Platform / Discord Access Bug</option>
+                  <option value="Ecosystem Partner Discrepancy">Ecosystem Partner Discrepancy</option>
+                  <option value="General Brand Inquiry">General Support / Scaling Inquiries</option>
+                </select>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="text-zinc-500 uppercase tracking-wider block">Discrepancy Parameters / Payload Log</label>
+                <textarea name="message" rows="5" required placeholder="Describe the behavior or issue with the optimization suite..." 
+                          class="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-green-500/50 transition resize-none"></textarea>
+              </div>
+
+              <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-white/5">
+                Dispatch Desk Ticket &rarr;
+              </button>
+            </form>
+          </div>
+
+          <div class="md:col-span-2 space-y-6">
+            <div>
+              <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-1">// REALTIME PROTOCOLS</div>
+              <h2 class="text-xl font-bold tracking-tight">Alternative Channels</h2>
+            </div>
+
+            <div class="space-y-4">
+              <div class="border border-green-500/20 bg-zinc-950/50 rounded-2xl p-6 space-y-4 shadow-lg shadow-green-500/5">
+                <div class="space-y-1">
+                  <span class="px-2 py-0.5 rounded bg-green-500/10 border border-green-500/30 text-green-400 text-[9px] font-mono uppercase font-bold tracking-wider">RECOMMENDED FOR SPEED</span>
+                  <h3 class="text-lg font-bold text-white tracking-tight mt-1.5">Ecosystem Discord</h3>
+                  <p class="text-zinc-400 text-xs leading-relaxed">
+                    Open an expedited ticket directly inside the active terminal workspace. Ideal for live synchronization fixes or immediate backtesting setup walkthroughs.
+                  </p>
+                </div>
+                <a href="https://discord.gg/RePdHESvSx" target="_blank" rel="noopener noreferrer" 
+                   class="block w-full py-2.5 bg-green-500 hover:bg-green-400 text-black font-black text-center text-xs uppercase tracking-wider rounded-xl transition shadow-md shadow-green-500/10">
+                  Launch Live Support &rarr;
+                </a>
+              </div>
+
+              <div class="border border-white/5 bg-zinc-950/20 rounded-2xl p-5 space-y-3 font-mono text-xs text-zinc-400">
+                <div class="text-[10px] uppercase text-zinc-600 tracking-wider font-bold">// HARDPOINT INDEX</div>
+                <div class="flex flex-col gap-2">
+                  <div class="flex justify-between border-b border-white/5 pb-2">
+                    <span class="text-zinc-500">System Support:</span>
+                    <span class="text-zinc-300 font-bold select-all">fsdxteam@gmail.com</span>
+                  </div>
+                  <div class="flex justify-between border-b border-white/5 pb-2">
+                    <span class="text-zinc-500">Response Matrix:</span>
+                    <span class="text-zinc-300 font-bold">Within 24 Operational Hours</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-zinc-500">Live Status Check:</span>
+                    <span class="text-green-400 font-bold">Channels Active</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+    <footer class="bg-zinc-950 border-t border-white/10 px-12 py-12 w-full mt-auto text-[10px]">
+      <div class="max-w-5xl mx-auto space-y-6">
+        <div>
+          <span class="bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+            CFTC Rule 4.41 — Performance Disclosure
+          </span>
+          <p class="text-zinc-500 leading-relaxed mt-2">
+            Hypothetical or simulated performance results have certain limitations. Unlike an actual performance record, simulated results do not represent actual trading. Also, since the trades have not been executed, the results may have under-or-over compensated for the impact, if any, of certain market factors, such as lack of liquidity. Simulated trading programs in general are also subject to the fact that they are designed with the benefit of hindsight. No representation is being made that any account will or is likely to achieve profit or losses similar to those shown.
+          </p>
+        </div>
+
+        <div>
+          <span class="bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+            Risk Disclosure
+          </span>
+          <p class="text-zinc-500 leading-relaxed mt-2">
+            Futures and forex trading contains substantial risk and is not for every investor. An investor could potentially lose all or more than the initial investment. Risk capital is money that can be lost without jeopardizing ones’ financial security or life style. Only risk capital should be used for trading and only those with sufficient risk capital should consider trading. Past performance is not necessarily indicative of future results.
+          </p>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-zinc-600 gap-2 font-mono">
+          <div>FSD-X Trading Ecosystem • NinjaTrader® Vendor Ecosystem Partner</div>
+          <div>&copy; 2026 FSD-X Trading. All rights reserved.</div>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+</body>
+</html>
