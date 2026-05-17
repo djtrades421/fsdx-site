@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FSD-X — Knowledge Base & Intelligence Terminal</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-
 <body class="text-white bg-black min-h-screen flex flex-row overflow-x-hidden antialiased">
 
   <aside class="w-64 fixed inset-y-0 left-0 bg-zinc-950 border-r border-white/10 flex flex-col justify-between p-6 z-50 overflow-y-auto">
@@ -82,7 +80,7 @@
 
       <section class="py-16 px-12 border-b border-white/5">
         <div class="max-w-6xl mx-auto">
-          <div class="text-[12px] font-mono uppercase tracking-widest text-zinc-500 font-bold mb-8">// VIDEO OPERATION BLUEPRINTS</div>
+          <div class="text-[12px] font-mono uppercase tracking-widest text-zinc-500 font-bold mb-8">// VIDEO OPERATION BLUEPRINTS (CLICK TO PLAY)</div>
           
           <div id="video-grid-container" class="grid md:grid-cols-3 gap-6"></div>
         </div>
@@ -134,20 +132,21 @@
         <div class="max-w-6xl mx-auto">
           <div class="text-[11px] font-mono uppercase tracking-widest text-zinc-500 font-bold mb-6">// DEPLOYMENT FILE TERMINAL</div>
           <div class="grid sm:grid-cols-2 gap-4">
+            
             <div class="border border-white/10 bg-zinc-950/60 p-5 rounded-xl flex items-center justify-between hover:border-zinc-800 transition">
               <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-zinc-400 text-xs font-bold">ZIP</div>
+                <div class="w-10 h-10 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-green-400 text-xs font-bold">CRX</div>
                 <div>
-                  <h4 class="text-sm font-bold text-white">FSD-X Optimizer Pro (Extension Files)</h4>
-                  <p class="text-[11px] text-zinc-500 font-mono mt-0.5">v2.1 Build • Unpacked Developer Archive</p>
+                  <h4 class="text-sm font-bold text-white">FSD-X Optimizer Pro (Web Extension)</h4>
+                  <p class="text-[11px] text-zinc-500 font-mono mt-0.5">Chrome Web Store Pipeline • Live Automation</p>
                 </div>
               </div>
-              <a href="#" class="border border-white/10 hover:border-green-400 hover:text-green-400 text-xs px-3 py-1.5 rounded-lg transition font-mono shrink-0">Download</a>
+              <a href="https://chromewebstore.google.com" target="_blank" rel="noopener noreferrer" class="border border-green-500/30 text-green-400 bg-green-500/5 hover:bg-green-500 hover:text-black text-xs px-3 py-1.5 rounded-lg transition font-mono font-bold shrink-0">Add to Chrome ↗</a>
             </div>
 
             <div class="border border-white/10 bg-zinc-950/60 p-5 rounded-xl flex items-center justify-between hover:border-zinc-800 transition">
               <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-green-400 text-xs font-bold">PDF</div>
+                <div class="w-10 h-10 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-zinc-400 text-xs font-bold">PDF</div>
                 <div>
                   <h4 class="text-sm font-bold text-white">ORB Playbook Matrix Cheat Sheet</h4>
                   <p class="text-[11px] text-zinc-500 font-mono mt-0.5">Updated Quarter Blueprint • Execution Rules</p>
@@ -184,9 +183,7 @@
   </main>
 
   <script>
-    // ==========================================
-    // 🛠️ TO ADD NEW VIDEOS: JUST COPY-PASTE A BLOCK INSIDE THIS ARRAY
-    // ==========================================
+    // System Repository containing video keys and structural description text
     const videoData = [
       {
         id: "01",
@@ -194,7 +191,7 @@
         runtime: "02:13",
         tier: "VIP + 2-Week Trial",
         description: "A quick review of the core V4 Alpha upgrades. Breaks down moving away from fixed bounds to a rolling 5-day lookback volatility engine, the 7-state progressive trend model, and the lime green visual grading system stamped right onto your breakout candles.",
-        youtubeUrl: "https://youtu.be/agmT_ZoP_Eo"
+        youtubeId: "agmT_ZoP_Eo" // Parsed directly from https://youtu.be/agmT_ZoP_Eo
       },
       {
         id: "02",
@@ -202,13 +199,11 @@
         runtime: "1:01:31",
         tier: "All Members",
         description: "An extensive masterclass detailing complete setting calibrations for index futures. Explains standard breakout models vs continuations, ATR/structure hybrid stop configurations, win rate metric filtering, and evaluating multi-year 'blind' backtesting logs safely.",
-        youtubeUrl: "https://youtu.be/2IJaJctBaxo"
+        youtubeId: "2IJaJctBaxo" // Parsed directly from https://youtu.be/2IJaJctBaxo
       }
     ];
 
-    // ==========================================
-    // AUTOMATIC CARD RENDER ENGINE (DO NOT TOUCH)
-    // ==========================================
+    // Main layout execution script
     function loadVideos() {
       const container = document.getElementById('video-grid-container');
       container.innerHTML = '';
@@ -217,13 +212,16 @@
         const cardHTML = `
           <div class="border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-800 transition flex flex-col justify-between">
             <div>
-              <a href="${video.youtubeUrl}" target="_blank" class="aspect-video bg-zinc-900 border-b border-white/5 flex items-center justify-center relative group cursor-pointer block">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-                <span class="text-zinc-600 font-mono text-[10px] uppercase tracking-wider absolute top-4 left-5 z-20">SYSTEM MODULE ${video.id} // PLAYBACK</span>
-                <div class="w-12 h-12 rounded-full bg-white/5 border border-white/20 flex items-center justify-center absolute z-20 group-hover:bg-green-400 group-hover:border-transparent transition">
+              <div id="player-wrapper-${video.id}" class="aspect-video bg-zinc-900 border-b border-white/5 flex items-center justify-center relative group cursor-pointer" onclick="activateInlinePlayer('${video.id}', '${video.youtubeId}')">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10 transition group-hover:from-black/90"></div>
+                
+                <img src="https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg" alt="Cover" class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-30 transition duration-300" />
+
+                <span class="text-zinc-400 font-mono text-[10px] uppercase tracking-wider absolute top-4 left-5 z-20 group-hover:text-green-400 transition">// MODULE ${video.id} • RUN PLAYER</span>
+                <div class="w-12 h-12 rounded-full bg-black/60 border border-white/20 flex items-center justify-center absolute z-20 group-hover:bg-green-400 group-hover:border-transparent transition transform group-hover:scale-105 duration-300 shadow-xl">
                   <span class="text-white group-hover:text-black ml-1 text-xs">&#9658;</span>
                 </div>
-              </a>
+              </div>
               <div class="p-5">
                 <h3 class="text-base font-bold text-white tracking-tight">${video.title}</h3>
                 <p class="mt-2 text-zinc-400 text-xs leading-relaxed">${video.description}</p>
@@ -238,9 +236,27 @@
       });
     }
 
-    // Initialize the engine on page load
+    // Swaps video element placeholder for a secure, responsive YouTube iframe player on call
+    function activateInlinePlayer(wrapperId, youtubeVideoId) {
+      const targetElement = document.getElementById(`player-wrapper-${wrapperId}`);
+      if(targetElement) {
+        targetElement.innerHTML = `
+          <iframe 
+            class="absolute inset-0 w-full h-full z-30" 
+            src="https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&rel=0" 
+            title="FSD-X Streaming Pipeline Terminal" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+            allowfullscreen>
+          </iframe>
+        `;
+        // Strip out cursor pointers once player mounts to preserve native media controls interaction feel
+        targetElement.removeAttribute('onclick');
+        targetElement.classList.remove('cursor-pointer');
+      }
+    }
+
     window.onload = loadVideos;
   </script>
-
 </body>
 </html>
