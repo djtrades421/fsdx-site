@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FSD-X Trading — Backtest Analytics Engine</title>
+  <title>FSD-X Trading — ORB Performance</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #000; }
-    /* Hide scrollbars for a cleaner terminal look while keeping swipe functionality */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -15,12 +14,8 @@
 <body class="text-white bg-black min-h-screen flex flex-col md:flex-row overflow-x-hidden antialiased">
 
   <header class="md:hidden w-full bg-zinc-950 border-b border-white/10 p-4 sticky top-0 z-50 flex items-center justify-between">
-    <div class="text-2xl font-black tracking-wider text-green-400">
-      FSD-X
-    </div>
-    <button onclick="toggleMobileMenu()" class="border border-white/10 bg-zinc-900 px-3 py-1.5 rounded text-xs font-mono tracking-wider hover:bg-zinc-800 transition">
-      // MENU
-    </button>
+    <div class="text-2xl font-black tracking-wider text-green-400">FSD-X</div>
+    <button onclick="toggleMobileMenu()" class="border border-white/10 bg-zinc-900 px-3 py-1.5 rounded text-xs font-mono tracking-wider hover:bg-zinc-800 transition">// MENU</button>
   </header>
 
   <aside id="sidebar-panel" class="w-64 fixed inset-y-0 left-0 bg-zinc-950 border-r border-white/10 flex flex-col justify-between p-6 z-50 overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
@@ -30,11 +25,8 @@
           <span class="text-green-400">FSD-X</span>
           <span class="text-xs uppercase text-zinc-500 tracking-[0.2em] -mt-1 font-bold">Trading</span>
         </div>
-        <button onclick="toggleMobileMenu()" class="md:hidden text-zinc-500 hover:text-white text-xs font-mono font-bold">
-          [ESC]
-        </button>
+        <button onclick="toggleMobileMenu()" class="md:hidden text-zinc-500 hover:text-white text-xs font-mono font-bold">[ESC]</button>
       </div>
-      
       <nav class="flex flex-col gap-4 w-full">
         <div>
           <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// Ecosystem</div>
@@ -42,10 +34,9 @@
             <a href="index.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Home</a>
             <a href="suite.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">FSD-X Suite</a>
             <a href="memberships.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Memberships</a>
-            <a href="results.html" class="text-green-400 hover:text-green-400 font-bold transition text-sm block">ORB Performance</a>
+            <a href="results.html" class="text-green-400 font-bold transition text-sm block">ORB Performance</a>
           </div>
         </div>
-
         <div class="mt-2">
           <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// Resources</div>
           <div class="flex flex-col gap-2.5 pl-1">
@@ -54,19 +45,13 @@
             <a href="schedule.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Schedule</a>
           </div>
         </div>
-
         <div class="mt-2">
           <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// Social Channels</div>
           <div class="flex flex-col gap-2.5 pl-1">
-            <a href="https://www.youtube.com/@FSD-XTrading" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm flex items-center gap-1.5">
-              YouTube <span class="text-[10px] text-zinc-600 font-mono">↗</span>
-            </a>
-            <a href="https://www.instagram.com/fsdx_trading/" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm flex items-center gap-1.5">
-              Instagram <span class="text-[10px] text-zinc-600 font-mono">↗</span>
-            </a>
+            <a href="https://www.youtube.com/@FSD-XTrading" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm flex items-center gap-1.5">YouTube <span class="text-[10px] text-zinc-600 font-mono">↗</span></a>
+            <a href="https://www.instagram.com/fsdx_trading/" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm flex items-center gap-1.5">Instagram <span class="text-[10px] text-zinc-600 font-mono">↗</span></a>
           </div>
         </div>
-
         <div class="mt-2">
           <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// System</div>
           <div class="flex flex-col gap-2.5 pl-1">
@@ -77,64 +62,62 @@
         </div>
       </nav>
     </div>
-    
     <div class="w-full pt-4 border-t border-white/5 mt-8">
-      <a href="https://discord.gg/RePdHESvSx" target="_blank" rel="noopener noreferrer" class="text-xs text-zinc-500 hover:text-white transition block">
-        Launch Discord &rarr;
-      </a>
+      <a href="https://discord.gg/RePdHESvSx" target="_blank" rel="noopener noreferrer" class="text-xs text-zinc-500 hover:text-white transition block">Launch Discord &rarr;</a>
     </div>
   </aside>
 
   <main class="flex-1 md:pl-64 w-full flex flex-col justify-between min-h-screen h-auto">
     <div class="w-full flex-1">
-      
+
+      <!-- PAGE HEADER -->
       <section class="pt-12 pb-10 lg:pt-20 lg:pb-12 px-6 md:px-12 border-b border-white/10 bg-gradient-to-b from-zinc-950 to-black">
         <div class="max-w-5xl mx-auto flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
             <div class="text-green-400 font-mono uppercase tracking-[0.3em] text-[10px] font-bold mb-3">// Backtest Verification Engine</div>
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">System Performance</h1>
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">ORB Performance</h1>
             <p class="mt-4 text-zinc-400 text-xs max-w-2xl leading-relaxed">
-              Historical parameter analysis for FSD-X ORB PRO tracking 1,549 total execution cycles from January 03, 2020 to April 24, 2026. Calculated utilizing a standardized risk blueprint of $400 per trade profile.
+              Historical parameter analysis for FSD-X ORB PRO V5 tracking 1,240 total execution cycles from January 03, 2020 to May 14, 2026. Calculated utilizing a standardized risk blueprint of $375 per trade profile on CME Micro NQ (MNQ).
             </p>
           </div>
-          
           <div class="flex bg-zinc-950 border border-white/10 p-1.5 rounded-xl self-start md:self-auto font-mono text-[11px] w-full sm:w-auto justify-center sm:justify-start">
-            <div class="px-4 py-2 rounded-lg font-bold text-green-400 bg-zinc-900 border border-white/5 shadow-lg whitespace-nowrap">
-              Full Take Profit Model
-            </div>
+            <div class="px-4 py-2 rounded-lg font-bold text-green-400 bg-zinc-900 border border-white/5 shadow-lg whitespace-nowrap">Full Take Profit Model</div>
           </div>
         </div>
       </section>
 
       <div id="content-results">
+
+        <!-- TOP STAT CARDS -->
         <section class="pt-10 lg:pt-12 px-6 md:px-12">
           <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
               <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Net Performance (MNQ)</div>
-              <div class="text-3xl font-black text-green-400 font-mono">$83,752</div>
+              <div class="text-3xl font-black text-green-400 font-mono">$88,262</div>
               <div class="text-xs font-semibold text-zinc-500 mt-2 block font-mono">Flat objective baseline</div>
             </div>
             <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
               <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Model Win Rate</div>
-              <div class="text-3xl font-black text-white font-mono">58.4%</div>
-              <div class="text-xs font-medium text-zinc-400 mt-2 block font-mono">Grade B Engine study</div>
+              <div class="text-3xl font-black text-white font-mono">60.7%</div>
+              <div class="text-xs font-medium text-zinc-400 mt-2 block font-mono">All grades included</div>
             </div>
             <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
               <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Profit Factor</div>
-              <div class="text-3xl font-black text-white font-mono">1.434</div>
+              <div class="text-3xl font-black text-white font-mono">1.556</div>
               <div class="text-xs font-medium text-zinc-400 mt-2 block font-mono">Positive math expectancy</div>
             </div>
             <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
               <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Max Drawdown</div>
-              <div class="text-3xl font-black text-zinc-400 font-mono">-$2,446</div>
-              <div class="text-xs font-medium text-zinc-400 mt-2 block font-mono">5.7% max peak-to-trough</div>
+              <div class="text-3xl font-black text-zinc-400 font-mono">-$2,494</div>
+              <div class="text-xs font-medium text-zinc-400 mt-2 block font-mono">Peak-to-trough capital</div>
             </div>
           </div>
         </section>
 
+        <!-- GRADING TABLE + SYSTEM ANATOMY -->
         <section class="py-10 lg:py-12 px-6 md:px-12">
           <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden flex flex-col justify-between">
+            <div class="lg:col-span-2 border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden flex flex-col">
               <div class="p-5 border-b border-white/5 bg-zinc-950">
                 <h3 class="text-sm font-black tracking-tight font-mono text-zinc-400">// GRADING LAYER METRICS</h3>
               </div>
@@ -146,12 +129,36 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-white/5 text-zinc-300">
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-white text-base">Grade A+</td><td class="p-4">144</td><td class="p-4 text-green-400 font-bold">63.2%</td><td class="p-4">1.722</td><td class="p-4 pr-6 text-right text-white font-bold">$14,952</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-white text-base">Grade A</td><td class="p-4">369</td><td class="p-4 text-green-400 font-bold">61.5%</td><td class="p-4">1.597</td><td class="p-4 pr-6 text-right text-white font-bold">$32,558</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-white text-base">Grade B+</td><td class="p-4">252</td><td class="p-4 text-zinc-400">58.7%</td><td class="p-4">1.383</td><td class="p-4 pr-6 text-right text-white font-bold">$15,610</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-white text-base">Grade B</td><td class="p-4">394</td><td class="p-4 text-zinc-400">58.9%</td><td class="p-4">1.399</td><td class="p-4 pr-6 text-right text-white font-bold">$14,615</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-zinc-500 text-base">Grade C+</td><td class="p-4 text-zinc-500">76</td><td class="p-4 text-zinc-500">52.6%</td><td class="p-4 text-zinc-500">1.259</td><td class="p-4 pr-6 text-right text-zinc-500">$1,926</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-zinc-500 text-base">Grade C</td><td class="p-4">314</td><td class="p-4 text-zinc-500">52.9%</td><td class="p-4 text-zinc-500">1.123</td><td class="p-4 pr-6 text-right text-zinc-500">$4,091</td></tr>
+                    <tr class="hover:bg-zinc-900/10 transition">
+                      <td class="p-4 pl-6 font-sans font-black text-white text-base">Grade A+</td><td class="p-4">145</td>
+                      <td class="p-4 text-green-400 font-bold">62.8%</td><td class="p-4">1.735</td>
+                      <td class="p-4 pr-6 text-right text-white font-bold">$14,661</td>
+                    </tr>
+                    <tr class="hover:bg-zinc-900/10 transition">
+                      <td class="p-4 pl-6 font-sans font-black text-white text-base">Grade A</td><td class="p-4">369</td>
+                      <td class="p-4 text-green-400 font-bold">61.2%</td><td class="p-4">1.587</td>
+                      <td class="p-4 pr-6 text-right text-white font-bold">$30,777</td>
+                    </tr>
+                    <tr class="hover:bg-zinc-900/10 transition">
+                      <td class="p-4 pl-6 font-sans font-black text-white text-base">Grade B+</td><td class="p-4">249</td>
+                      <td class="p-4 text-zinc-400">59.0%</td><td class="p-4">1.428</td>
+                      <td class="p-4 pr-6 text-right text-white font-bold">$16,148</td>
+                    </tr>
+                    <tr class="hover:bg-zinc-900/10 transition">
+                      <td class="p-4 pl-6 font-sans font-black text-white text-base">Grade B</td><td class="p-4">308</td>
+                      <td class="p-4 text-zinc-400">62.3%</td><td class="p-4">1.585</td>
+                      <td class="p-4 pr-6 text-right text-white font-bold">$20,224</td>
+                    </tr>
+                    <tr class="hover:bg-zinc-900/10 transition">
+                      <td class="p-4 pl-6 font-sans font-black text-zinc-500 text-base">Grade C+</td><td class="p-4 text-zinc-500">32</td>
+                      <td class="p-4 text-zinc-500">59.4%</td><td class="p-4 text-zinc-500">1.775</td>
+                      <td class="p-4 pr-6 text-right text-zinc-500">$1,738</td>
+                    </tr>
+                    <tr class="hover:bg-zinc-900/10 transition">
+                      <td class="p-4 pl-6 font-sans font-black text-zinc-500 text-base">Grade C</td><td class="p-4 text-zinc-500">137</td>
+                      <td class="p-4 text-zinc-500">56.9%</td><td class="p-4 text-zinc-500">1.400</td>
+                      <td class="p-4 pr-6 text-right text-zinc-500">$4,715</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -159,13 +166,17 @@
 
             <div class="border border-white/5 bg-zinc-950/20 rounded-2xl p-6 space-y-4 font-mono text-sm">
               <div class="text-[10px] text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2 font-bold">// SYSTEM ANATOMY</div>
-              <div class="flex justify-between"><span>Total Trade Count:</span><span class="text-white font-bold text-base">1,549</span></div>
-              <div class="flex justify-between"><span>Wins / Losses:</span><span class="text-zinc-400">904 / 644</span></div>
-              <div class="flex justify-between"><span>BE Scratches:</span><span class="text-zinc-500">1 (Static)</span></div>
-              <div class="flex justify-between"><span>Expected Value:</span><span class="text-zinc-300">$54.07 / trade</span></div>
-              <div class="flex justify-between"><span>Risk to Reward Avg:</span><span class="text-zinc-400">1.02 : 1</span></div>
-              <div class="flex justify-between"><span>Consecutive Wins:</span><span class="text-zinc-400">10 High</span></div>
-              <div class="flex justify-between"><span>Monthly Sharpe:</span><span class="text-white font-bold">1.002</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Total Trade Count:</span><span class="text-white font-bold text-base">1,240</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Wins / Losses:</span><span class="text-zinc-400">753 / 486</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Expected Value:</span><span class="text-zinc-300">$71.18 / trade</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Avg Win / Avg Loss:</span><span class="text-zinc-400">$328 / $327</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Max Consec. Wins:</span><span class="text-green-400 font-bold">13</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Max Consec. Losses:</span><span class="text-zinc-400">5</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Profitable Months:</span><span class="text-green-400 font-bold">67 / 77 <span class="text-zinc-500 font-normal">(87%)</span></span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Avg Monthly Return:</span><span class="text-white font-bold">$1,146</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Monthly Sharpe:</span><span class="text-white font-bold">1.076</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Recovery Factor:</span><span class="text-zinc-300">35.4x</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Risk Per Trade:</span><span class="text-white font-bold">$375</span></div>
               <div class="pt-3 border-t border-white/5 flex justify-between items-center text-xs text-zinc-500">
                 <span>Ecosystem Status:</span><span class="text-zinc-400 font-mono">Unmanaged Study</span>
               </div>
@@ -173,9 +184,12 @@
           </div>
         </section>
 
+        <!-- ANNUAL LEDGER -->
         <section class="pb-16 px-6 md:px-12">
           <div class="max-w-5xl mx-auto border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden">
-            <div class="p-5 border-b border-white/5 bg-zinc-950"><h3 class="text-sm font-black tracking-tight font-mono text-zinc-400">// MULTI-YEAR ANNUAL LEDGER</h3></div>
+            <div class="p-5 border-b border-white/5 bg-zinc-950">
+              <h3 class="text-sm font-black tracking-tight font-mono text-zinc-400">// MULTI-YEAR ANNUAL LEDGER</h3>
+            </div>
             <div class="overflow-x-auto w-full no-scrollbar">
               <table class="w-full text-left text-sm font-mono min-w-[650px]">
                 <thead>
@@ -184,62 +198,66 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-white/5 text-zinc-300">
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2020</td><td class="p-5">176</td><td class="p-5">105</td><td class="p-5">71</td><td class="p-5 text-white font-bold">59.7%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$9,956</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2021</td><td class="p-5">219</td><td class="p-5">130</td><td class="p-5">89</td><td class="p-5 text-white font-bold">59.4%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$11,777</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2022</td><td class="p-5">279</td><td class="p-5">164</td><td class="p-5">115</td><td class="p-5 text-white font-bold">58.8%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$15,630</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2023</td><td class="p-5">267</td><td class="p-5">145</td><td class="p-5">122</td><td class="p-5 text-white font-bold">54.3%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$7,030</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2024</td><td class="p-5">267</td><td class="p-5">151</td><td class="p-5">116</td><td class="p-5 text-white font-bold">56.6%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$10,315</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2025</td><td class="p-5">266</td><td class="p-5">161</td><td class="p-5">104</td><td class="p-5 text-white font-bold">60.5%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$20,444</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2026</td><td class="p-5">75</td><td class="p-5">48</td><td class="p-5">27</td><td class="p-5 text-white font-bold">64.0%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$8,602</td></tr>
+                  <tr class="hover:bg-zinc-900/10 transition">
+                    <td class="p-5 pl-6 text-white font-black text-base">2020</td><td class="p-5">157</td><td class="p-5">95</td><td class="p-5">62</td>
+                    <td class="p-5 text-white font-bold">60.5%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$11,320</td>
+                  </tr>
+                  <tr class="hover:bg-zinc-900/10 transition">
+                    <td class="p-5 pl-6 text-white font-black text-base">2021</td><td class="p-5">179</td><td class="p-5">106</td><td class="p-5">73</td>
+                    <td class="p-5 text-white font-bold">59.2%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$9,140</td>
+                  </tr>
+                  <tr class="hover:bg-zinc-900/10 transition">
+                    <td class="p-5 pl-6 text-white font-black text-base">2022</td><td class="p-5">227</td><td class="p-5">133</td><td class="p-5">94</td>
+                    <td class="p-5 text-white font-bold">58.6%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$14,307</td>
+                  </tr>
+                  <tr class="hover:bg-zinc-900/10 transition">
+                    <td class="p-5 pl-6 text-white font-black text-base">2023</td><td class="p-5">207</td><td class="p-5">122</td><td class="p-5">85</td>
+                    <td class="p-5 text-white font-bold">58.9%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$10,002</td>
+                  </tr>
+                  <tr class="hover:bg-zinc-900/10 transition">
+                    <td class="p-5 pl-6 text-white font-black text-base">2024</td><td class="p-5">198</td><td class="p-5">121</td><td class="p-5">77</td>
+                    <td class="p-5 text-white font-bold">61.1%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$12,548</td>
+                  </tr>
+                  <tr class="hover:bg-zinc-900/10 transition">
+                    <td class="p-5 pl-6 text-white font-black text-base">2025</td><td class="p-5">207</td><td class="p-5">130</td><td class="p-5">76</td>
+                    <td class="p-5 text-white font-bold">62.8%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$20,712</td>
+                  </tr>
+                  <tr class="hover:bg-zinc-900/10 transition">
+                    <td class="p-5 pl-6 text-white font-black text-base">2026 <span class="text-[10px] text-zinc-600 font-normal">YTD</span></td><td class="p-5">65</td><td class="p-5">46</td><td class="p-5">19</td>
+                    <td class="p-5 text-green-400 font-bold">70.8%</td><td class="p-5 pr-6 text-right text-green-400/90 font-black text-base">$10,232</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
           </div>
         </section>
-      </div>
 
+      </div>
     </div>
 
     <footer class="bg-zinc-950 border-t border-white/10 px-6 md:px-12 py-12 w-full mt-auto">
       <div class="max-w-5xl mx-auto space-y-6">
         <div>
-          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-            CFTC Rule 4.41 — Hypothetical Performance Disclosure
-          </span>
-          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">
-            Hypothetical or simulated performance results have certain limitations. Unlike an actual performance record, simulated results do not represent actual trading. Also, since the trades have not been executed, the results may have under-or-over compensated for the impact, if any, of certain market factors, such as lack of liquidity. Simulated trading programs in general are also subject to the fact that they are designed with the benefit of hindsight. No representation is being made that any account will or is likely to achieve profit or losses similar to those shown.
-          </p>
+          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">CFTC Rule 4.41 — Hypothetical Performance Disclosure</span>
+          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">Hypothetical or simulated performance results have certain limitations. Unlike an actual performance record, simulated results do not represent actual trading. Also, since the trades have not been executed, the results may have under-or-over compensated for the impact, if any, of certain market factors, such as lack of liquidity. Simulated trading programs in general are also subject to the fact that they are designed with the benefit of hindsight. No representation is being made that any account will or is likely to achieve profit or losses similar to those shown.</p>
         </div>
-
         <div>
-          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-            Futures & Forex Risk Disclosure
-          </span>
-          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">
-            Futures and forex trading contains substantial risk and is not for every investor. An investor could potentially lose all or more than the initial investment. Risk capital is money that can be lost without jeopardizing ones’ financial security or life style. Only risk capital should be used for trading and only those with sufficient risk capital should consider trading. Past performance is not necessarily indicative of future results.
-          </p>
+          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">Futures & Forex Risk Disclosure</span>
+          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">Futures and forex trading contains substantial risk and is not for every investor. An investor could potentially lose all or more than the initial investment. Risk capital is money that can be lost without jeopardizing ones' financial security or life style. Only risk capital should be used for trading and only those with sufficient risk capital should consider trading. Past performance is not necessarily indicative of future results.</p>
         </div>
-
         <div>
-          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-            Vendor Verification Disclosure
-          </span>
-          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">
-            FSD-X is an independent software provider. Performance metrics, system evaluations, and user results posted within community channels reflect educational tools and should not be construed as investment or financial advice. Not an auto-trading system. No trade signals are provided.
-          </p>
+          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">Vendor Verification Disclosure</span>
+          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">FSD-X is an independent software provider. Performance metrics, system evaluations, and user results posted within community channels reflect educational tools and should not be construed as investment or financial advice. Not an auto-trading system. No trade signals are provided.</p>
         </div>
-
         <div class="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-xs text-zinc-600 gap-4 text-center sm:text-left">
           <div>FSD-X Trading Ecosystem • NinjaTrader® Vendor Ecosystem Partner</div>
           <div>&copy; 2026 FSD-X Trading. All rights reserved.</div>
         </div>
       </div>
     </footer>
-
   </main>
 
   <script>
-    // Exact matching slide-out drawer script cloned from index.html
     function toggleMobileMenu() {
       const sidebar = document.getElementById('sidebar-panel');
       if (sidebar.classList.contains('-translate-x-full')) {
