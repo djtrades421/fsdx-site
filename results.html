@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FSD-X Suite — Backtest Analytics Engine</title>
+  <title>FSD-X Trading — Backtest Analytics Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #000; }
@@ -14,29 +14,30 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="text-white bg-black min-h-screen flex flex-col lg:flex-row overflow-x-hidden antialiased">
+<body class="text-white bg-black min-h-screen flex flex-col md:flex-row overflow-x-hidden antialiased">
 
-  <header class="lg:hidden w-full bg-zinc-950 border-b border-white/10 p-4 sticky top-0 flex items-center justify-between z-50">
-    <div class="text-2xl font-black tracking-wider flex flex-col">
-      <span class="text-green-400">FSD-X</span>
-      <span class="text-[9px] uppercase text-zinc-500 tracking-[0.2em] -mt-1 font-bold">Trading</span>
+  <header class="md:hidden w-full bg-zinc-950 border-b border-white/10 p-4 sticky top-0 z-50 flex items-center justify-between">
+    <div class="text-2xl font-black tracking-wider text-green-400">
+      FSD-X
     </div>
-    <button id="mobile-menu-toggle" class="p-2 text-zinc-400 hover:text-green-400 focus:outline-none" aria-label="Toggle Menu">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path id="menu-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
+    <button onclick="toggleMobileMenu()" class="border border-white/10 bg-zinc-900 px-3 py-1.5 rounded text-xs font-mono tracking-wider hover:bg-zinc-800 transition">
+      // MENU
     </button>
   </header>
 
-  <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"></div>
-
-  <aside id="sidebar-menu" class="transform -translate-x-full lg:translate-x-0 transition-transform duration-300 w-64 fixed inset-y-0 left-0 bg-zinc-950 border-r border-white/10 flex flex-col justify-between p-6 z-50 overflow-y-auto top-[65px] lg:top-0 h-[calc(100vh-65px)] lg:h-screen">
+  <aside id="sidebar-panel" class="w-64 fixed inset-y-0 left-0 bg-zinc-950 border-r border-white/10 flex flex-col justify-between p-6 z-50 overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div>
-      <div class="text-4xl font-black tracking-wider mb-8 hidden lg:flex flex-col">
-        <span class="text-green-400">FSD-X</span>
-        <span class="text-xs uppercase text-zinc-500 tracking-[0.2em] -mt-1 font-bold">Trading</span>
+      <div class="flex justify-between items-center mb-8 md:block">
+        <div class="text-4xl font-black tracking-wider flex flex-col">
+          <span class="text-green-400">FSD-X</span>
+          <span class="text-xs uppercase text-zinc-500 tracking-[0.2em] -mt-1 font-bold">Trading</span>
+        </div>
+        <button onclick="toggleMobileMenu()" class="md:hidden text-zinc-500 hover:text-white text-xs font-mono font-bold">
+          [ESC]
+        </button>
       </div>
-      <nav class="flex flex-col gap-6 lg:gap-4 w-full">
+      
+      <nav class="flex flex-col gap-4 w-full">
         <div>
           <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// Ecosystem</div>
           <div class="flex flex-col gap-2.5 pl-1">
@@ -47,7 +48,7 @@
           </div>
         </div>
 
-        <div>
+        <div class="mt-2">
           <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// Resources</div>
           <div class="flex flex-col gap-2.5 pl-1">
             <a href="affiliates.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Affiliates</a>
@@ -56,7 +57,7 @@
           </div>
         </div>
 
-        <div>
+        <div class="mt-2">
           <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// Social Channels</div>
           <div class="flex flex-col gap-2.5 pl-1">
             <a href="https://www.youtube.com/@FSD-XTrading" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm flex items-center gap-1.5">
@@ -68,7 +69,7 @@
           </div>
         </div>
 
-        <div>
+        <div class="mt-2">
           <div class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">// System</div>
           <div class="flex flex-col gap-2.5 pl-1">
             <a href="contact.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Contact & Help</a>
@@ -78,17 +79,18 @@
         </div>
       </nav>
     </div>
-    <div class="w-full pt-4 border-t border-white/5 mt-8 pb-12 lg:pb-0">
+    
+    <div class="w-full pt-4 border-t border-white/5 mt-8">
       <a href="https://discord.gg/RePdHESvSx" target="_blank" rel="noopener noreferrer" class="text-xs text-zinc-500 hover:text-white transition block">
         Launch Discord &rarr;
       </a>
     </div>
   </aside>
 
-  <main class="flex-1 pl-0 lg:pl-64 w-full flex flex-col justify-between min-h-screen h-auto">
+  <main class="flex-1 md:pl-64 w-full flex flex-col justify-between min-h-screen h-auto">
     <div class="w-full flex-1">
       
-      <section class="pt-12 pb-10 lg:pt-20 lg:pb-12 px-4 md:px-8 lg:px-12 border-b border-white/10 bg-gradient-to-b from-zinc-950 to-black">
+      <section class="pt-12 pb-10 lg:pt-20 lg:pb-12 px-6 md:px-12 border-b border-white/10 bg-gradient-to-b from-zinc-950 to-black">
         <div class="max-w-5xl mx-auto flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
             <div class="text-green-400 font-mono uppercase tracking-[0.3em] text-[10px] font-bold mb-3">// Backtest Verification Engine</div>
@@ -110,7 +112,7 @@
       </section>
 
       <div id="content-partial" class="tab-content active">
-        <section class="pt-10 lg:pt-12 px-4 md:px-8 lg:px-12">
+        <section class="pt-10 lg:pt-12 px-6 md:px-12">
           <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
               <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Net Performance (MNQ)</div>
@@ -135,7 +137,7 @@
           </div>
         </section>
 
-        <section class="py-10 lg:py-12 px-4 md:px-8 lg:px-12">
+        <section class="py-10 lg:py-12 px-6 md:px-12">
           <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden flex flex-col justify-between">
               <div class="p-5 border-b border-white/5 bg-zinc-950">
@@ -180,7 +182,7 @@
           </div>
         </section>
 
-        <section class="pb-16 px-4 md:px-8 lg:px-12">
+        <section class="pb-16 px-6 md:px-12">
           <div class="max-w-5xl mx-auto border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden">
             <div class="p-5 border-b border-white/5 bg-zinc-950"><h3 class="text-sm font-black tracking-tight font-mono text-zinc-400">// MULTI-YEAR ANNUAL LEDGER</h3></div>
             <div class="overflow-x-auto w-full no-scrollbar">
@@ -207,7 +209,7 @@
 
 
       <div id="content-full" class="tab-content">
-        <section class="pt-10 lg:pt-12 px-4 md:px-8 lg:px-12">
+        <section class="pt-10 lg:pt-12 px-6 md:px-12">
           <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
               <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Net Performance (MNQ)</div>
@@ -232,7 +234,7 @@
           </div>
         </section>
 
-        <section class="py-10 lg:py-12 px-4 md:px-8 lg:px-12">
+        <section class="py-10 lg:py-12 px-6 md:px-12">
           <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden flex flex-col justify-between">
               <div class="p-5 border-b border-white/5 bg-zinc-950">
@@ -273,7 +275,7 @@
           </div>
         </section>
 
-        <section class="pb-16 px-4 md:px-8 lg:px-12">
+        <section class="pb-16 px-6 md:px-12">
           <div class="max-w-5xl mx-auto border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden">
             <div class="p-5 border-b border-white/5 bg-zinc-950"><h3 class="text-sm font-black tracking-tight font-mono text-zinc-400">// MULTI-YEAR ANNUAL LEDGER</h3></div>
             <div class="overflow-x-auto w-full no-scrollbar">
@@ -300,16 +302,37 @@
 
     </div>
 
-    <footer class="bg-zinc-950 border-t border-white/10 px-4 md:px-8 lg:px-12 py-10 w-full mt-auto text-[10px]">
-      <div class="max-w-5xl mx-auto space-y-5">
+    <footer class="bg-zinc-950 border-t border-white/10 px-6 md:px-12 py-12 w-full mt-auto">
+      <div class="max-w-5xl mx-auto space-y-6">
         <div>
-          <span class="bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase font-mono tracking-wider">CFTC Rule 4.41 Regulatory Notice</span>
-          <p class="text-zinc-500 leading-relaxed mt-2 font-mono text-[9px]">
+          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
+            CFTC Rule 4.41 — Hypothetical Performance Disclosure
+          </span>
+          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">
             Hypothetical or simulated performance results have certain limitations. Unlike an actual performance record, simulated results do not represent actual trading. Also, since the trades have not been executed, the results may have under-or-over compensated for the impact, if any, of certain market factors, such as lack of liquidity. Simulated trading programs in general are also subject to the fact that they are designed with the benefit of hindsight. No representation is being made that any account will or is likely to achieve profit or losses similar to those shown.
           </p>
         </div>
-        <div class="pt-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-zinc-600 gap-4 font-mono text-[9px]">
-          <div class="text-center sm:text-left">FSD-X Trading Ecosystem Engine • Platform Developer Framework</div>
+
+        <div>
+          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
+            Futures & Forex Risk Disclosure
+          </span>
+          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">
+            Futures and forex trading contains substantial risk and is not for every investor. An investor could potentially lose all or more than the initial investment. Risk capital is money that can be lost without jeopardizing ones’ financial security or life style. Only risk capital should be used for trading and only those with sufficient risk capital should consider trading. Past performance is not necessarily indicative of future results.
+          </p>
+        </div>
+
+        <div>
+          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
+            Vendor Verification Disclosure
+          </span>
+          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">
+            FSD-X is an independent software provider. Performance metrics, system evaluations, and user results posted within community channels reflect educational tools and should not be construed as investment or financial advice. Not an auto-trading system. No trade signals are provided.
+          </p>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-xs text-zinc-600 gap-4 text-center sm:text-left">
+          <div>FSD-X Trading Ecosystem • NinjaTrader® Vendor Ecosystem Partner</div>
           <div>&copy; 2026 FSD-X Trading. All rights reserved.</div>
         </div>
       </div>
@@ -339,30 +362,15 @@
       }
     }
 
-    // Responsive Mobile Drawer Navigation Handler Logic
-    const menuToggle = document.getElementById('mobile-menu-toggle');
-    const sidebarMenu = document.getElementById('sidebar-menu');
-    const overlay = document.getElementById('sidebar-overlay');
-    const menuIconPath = document.getElementById('menu-icon-path');
-
+    // Exact matching slide-out drawer script cloned from index.html
     function toggleMobileMenu() {
-      const isExpanded = sidebarMenu.classList.contains('translate-x-0');
-      
-      if(isExpanded) {
-        sidebarMenu.classList.remove('translate-x-0');
-        sidebarMenu.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-        menuIconPath.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+      const sidebar = document.getElementById('sidebar-panel');
+      if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
       } else {
-        sidebarMenu.classList.remove('-translate-x-full');
-        sidebarMenu.classList.add('translate-x-0');
-        overlay.classList.remove('hidden');
-        menuIconPath.setAttribute('d', 'M6 18L18 6M6 6l12 12');
+        sidebar.classList.add('-translate-x-full');
       }
     }
-
-    menuToggle.addEventListener('click', toggleMobileMenu);
-    overlay.addEventListener('click', toggleMobileMenu);
   </script>
 
 </body>
