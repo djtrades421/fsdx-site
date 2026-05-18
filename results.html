@@ -7,8 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #000; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
     /* Hide scrollbars for a cleaner terminal look while keeping swipe functionality */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -101,119 +99,19 @@
           </div>
           
           <div class="flex bg-zinc-950 border border-white/10 p-1.5 rounded-xl self-start md:self-auto font-mono text-[11px] w-full sm:w-auto justify-center sm:justify-start">
-            <button id="btn-partial" onclick="switchModel('partial')" class="flex-1 sm:flex-initial text-center px-4 py-2 rounded-lg font-bold transition text-green-400 bg-zinc-900 border border-white/5 shadow-lg whitespace-nowrap">
-              Partial 50% + BE
-            </button>
-            <button id="btn-full" onclick="switchModel('full')" class="flex-1 sm:flex-initial text-center px-4 py-2 rounded-lg font-medium transition text-zinc-500 hover:text-white whitespace-nowrap">
-              Full Take Profit
-            </button>
+            <div class="px-4 py-2 rounded-lg font-bold text-green-400 bg-zinc-900 border border-white/5 shadow-lg whitespace-nowrap">
+              Full Take Profit Model
+            </div>
           </div>
         </div>
       </section>
 
-      <div id="content-partial" class="tab-content active">
+      <div id="content-results">
         <section class="pt-10 lg:pt-12 px-6 md:px-12">
           <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
               <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Net Performance (MNQ)</div>
-              <div class="text-3xl font-black text-green-400 font-mono">$106,271</div>
-              <div class="text-xs font-semibold text-zinc-400 mt-2 block font-mono">+$22,519 vs Baseline</div>
-            </div>
-            <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
-              <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Model Win Rate</div>
-              <div class="text-3xl font-black text-white font-mono">70.4%</div>
-              <div class="text-xs font-bold text-green-400 mt-2 block font-mono">Grade A+ Engine</div>
-            </div>
-            <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
-              <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Profit Factor</div>
-              <div class="text-3xl font-black text-white font-mono">1.826</div>
-              <div class="text-xs font-medium text-zinc-400 mt-2 block font-mono">Gross loss cut by $64.5k</div>
-            </div>
-            <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
-              <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Max Drawdown</div>
-              <div class="text-3xl font-black text-zinc-400 font-mono">-$1,960</div>
-              <div class="text-xs font-medium text-zinc-400 mt-2 block font-mono">Protection script limit</div>
-            </div>
-          </div>
-        </section>
-
-        <section class="py-10 lg:py-12 px-6 md:px-12">
-          <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden flex flex-col justify-between">
-              <div class="p-5 border-b border-white/5 bg-zinc-950">
-                <h3 class="text-sm font-black tracking-tight font-mono text-zinc-400">// GRADING LAYER METRICS</h3>
-              </div>
-              <div class="overflow-x-auto w-full no-scrollbar">
-                <table class="w-full text-left text-sm font-mono min-w-[500px]">
-                  <thead>
-                    <tr class="border-b border-white/5 bg-zinc-900/20 text-zinc-500 uppercase text-xs tracking-wider">
-                      <th class="p-4 pl-6">Grade</th>
-                      <th class="p-4">Trades</th>
-                      <th class="p-4">Win Rate</th>
-                      <th class="p-4">Profit Factor</th>
-                      <th class="p-4 pr-6 text-right">Net P&L</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-white/5 text-zinc-300">
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-white text-base">Grade A+</td><td class="p-4">144</td><td class="p-4 text-green-400 font-bold">74.3%</td><td class="p-4">1.955</td><td class="p-4 pr-6 text-right text-white font-bold">$14,209</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-white text-base">Grade A</td><td class="p-4">369</td><td class="p-4 text-green-400 font-bold">73.4%</td><td class="p-4">2.036</td><td class="p-4 pr-6 text-right text-white font-bold">$37,124</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-white text-base">Grade B+</td><td class="p-4">252</td><td class="p-4 text-zinc-400">72.6%</td><td class="p-4">1.711</td><td class="p-4 pr-6 text-right text-white font-bold">$19,984</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-white text-base">Grade B</td><td class="p-4">394</td><td class="p-4 text-zinc-400">70.6%</td><td class="p-4">1.880</td><td class="p-4 pr-6 text-right text-white font-bold">$20,528</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-zinc-500 text-base">Grade C+</td><td class="p-4 text-zinc-500">76</td><td class="p-4 text-zinc-500">69.7%</td><td class="p-4 text-zinc-500">2.204</td><td class="p-4 pr-6 text-right text-zinc-500">$4,520</td></tr>
-                    <tr class="hover:bg-zinc-900/10 transition"><td class="p-4 pl-6 font-sans font-black text-zinc-500 text-base">Grade C</td><td class="p-4">314</td><td class="p-4 text-zinc-500">63.4%</td><td class="p-4 text-zinc-500">1.435</td><td class="p-4 pr-6 text-right text-zinc-500">$9,906</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="border border-white/5 bg-zinc-950/20 rounded-2xl p-6 space-y-4 font-mono text-sm">
-              <div class="text-[10px] text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2 font-bold">// SYSTEM ANATOMY</div>
-              <div class="flex justify-between"><span>Total Trade Count:</span><span class="text-white font-bold text-base">1,549</span></div>
-              <div class="flex justify-between"><span>Wins / Losses:</span><span class="text-zinc-400">1,091 / 419</span></div>
-              <div class="flex justify-between"><span>BE Scratches:</span><span class="text-amber-400 font-bold">39 Saved</span></div>
-              <div class="flex justify-between"><span>Expected Value:</span><span class="text-green-400 font-bold">$68.61 / trade</span></div>
-              <div class="flex justify-between"><span>Risk to Reward Avg:</span><span class="text-zinc-400">0.70 : 1</span></div>
-              <div class="flex justify-between"><span>Consecutive Wins:</span><span class="text-zinc-400">21 High</span></div>
-              <div class="flex justify-between"><span>Monthly Sharpe:</span><span class="text-white font-bold">1.323</span></div>
-              <div class="pt-3 border-t border-white/5 flex justify-between items-center text-xs text-zinc-400">
-                <span>BE Recovered Capital:</span><span class="text-green-400 font-black">+$37,062</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="pb-16 px-6 md:px-12">
-          <div class="max-w-5xl mx-auto border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden">
-            <div class="p-5 border-b border-white/5 bg-zinc-950"><h3 class="text-sm font-black tracking-tight font-mono text-zinc-400">// MULTI-YEAR ANNUAL LEDGER</h3></div>
-            <div class="overflow-x-auto w-full no-scrollbar">
-              <table class="w-full text-left text-sm font-mono min-w-[650px]">
-                <thead>
-                  <tr class="border-b border-white/5 bg-zinc-900/20 text-zinc-500 uppercase text-xs tracking-wider">
-                    <th class="p-4 pl-6">Year</th><th class="p-4">Trades</th><th class="p-4">Wins</th><th class="p-4">Losses</th><th class="p-4">BE Scratches</th><th class="p-4">Win Rate</th><th class="p-4 pr-6 text-right">Net Return</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-white/5 text-zinc-300">
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2020</td><td class="p-5">176</td><td class="p-5">128</td><td class="p-5">46</td><td class="p-5 text-amber-500 font-bold">2</td><td class="p-5 text-white font-bold">72.7%</td><td class="p-5 pr-6 text-right text-green-400 font-black text-base">$11,867</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2021</td><td class="p-5">219</td><td class="p-5">154</td><td class="p-5">65</td><td class="p-5 text-zinc-600">0</td><td class="p-5 text-white font-bold">70.3%</td><td class="p-5 pr-6 text-right text-green-400 font-black text-base">$11,453</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2022</td><td class="p-5">279</td><td class="p-5">197</td><td class="p-5">75</td><td class="p-5 text-amber-500 font-bold">7</td><td class="p-5 text-white font-bold">70.6%</td><td class="p-5 pr-6 text-right text-green-400 font-black text-base">$20,997</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2023</td><td class="p-5">267</td><td class="p-5">190</td><td class="p-5">75</td><td class="p-5 text-amber-500 font-bold">2</td><td class="p-5 text-white font-bold">71.2%</td><td class="p-5 pr-6 text-right text-green-400 font-black text-base">$14,675</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2024</td><td class="p-5">267</td><td class="p-5">184</td><td class="p-5">76</td><td class="p-5 text-amber-500 font-bold">7</td><td class="p-5 text-white font-bold">68.9%</td><td class="p-5 pr-6 text-right text-green-400 font-black text-base">$13,695</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2025</td><td class="p-5">266</td><td class="p-5">187</td><td class="p-5">66</td><td class="p-5 text-amber-500 font-bold">13</td><td class="p-5 text-white font-bold">70.3%</td><td class="p-5 pr-6 text-right text-green-400 font-black text-base">$24,970</td></tr>
-                  <tr class="hover:bg-zinc-900/10 transition"><td class="p-5 pl-6 text-white font-black text-base">2026</td><td class="p-5">75</td><td class="p-5">51</td><td class="p-5">16</td><td class="p-5 text-amber-500 font-bold">8</td><td class="p-5 text-white font-bold">68.0%</td><td class="p-5 pr-6 text-right text-green-400 font-black text-base">$8,614</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </div>
-
-
-      <div id="content-full" class="tab-content">
-        <section class="pt-10 lg:pt-12 px-6 md:px-12">
-          <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
-              <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Net Performance (MNQ)</div>
-              <div class="text-3xl font-black text-white font-mono">$83,752</div>
+              <div class="text-3xl font-black text-green-400 font-mono">$83,752</div>
               <div class="text-xs font-semibold text-zinc-500 mt-2 block font-mono">Flat objective baseline</div>
             </div>
             <div class="border border-white/5 bg-zinc-950/50 rounded-2xl p-6">
@@ -341,27 +239,6 @@
   </main>
 
   <script>
-    function switchModel(type) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      
-      const btnPartial = document.getElementById('btn-partial');
-      const btnFull = document.getElementById('btn-full');
-      
-      const inactiveClasses = "flex-1 sm:flex-initial text-center px-4 py-2 rounded-lg font-medium transition text-zinc-500 hover:text-white whitespace-nowrap";
-      btnPartial.className = inactiveClasses;
-      btnFull.className = inactiveClasses;
-      
-      const activeClasses = "flex-1 sm:flex-initial text-center px-4 py-2 rounded-lg font-bold transition text-green-400 bg-zinc-900 border border-white/5 shadow-lg whitespace-nowrap";
-      
-      if(type === 'partial') {
-        document.getElementById('content-partial').classList.add('active');
-        btnPartial.className = activeClasses;
-      } else {
-        document.getElementById('content-full').classList.add('active');
-        btnFull.className = activeClasses;
-      }
-    }
-
     // Exact matching slide-out drawer script cloned from index.html
     function toggleMobileMenu() {
       const sidebar = document.getElementById('sidebar-panel');
