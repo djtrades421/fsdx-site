@@ -3,40 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FSD-X — System FAQ Terminal</title>
-
+  <title>FSD-X — FAQ</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
-    body {
-      background-color: #000;
-    }
+    body { background-color: #000; }
     .faq-answer {
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .faq-item.active .faq-answer {
-      max-height: 500px; /* Comfortably holds the larger text layout */
-    }
-    .faq-icon {
-      transition: transform 0.25s ease;
-    }
-    .faq-item.active .faq-icon {
-      transform: rotate(45deg);
-    }
+    .faq-item.active .faq-answer { max-height: 600px; }
+    .faq-icon { transition: transform 0.25s ease; }
+    .faq-item.active .faq-icon { transform: rotate(45deg); }
   </style>
 </head>
 
 <body class="text-white bg-black min-h-screen flex flex-col md:flex-row overflow-x-hidden antialiased">
 
   <header class="md:hidden w-full bg-zinc-950 border-b border-white/10 p-4 sticky top-0 z-50 flex items-center justify-between">
-    <div class="text-2xl font-black tracking-wider text-green-400">
-      FSD-X
-    </div>
-    <button onclick="toggleMobileMenu()" class="border border-white/10 bg-zinc-900 px-3 py-1.5 rounded text-xs tracking-wider hover:bg-zinc-800 transition">
-      // MENU
-    </button>
+    <div class="text-2xl font-black tracking-wider text-green-400">FSD-X</div>
+    <button onclick="toggleMobileMenu()" class="border border-white/10 bg-zinc-900 px-3 py-1.5 rounded text-xs tracking-wider hover:bg-zinc-800 transition">// MENU</button>
   </header>
 
   <aside id="sidebar-panel" class="w-64 fixed inset-y-0 left-0 bg-zinc-950 border-r border-white/10 flex flex-col justify-between p-6 z-50 overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
@@ -46,11 +32,8 @@
           <span class="text-green-400">FSD-X</span>
           <span class="text-xs uppercase text-zinc-500 tracking-[0.2em] -mt-1 font-bold">Trading</span>
         </div>
-        <button onclick="toggleMobileMenu()" class="md:hidden text-zinc-500 hover:text-white text-xs font-bold">
-          [ESC]
-        </button>
+        <button onclick="toggleMobileMenu()" class="md:hidden text-zinc-500 hover:text-white text-xs font-bold">[ESC]</button>
       </div>
-
       <nav class="flex flex-col gap-4 w-full">
         <div>
           <div class="text-[10px] uppercase tracking-widest text-zinc-600 mb-2">// Ecosystem</div>
@@ -61,7 +44,6 @@
             <a href="results.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">ORB Performance</a>
           </div>
         </div>
-
         <div class="mt-2">
           <div class="text-[10px] uppercase tracking-widest text-zinc-600 mb-2">// Resources</div>
           <div class="flex flex-col gap-2.5 pl-1">
@@ -70,245 +52,285 @@
             <a href="schedule.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Schedule</a>
           </div>
         </div>
-
         <div class="mt-2">
           <div class="text-[10px] uppercase tracking-widest text-zinc-600 mb-2">// Social Channels</div>
           <div class="flex flex-col gap-2.5 pl-1">
-            <a href="https://www.youtube.com/@FSD-XTrading" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block flex items-center gap-1.5">
-              YouTube <span class="text-[10px] text-zinc-600">↗</span>
-            </a>
-            <a href="https://www.instagram.com/fsdx_trading/" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block flex items-center gap-1.5">
-              Instagram <span class="text-[10px] text-zinc-600">↗</span>
-            </a>
+            <a href="https://www.youtube.com/@FSD-XTrading" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm flex items-center gap-1.5">YouTube <span class="text-[10px] text-zinc-600">↗</span></a>
+            <a href="https://www.instagram.com/fsdx_trading/" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm flex items-center gap-1.5">Instagram <span class="text-[10px] text-zinc-600">↗</span></a>
           </div>
         </div>
-
         <div class="mt-2">
           <div class="text-[10px] uppercase tracking-widest text-zinc-600 mb-2">// System</div>
           <div class="flex flex-col gap-2.5 pl-1">
             <a href="contact.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Contact & Help</a>
-            <a href="faq.html" class="text-green-400 hover:text-green-400 font-bold transition text-sm block">FAQ</a>
+            <a href="faq.html" class="text-green-400 font-bold transition text-sm block">FAQ</a>
             <a href="disclosures.html" class="text-zinc-400 hover:text-green-400 font-medium transition text-sm block">Disclosures</a>
           </div>
         </div>
       </nav>
     </div>
-
     <div class="w-full pt-4 border-t border-white/5 mt-8">
-      <a href="https://discord.gg/RePdHESvSx" class="text-xs text-zinc-500 hover:text-white transition block">
-        Launch Discord &rarr;
-      </a>
+      <a href="https://discord.gg/RePdHESvSx" class="text-xs text-zinc-500 hover:text-white transition block">Launch Discord &rarr;</a>
     </div>
   </aside>
 
   <main class="flex-1 md:pl-64 w-full flex flex-col justify-between min-h-screen h-auto">
-
     <div class="w-full flex-1">
-      
+
+      <!-- PAGE HEADER -->
       <section class="pt-12 pb-10 px-6 md:pt-20 md:pb-12 md:px-12 border-b border-white/10 bg-gradient-to-b from-zinc-950 to-black">
-        <div class="max-w-7xl mx-auto">
-          <div class="text-green-400 uppercase tracking-[0.3em] text-[10px] md:text-xs font-bold mb-3">Knowledge Index</div>
-          <h1 class="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight">System FAQ Directory</h1>
-          <p class="mt-4 text-zinc-400 text-xs md:text-sm max-w-2xl leading-relaxed">
-            Instant operational metrics. Select a parameter block below to parse indicator architecture functions, software utilities, or account synchronization steps.
+        <div class="max-w-5xl mx-auto">
+          <div class="text-green-400 uppercase tracking-[0.3em] text-[10px] font-bold mb-3">// Frequently Asked Questions</div>
+          <h1 class="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight">FAQ</h1>
+          <p class="mt-4 text-zinc-400 text-sm max-w-2xl leading-relaxed">
+            Answers to the most common questions about the FSD-X suite, Nexus, and membership. Can't find what you need? Jump into Discord — we're active daily.
           </p>
         </div>
       </section>
 
-      <section class="py-10 px-6 md:py-16 md:px-12">
-        <div class="max-w-7xl mx-auto grid lg:grid-cols-3 gap-10 lg:gap-8 items-start">
+      <!-- FAQ GRID -->
+      <section class="py-12 md:py-16 px-6 md:px-12">
+        <div class="max-w-5xl mx-auto grid lg:grid-cols-3 gap-8 lg:gap-10 items-start">
 
-          <div class="space-y-6">
-            <div class="text-[10px] md:text-[11px] uppercase tracking-widest text-zinc-500 font-bold">// FSD-X SUITE & OPTIMIZER INTEL</div>
-            <div class="space-y-4">
+          <!-- COLUMN 1: Indicators & Tools -->
+          <div class="space-y-4">
+            <div class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">// Indicators & Tools</div>
 
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">Is the indicator a "Trading Bot" that takes trades for me?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    No. This is a discretionary trading framework. It removes the guesswork by grading breakouts and plotting your SL/TPs automatically, but you are responsible for the final execution and risk management.
-                  </p>
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">What do I actually get with a membership?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <div class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4 space-y-2">
+                  <p>Every plan includes the full FSD-X suite — same tools regardless of which tier you choose:</p>
+                  <ul class="space-y-1 pl-2">
+                    <li>✓ FSD-X ORB PRO indicator</li>
+                    <li>✓ FSD-X ORB PRO Backtester</li>
+                    <li>✓ FSD-X // Stack V1</li>
+                    <li>✓ FSD-X // Volume Indicator</li>
+                    <li>✓ FSD-X Nexus 2.0 (Chrome extension)</li>
+                    <li>✓ Strategy Optimizer Pro</li>
+                    <li>✓ SCOUT live Discord alerts</li>
+                    <li>✓ Private Discord community</li>
+                  </ul>
                 </div>
               </div>
-
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">Does this work on the free version of TradingView?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    Yes! You do not need a paid TradingView subscription to use the FSD-X ORB PRO. It works on the free, pro, and premium versions of the platform.
-                  </p>
-                </div>
-              </div>
-
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">Do I need to already have the FSD-X indicator to use Optimizer Pro?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    No — the Optimizer works with any Pine Script strategy on TradingView. It's optimized for Opening Range Breakout (ORB) strategies but not locked to FSD-X.
-                  </p>
-                </div>
-              </div>
-
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">How do I install the Optimizer Pro extension?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    The Optimizer Pro is a verified Chrome Web Store extension. You can find the direct installation link on our official <a href="suite.html" class="text-green-400 hover:underline font-semibold">FSD-X Suite</a> page. Simply click the link, add it to Chrome, and follow the setup guide attached to your product access token.
-                  </p>
-                </div>
-              </div>
-
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">Does this work on Mac and Windows?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    Yes — it operates as a native Chrome extension so it runs smoothly on any system operating the Chrome framework.
-                  </p>
-                </div>
-              </div>
-
             </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">Is this a trading bot that places trades for me?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">No. FSD-X ORB PRO is a discretionary framework — it grades breakouts, plots SL/TP levels, and gives you the data to make decisions. You control every entry and exit. No signals, no auto-trading.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">Does it work on the free version of TradingView?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">Yes — FSD-X ORB PRO works on free, Pro, and Premium TradingView plans. You don't need a paid TradingView subscription to use it.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">What markets and timeframes does it work on?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">The system is optimized specifically for NQ and MNQ futures on the 5-minute timeframe. It can be used on other futures (ES, MES) but the default settings and backtest data are calibrated for NQ/MNQ.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">Does it work on Mac and Windows?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">Yes — the TradingView indicators work in any browser. The Nexus Chrome extension runs on any OS that supports Chrome (Mac, Windows, Linux).</p>
+              </div>
+            </div>
+
           </div>
 
-          <div class="space-y-6">
-            <div class="text-[10px] md:text-[11px] uppercase tracking-widest text-zinc-500 font-bold">// NEXUS UTILITY CORE</div>
-            <div class="space-y-4">
+          <!-- COLUMN 2: Nexus 2.0 -->
+          <div class="space-y-4">
+            <div class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">// Nexus 2.0</div>
 
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">Do I need a TradingView account for FSD-X Nexus?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    The Strategy Optimizer requires TradingView since it interacts directly with your chart. All other features — Journal, AI Chart Analyzer, News Scanner, Position Size Calculator, and Risk Planner — work independently without TradingView.
-                  </p>
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">What is Nexus and what does it include?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <div class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4 space-y-2">
+                  <p>Nexus is a Chrome extension that runs as a side panel inside TradingView. It includes:</p>
+                  <ul class="space-y-1 pl-2">
+                    <li>✓ Trade Journal (multi-account, calendar view)</li>
+                    <li>✓ Strategy Optimizer (automated Pine Script backtesting)</li>
+                    <li>✓ AI Chart Analyzer (up to 3 timeframes)</li>
+                    <li>✓ News Scanner with AI sentiment</li>
+                    <li>✓ Economic Calendar</li>
+                    <li>✓ Position Size Calculator (Futures + Forex)</li>
+                    <li>✓ Eval Sim & Strategy Analyzer</li>
+                    <li>✓ Options Flow Reader</li>
+                    <li>✓ Backtest Journal</li>
+                  </ul>
                 </div>
               </div>
-
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">Does the Position Size Calculator work for forex?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    Yes — it supports all major forex pairs (EUR/USD, GBP/USD, USD/JPY and more) with Standard, Mini, and Micro lot sizing. For futures it supports MNQ, NQ, ES, MES, CL, GC and more. Unknown instruments just need a manual $/point or $/pip entry.
-                  </p>
-                </div>
-              </div>
-
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">How many AI scans do I get per day?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    VIP members get 5 scans/day for Chart Analyzer, News Scanner, Flow Reader, and Eval Sim, plus 3 Strategy Analyzer runs and 1 Watchlist scan. VIP Trial members get 2 scans/day across AI features. Limits reset at midnight UTC.
-                  </p>
-                </div>
-              </div>
-
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">What makes this different from other trading journals?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    Nexus is built specifically for prop firm futures traders. It combines a trade journal, position size calculator, risk planner, eval simulator, and AI chart analysis all in one place — open alongside your charts while you trade, no switching between apps.
-                  </p>
-                </div>
-              </div>
-
             </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">Do I need TradingView to use Nexus?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">Only the Strategy Optimizer requires TradingView since it interacts with your chart. Everything else — Journal, AI Analyzer, News Scanner, Position Calculator, Eval Sim — works independently without TradingView open.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">Does the position calculator work for forex?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">Yes — it supports all major forex pairs with Standard, Mini, and Micro lot sizing. For futures it covers MNQ, NQ, ES, MES, CL, GC and more. Unknown instruments just need a manual $/point or $/pip entry.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">How many AI scans do I get per day?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">VIP members get 5 AI scans/day (Chart Analyzer, News Scanner, Flow Reader, Eval Sim) plus 3 Strategy Analyzer runs. Trial members get 2 scans/day across AI features. All limits reset at midnight UTC.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">How do I install Nexus?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">Install directly from the Chrome Web Store — find the link on the <a href="suite.html" class="text-green-400 hover:underline font-semibold">FSD-X Suite page</a>. After installing, enter your license key inside the extension to unlock VIP features. Setup takes under 2 minutes.</p>
+              </div>
+            </div>
+
           </div>
 
-          <div class="space-y-6">
-            <div class="text-[10px] md:text-[11px] uppercase tracking-widest text-zinc-500 font-bold">// MEMBERSHIP & ROUTING PROTOCOLS</div>
-            <div class="space-y-4">
+          <!-- COLUMN 3: Membership & Access -->
+          <div class="space-y-4">
+            <div class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">// Membership & Access</div>
 
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">How does the 14-day free trial work?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    You get full, unrestricted access to the VIP suite (Indicator + Backtester + Discord) for 14 days. You can cancel at any time within those 14 days through your Whop dashboard, and you will not be charged.
-                  </p>
-                </div>
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">How does the 14-day free trial work?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">You get full access to the entire suite for 14 days. Cancel any time through your Whop dashboard before day 15 and you won't be charged. No gotchas.</p>
               </div>
-
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">How do I get my Pro license key after purchasing?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    After subscribing, DM me your Whop username on Discord (<a href="https://tinyurl.com/discordfsdx" target="_blank" class="text-green-400 hover:underline">tinyurl.com/discordfsdx</a>) or through Whop messages and I'll send your key within 24 hours.
-                  </p>
-                </div>
-              </div>
-
-              <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden transition hover:border-zinc-800">
-                <button onclick="toggleFaq(this)" class="w-full px-4 py-4 md:px-5 md:py-5 text-left flex justify-between items-center gap-4 focus:outline-none">
-                  <span class="text-sm md:text-base font-bold tracking-tight text-white">Can I use my software licenses on multiple devices?</span>
-                  <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
-                </button>
-                <div class="faq-answer">
-                  <p class="px-4 pb-4 md:px-5 md:pb-5 text-zinc-400 text-xs md:text-sm leading-relaxed border-t border-white/5 pt-4">
-                    Each license key is locked to the first device you activate it on for network security. If you migrate setups or need a device transfer reset, just submit an alert in Discord or email <span class="text-white font-semibold">fsdxteam@gmail.com</span>.
-                  </p>
-                </div>
-              </div>
-
             </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">What's the difference between Monthly, Annual, and Lifetime?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">All three plans include the exact same suite — every tool, every update. The only difference is the payment structure. Monthly is $12.50/mo with a free trial, Annual is $119/yr (≈$9.92/mo), and Lifetime is a one-time $299 payment with no renewals ever.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">How do I get my Nexus license key after subscribing?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">After subscribing, DM your Whop username in the <a href="https://discord.gg/RePdHESvSx" target="_blank" class="text-green-400 hover:underline font-semibold">Discord</a> or send a message through Whop and your key will be sent within 24 hours.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">Can I use my license on multiple devices?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">Each Nexus license key locks to the first device it's activated on. If you need to transfer to a new device, open a ticket in Discord or email <span class="text-white font-semibold">fsdxteam@gmail.com</span> and we'll reset it for you.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">Are refunds available?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">Once a billing cycle begins, fees are non-refundable — that's why we offer a 14-day free trial on the Monthly plan so you can try everything before being charged. If you have a billing issue, contact us at <span class="text-white font-semibold">fsdxteam@gmail.com</span>.</p>
+              </div>
+            </div>
+
+            <div class="faq-item border border-white/10 bg-zinc-950/40 rounded-xl overflow-hidden hover:border-zinc-700 transition">
+              <button onclick="toggleFaq(this)" class="w-full px-5 py-4 text-left flex justify-between items-center gap-4 focus:outline-none">
+                <span class="text-sm font-bold text-white leading-snug">Can I share my access with someone else?</span>
+                <span class="faq-icon text-zinc-400 text-xl font-light shrink-0">+</span>
+              </button>
+              <div class="faq-answer">
+                <p class="px-5 pb-5 text-zinc-400 text-xs leading-relaxed border-t border-white/5 pt-4">No — access is tied to one Discord account and one TradingView username per subscription. Sharing, reselling, or transferring access is prohibited and will result in immediate termination without refund.</p>
+              </div>
+            </div>
+
           </div>
 
+        </div>
+      </section>
+
+      <!-- BOTTOM CTA -->
+      <section class="pb-16 px-6 md:px-12">
+        <div class="max-w-5xl mx-auto border border-green-500/20 bg-zinc-950/60 rounded-2xl p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div>
+            <h3 class="text-lg font-black text-white mb-1">Still have a question?</h3>
+            <p class="text-zinc-500 text-sm">The Discord is the fastest way to get a real answer from the team.</p>
+          </div>
+          <div class="flex gap-3 shrink-0">
+            <a href="https://discord.gg/RePdHESvSx" target="_blank" rel="noopener noreferrer"
+              class="px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition whitespace-nowrap">
+              Launch Discord &rarr;
+            </a>
+            <a href="contact.html"
+              class="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition whitespace-nowrap">
+              Contact Us
+            </a>
+          </div>
         </div>
       </section>
 
     </div>
 
-    <footer class="bg-zinc-950 border-t border-white/10 px-6 py-10 md:px-12 md:py-12 w-full mt-auto text-[10px]">
-      <div class="max-w-7xl mx-auto space-y-6">
+    <footer class="bg-zinc-950 border-t border-white/10 px-6 md:px-12 py-12 w-full mt-auto">
+      <div class="max-w-5xl mx-auto space-y-6">
         <div>
-          <span class="inline-block bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-            CFTC Rule 4.41 — Performance Disclosure
-          </span>
-          <p class="text-zinc-500 leading-relaxed mt-2">
-            Hypothetical or simulated performance results have certain limitations. Unlike an actual performance record, simulated results do not represent actual trading. Also, since the trades have not been executed, the results may have under-or-over compensated for the impact, if any, of certain market factors, such as lack of liquidity. Simulated trading programs in general are also subject to the fact that they are designed with the benefit of hindsight. No representation is being made that any account will or is likely to achieve profit or losses similar to those shown.
-          </p>
+          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">CFTC Rule 4.41 — Performance Disclosure</span>
+          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">Hypothetical or simulated performance results have certain limitations. Unlike an actual performance record, simulated results do not represent actual trading. Also, since the trades have not been executed, the results may have under-or-over compensated for the impact, if any, of certain market factors, such as lack of liquidity. Simulated trading programs in general are also subject to the fact that they are designed with the benefit of hindsight. No representation is being made that any account will or is likely to achieve profit or losses similar to those shown.</p>
         </div>
-
         <div>
-          <span class="inline-block bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-            Risk Disclosure
-          </span>
-          <p class="text-zinc-500 leading-relaxed mt-2">
-            Futures and forex trading contains substantial risk and is not for every investor. An investor could potentially lose all or more than the initial investment. Risk capital is money that can be lost without jeopardizing ones’ financial security or life style. Only risk capital should be used for trading and only those with sufficient risk capital should consider trading. Past performance is not necessarily indicative of future results.
-          </p>
+          <span class="text-[10px] bg-zinc-900 border border-white/10 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">Risk Disclosure</span>
+          <p class="text-[11px] text-zinc-500 leading-relaxed mt-2">Futures and forex trading contains substantial risk and is not for every investor. An investor could potentially lose all or more than the initial investment. Risk capital is money that can be lost without jeopardizing ones' financial security or life style. Only risk capital should be used for trading and only those with sufficient risk capital should consider trading. Past performance is not necessarily indicative of future results.</p>
         </div>
-
-        <div class="mt-8 pt-6 border-t border-white/5 flex flex-col lg:flex-row justify-between items-center text-zinc-600 gap-4 text-center lg:text-left">
+        <div class="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-xs text-zinc-600 gap-4 text-center sm:text-left">
           <div>FSD-X Trading Ecosystem • NinjaTrader® Vendor Ecosystem Partner</div>
           <div>&copy; 2026 FSD-X Trading. All rights reserved.</div>
         </div>
@@ -320,21 +342,12 @@
   <script>
     function toggleFaq(button) {
       const item = button.parentElement;
-      if (item.classList.contains('active')) {
-        item.classList.remove('active');
-      } else {
-        // Optional structural change: collapse other FAQs in the same column
-        item.classList.add('active');
-      }
+      item.classList.toggle('active');
     }
 
     function toggleMobileMenu() {
       const sidebar = document.getElementById('sidebar-panel');
-      if (sidebar.classList.contains('-translate-x-full')) {
-        sidebar.classList.remove('-translate-x-full');
-      } else {
-        sidebar.classList.add('-translate-x-full');
-      }
+      sidebar.classList.toggle('-translate-x-full');
     }
   </script>
 
