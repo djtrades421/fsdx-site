@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #000; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="text-white bg-black min-h-screen flex flex-col md:flex-row overflow-x-hidden antialiased">
@@ -111,22 +113,46 @@
         </div>
       </section>
 
+      <!-- SUITE NAV BAR -->
+      <div class="sticky top-0 z-40 bg-zinc-950/95 border-b border-white/10 px-6 md:px-12">
+        <div class="max-w-5xl mx-auto overflow-x-auto no-scrollbar">
+          <div class="flex gap-10 min-w-max">
+
+            <!-- Group: Indicators -->
+            <div class="flex flex-col items-center pt-2">
+              <span class="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">Indicators</span>
+              <div class="flex">
+                <a href="#tool-orbpro" class="px-3 py-2.5 text-xs text-zinc-400 hover:text-green-400 transition border-b-2 border-transparent hover:border-green-500 whitespace-nowrap">FSD-X ORB PRO</a>
+                <a href="#tool-backtester" class="px-3 py-2.5 text-xs text-zinc-400 hover:text-green-400 transition border-b-2 border-transparent hover:border-green-500 whitespace-nowrap">ORB Backtester</a>
+                <a href="#tool-stack" class="px-3 py-2.5 text-xs text-zinc-400 hover:text-green-400 transition border-b-2 border-transparent hover:border-green-500 whitespace-nowrap">Stack V1</a>
+                <a href="#tool-volume" class="px-3 py-2.5 text-xs text-zinc-400 hover:text-green-400 transition border-b-2 border-transparent hover:border-green-500 whitespace-nowrap">Volume Engine</a>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="w-px bg-white/10 my-2"></div>
+
+            <!-- Group: Trading Tools -->
+            <div class="flex flex-col items-center pt-2">
+              <span class="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">Trading Tools</span>
+              <div class="flex">
+                <a href="#tool-nexus" class="px-3 py-2.5 text-xs text-green-400/80 hover:text-green-400 transition border-b-2 border-transparent hover:border-green-500 whitespace-nowrap">Nexus 2.0</a>
+                <a href="#tool-optimizer" class="px-3 py-2.5 text-xs text-zinc-400 hover:text-green-400 transition border-b-2 border-transparent hover:border-green-500 whitespace-nowrap">Optimizer Pro</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <section class="py-12 sm:py-16 px-6 md:px-12">
         <div class="max-w-5xl mx-auto space-y-12 sm:space-y-16">
 
-      <!-- QUICK NAV -->
-      <div class="border border-white/10 bg-zinc-950/60 rounded-2xl p-5 mb-4">
-        <div class="text-xs text-zinc-500 uppercase tracking-widest mb-3 font-bold">// Jump to tool</div>
-        <div class="flex flex-wrap gap-2">
-          <a href="#tool-orbpro" class="px-3 py-1.5 bg-zinc-900 border border-white/10 hover:border-green-500/40 hover:text-green-400 rounded-lg text-xs text-zinc-400 transition">FSD-X ORB PRO</a>
-          <a href="#tool-backtester" class="px-3 py-1.5 bg-zinc-900 border border-white/10 hover:border-green-500/40 hover:text-green-400 rounded-lg text-xs text-zinc-400 transition">ORB PRO Backtester</a>
-          <a href="#tool-stack" class="px-3 py-1.5 bg-zinc-900 border border-white/10 hover:border-green-500/40 hover:text-green-400 rounded-lg text-xs text-zinc-400 transition">FSD-X Stack V1</a>
-          <a href="#tool-volume" class="px-3 py-1.5 bg-zinc-900 border border-white/10 hover:border-green-500/40 hover:text-green-400 rounded-lg text-xs text-zinc-400 transition">Volume Engine</a>
-          <a href="#tool-nexus" class="px-3 py-1.5 bg-zinc-900 border border-green-500/20 hover:border-green-500/40 hover:text-green-400 rounded-lg text-xs text-green-400/70 transition">Nexus 2.0 — Journal, News, AI, Optimizer</a>
-          <a href="#tool-optimizer" class="px-3 py-1.5 bg-zinc-900 border border-white/10 hover:border-green-500/40 hover:text-green-400 rounded-lg text-xs text-zinc-400 transition">Strategy Optimizer Pro</a>
-        </div>
-        <p class="text-xs text-zinc-600 mt-3">Looking for a trade journal, news scanner, AI chart analyzer, or position calculator? → <a href="#tool-nexus" class="text-green-400/70 hover:text-green-400 transition">Nexus 2.0</a> has all of that built in.</p>
-      </div>
+          <div id="tool-orbpro" class="border border-white/10 bg-zinc-950/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 hover:border-green-500/20 transition">
+            <div class="flex flex-col lg:flex-row justify-between items-start gap-6 border-b border-white/5 pb-6 mb-6 w-full">
+              <div class="space-y-2">
+                <div class="flex flex-wrap gap-2">
+                  <span class="px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] uppercase tracking-wider">TradingView Flagship</span>
                   <span class="px-2 py-0.5 rounded bg-green-950/40 border border-green-500/30 text-green-400 text-[10px] uppercase tracking-wider font-extrabold flex items-center gap-1">
                     <span class="w-1 h-1 rounded-full bg-green-400"></span> Exclusive VIP Bundle Asset
                   </span>
