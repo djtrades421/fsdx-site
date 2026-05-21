@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FSD-X — VIP Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="vip-nav.js"></script>
   <style>
     body { background-color: #000; }
   </style>
@@ -254,6 +255,8 @@
     }
 
     initDashboard();
+
+    loadVipNav({ activePage: 'dashboard.html' });
   </script>
 
 </body>
