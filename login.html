@@ -28,7 +28,7 @@
   <main class="flex-1 md:pl-64 w-full flex items-center justify-center min-h-screen px-6 py-16">
     <div class="w-full max-w-md">
 
-      <!-- LOGO + HEADING -->
+      <!-- HEADER -->
       <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-500/10 border border-green-500/20 mb-4">
           <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
@@ -42,53 +42,38 @@
 
         <!-- TABS -->
         <div class="flex border-b border-white/10">
-          <button onclick="switchTab('login')" id="tab-login" class="tab-btn active flex-1 py-3.5 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent transition text-green-400 border-green-500">
-            Login
-          </button>
-          <button onclick="switchTab('signup')" id="tab-signup" class="tab-btn flex-1 py-3.5 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent transition text-zinc-500 hover:text-zinc-300">
-            Sign Up
-          </button>
+          <button onclick="switchTab('login')" id="tab-login" class="tab-btn active flex-1 py-3.5 text-xs font-bold uppercase tracking-widest border-b-2 border-green-500 text-green-400 transition">Login</button>
+          <button onclick="switchTab('signup')" id="tab-signup" class="tab-btn flex-1 py-3.5 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition">Sign Up</button>
         </div>
 
         <div class="p-6 sm:p-8">
 
           <!-- LOGIN PANEL -->
           <div id="panel-login" class="tab-panel active space-y-4">
-
-            <div id="login-error" class="hidden bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 text-xs text-red-400"></div>
-            <div id="login-success" class="hidden bg-green-950/40 border border-green-500/30 rounded-xl px-4 py-3 text-xs text-green-400"></div>
-
+            <div id="login-msg" class="hidden rounded-xl px-4 py-3 text-xs leading-relaxed"></div>
             <div>
               <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Email</label>
-              <input type="email" id="login-email" placeholder="you@email.com"
+              <input type="email" id="login-email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')handleLogin()"
                 class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700">
             </div>
-
             <div>
               <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Password</label>
-              <input type="password" id="login-password" placeholder="••••••••••"
+              <input type="password" id="login-password" placeholder="••••••••••" onkeydown="if(event.key==='Enter')handleLogin()"
                 class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700">
             </div>
-
             <div class="flex justify-end">
               <button onclick="switchTab('forgot')" class="text-xs text-zinc-500 hover:text-zinc-300 transition">Forgot password?</button>
             </div>
-
             <button onclick="handleLogin()" id="login-btn"
               class="w-full py-3.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-green-500/10">
               Login to Dashboard
             </button>
-
-            <p class="text-center text-xs text-zinc-600">
-              Don't have an account? <button onclick="switchTab('signup')" class="text-green-400 hover:underline">Sign up →</button>
-            </p>
+            <p class="text-center text-xs text-zinc-600">Don't have an account? <button onclick="switchTab('signup')" class="text-green-400 hover:underline">Sign up →</button></p>
           </div>
 
           <!-- SIGNUP PANEL -->
           <div id="panel-signup" class="tab-panel space-y-4">
-
-            <div id="signup-error" class="hidden bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 text-xs text-red-400"></div>
-            <div id="signup-success" class="hidden bg-green-950/40 border border-green-500/30 rounded-xl px-4 py-3 text-xs text-green-400"></div>
+            <div id="signup-msg" class="hidden rounded-xl px-4 py-3 text-xs leading-relaxed"></div>
 
             <div class="bg-zinc-900/60 border border-white/5 rounded-xl px-4 py-3 text-xs text-zinc-400 leading-relaxed">
               <span class="text-white font-bold block mb-0.5">You'll need your Whop key</span>
@@ -107,63 +92,47 @@
                   class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700">
               </div>
             </div>
-
             <div>
               <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Email</label>
               <input type="email" id="signup-email" placeholder="you@email.com"
                 class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700">
             </div>
-
             <div>
               <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Password</label>
               <input type="password" id="signup-password" placeholder="Min 8 characters"
                 class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700">
             </div>
-
             <div>
               <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Whop License Key</label>
               <input type="text" id="signup-key" placeholder="Paste your key from Whop Software tab"
-                class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700 font-mono">
+                class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700 font-mono tracking-wider">
             </div>
-
             <button onclick="handleSignup()" id="signup-btn"
               class="w-full py-3.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-green-500/10">
-              Create Account
+              Create Account & Enter
             </button>
-
-            <p class="text-center text-xs text-zinc-600">
-              Already have an account? <button onclick="switchTab('login')" class="text-green-400 hover:underline">Login →</button>
-            </p>
+            <p class="text-center text-xs text-zinc-600">Already have an account? <button onclick="switchTab('login')" class="text-green-400 hover:underline">Login →</button></p>
           </div>
 
           <!-- FORGOT PASSWORD PANEL -->
           <div id="panel-forgot" class="tab-panel space-y-4">
-
-            <div id="forgot-error" class="hidden bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 text-xs text-red-400"></div>
-            <div id="forgot-success" class="hidden bg-green-950/40 border border-green-500/30 rounded-xl px-4 py-3 text-xs text-green-400"></div>
-
-            <p class="text-zinc-400 text-sm leading-relaxed">Enter your email and we'll send you a reset link.</p>
-
+            <div id="forgot-msg" class="hidden rounded-xl px-4 py-3 text-xs leading-relaxed"></div>
+            <p class="text-zinc-400 text-sm leading-relaxed">Enter your email and we'll send a reset link.</p>
             <div>
               <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Email</label>
-              <input type="email" id="forgot-email" placeholder="you@email.com"
+              <input type="email" id="forgot-email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')handleForgot()"
                 class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700">
             </div>
-
             <button onclick="handleForgot()" id="forgot-btn"
               class="w-full py-3.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">
               Send Reset Link
             </button>
-
-            <p class="text-center text-xs text-zinc-600">
-              <button onclick="switchTab('login')" class="text-green-400 hover:underline">← Back to login</button>
-            </p>
+            <p class="text-center text-xs text-zinc-600"><button onclick="switchTab('login')" class="text-green-400 hover:underline">← Back to login</button></p>
           </div>
 
         </div>
       </div>
 
-      <!-- FOOTER NOTE -->
       <p class="text-center text-xs text-zinc-700 mt-6">
         Not a member yet? <a href="memberships.html" class="text-zinc-500 hover:text-white transition">View membership plans →</a>
       </p>
@@ -172,8 +141,16 @@
   </main>
 
   <script>
-    function toggleMobileMenu() {
-      document.getElementById('sidebar-panel').classList.toggle('-translate-x-full');
+    const API = 'https://nexus-validator.dfuentes4211.workers.dev';
+
+    // If already logged in, redirect to dashboard
+    const existingToken = localStorage.getItem('fsdx_token');
+    if (existingToken) {
+      fetch(`${API}/api/auth/me`, {
+        headers: { 'Authorization': `Bearer ${existingToken}` }
+      }).then(r => r.json()).then(d => {
+        if (d.authenticated) window.location.href = 'dashboard.html';
+      }).catch(() => {});
     }
 
     function switchTab(tab) {
@@ -181,114 +158,113 @@
         document.getElementById('panel-' + t).classList.remove('active');
         const btn = document.getElementById('tab-' + t);
         if (btn) {
-          btn.classList.remove('active', 'text-green-400', 'border-green-500');
-          btn.classList.add('text-zinc-500');
+          btn.classList.remove('active','text-green-400','border-green-500');
+          btn.classList.add('text-zinc-500','border-transparent');
         }
       });
       document.getElementById('panel-' + tab).classList.add('active');
       const activeBtn = document.getElementById('tab-' + tab);
       if (activeBtn) {
-        activeBtn.classList.add('active', 'text-green-400', 'border-green-500');
-        activeBtn.classList.remove('text-zinc-500');
+        activeBtn.classList.add('active','text-green-400','border-green-500');
+        activeBtn.classList.remove('text-zinc-500','border-transparent');
       }
-    }
-
-    function setLoading(btnId, loading) {
-      const btn = document.getElementById(btnId);
-      btn.disabled = loading;
-      btn.textContent = loading ? 'Please wait...' : btn.dataset.label || btn.textContent;
     }
 
     function showMsg(id, msg, type) {
       const el = document.getElementById(id);
       el.textContent = msg;
-      el.classList.remove('hidden');
+      el.classList.remove('hidden','bg-red-950/40','border-red-500/30','text-red-400','bg-green-950/40','border-green-500/30','text-green-400','border');
+      el.classList.add('border');
       if (type === 'error') {
         el.classList.add('bg-red-950/40','border-red-500/30','text-red-400');
-        el.classList.remove('bg-green-950/40','border-green-500/30','text-green-400');
       } else {
         el.classList.add('bg-green-950/40','border-green-500/30','text-green-400');
-        el.classList.remove('bg-red-950/40','border-red-500/30','text-red-400');
       }
     }
 
-    function hideMsg(id) {
-      document.getElementById(id).classList.add('hidden');
+    function setLoading(id, loading, label) {
+      const btn = document.getElementById(id);
+      btn.disabled = loading;
+      btn.textContent = loading ? 'Please wait...' : label;
+      btn.classList.toggle('opacity-60', loading);
     }
 
-    // These functions will call your Cloudflare Worker endpoints when ready.
-    // For now they show a coming soon message.
-
     async function handleLogin() {
-      hideMsg('login-error');
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
-      if (!email || !password) return showMsg('login-error', 'Please fill in all fields.', 'error');
+      if (!email || !password) return showMsg('login-msg', 'Please fill in all fields.', 'error');
 
-      setLoading('login-btn', true);
-
-      // TODO: Replace with your Worker endpoint
-      // const res = await fetch('https://your-worker.workers.dev/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password })
-      // });
-      // const data = await res.json();
-      // if (data.success) window.location.href = 'dashboard.html';
-      // else showMsg('login-error', data.message, 'error');
-
-      setTimeout(() => {
-        setLoading('login-btn', false);
-        showMsg('login-error', 'Member dashboard coming soon — backend integration in progress.', 'error');
-      }, 800);
+      setLoading('login-btn', true, 'Login to Dashboard');
+      try {
+        const res = await fetch(`${API}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('fsdx_token', data.token);
+          localStorage.setItem('fsdx_name', data.firstName || '');
+          localStorage.setItem('fsdx_tier', data.tier || 'pro');
+          window.location.href = 'dashboard.html';
+        } else {
+          showMsg('login-msg', data.error || 'Login failed. Please try again.', 'error');
+          setLoading('login-btn', false, 'Login to Dashboard');
+        }
+      } catch (err) {
+        showMsg('login-msg', 'Connection error. Please try again.', 'error');
+        setLoading('login-btn', false, 'Login to Dashboard');
+      }
     }
 
     async function handleSignup() {
-      hideMsg('signup-error');
-      const firstname = document.getElementById('signup-firstname').value.trim();
-      const lastname = document.getElementById('signup-lastname').value.trim();
-      const email = document.getElementById('signup-email').value.trim();
-      const password = document.getElementById('signup-password').value;
-      const key = document.getElementById('signup-key').value.trim();
+      const firstName = document.getElementById('signup-firstname').value.trim();
+      const lastName  = document.getElementById('signup-lastname').value.trim();
+      const email     = document.getElementById('signup-email').value.trim();
+      const password  = document.getElementById('signup-password').value;
+      const key       = document.getElementById('signup-key').value.trim();
 
-      if (!firstname || !email || !password || !key) return showMsg('signup-error', 'Please fill in all fields.', 'error');
-      if (password.length < 8) return showMsg('signup-error', 'Password must be at least 8 characters.', 'error');
+      if (!firstName || !email || !password || !key) return showMsg('signup-msg', 'Please fill in all required fields.', 'error');
+      if (password.length < 8) return showMsg('signup-msg', 'Password must be at least 8 characters.', 'error');
 
-      setLoading('signup-btn', true);
-
-      // TODO: Replace with your Worker endpoint
-      // const res = await fetch('https://your-worker.workers.dev/auth/signup', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ firstname, lastname, email, password, key })
-      // });
-      // const data = await res.json();
-      // if (data.success) window.location.href = 'dashboard.html';
-      // else showMsg('signup-error', data.message, 'error');
-
-      setTimeout(() => {
-        setLoading('signup-btn', false);
-        showMsg('signup-error', 'Member dashboard coming soon — backend integration in progress.', 'error');
-      }, 800);
+      setLoading('signup-btn', true, 'Create Account & Enter');
+      try {
+        const res = await fetch(`${API}/api/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName, lastName, email, password, key })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('fsdx_token', data.token);
+          localStorage.setItem('fsdx_name', data.firstName || '');
+          localStorage.setItem('fsdx_tier', data.tier || 'pro');
+          window.location.href = 'dashboard.html';
+        } else {
+          showMsg('signup-msg', data.error || 'Signup failed. Please try again.', 'error');
+          setLoading('signup-btn', false, 'Create Account & Enter');
+        }
+      } catch (err) {
+        showMsg('signup-msg', 'Connection error. Please try again.', 'error');
+        setLoading('signup-btn', false, 'Create Account & Enter');
+      }
     }
 
     async function handleForgot() {
-      hideMsg('forgot-error');
       const email = document.getElementById('forgot-email').value.trim();
-      if (!email) return showMsg('forgot-error', 'Please enter your email.', 'error');
-
-      setLoading('forgot-btn', true);
-
-      // TODO: Replace with your Worker endpoint
-      // const res = await fetch('https://your-worker.workers.dev/auth/forgot', { ... });
-
+      if (!email) return showMsg('forgot-msg', 'Please enter your email.', 'error');
+      setLoading('forgot-btn', true, 'Send Reset Link');
+      // TODO: wire to Worker reset endpoint when built
       setTimeout(() => {
-        setLoading('forgot-btn', false);
-        showMsg('forgot-success', 'Reset link sent — check your inbox.', 'success');
+        showMsg('forgot-msg', 'If an account exists for that email, a reset link has been sent.', 'success');
+        setLoading('forgot-btn', false, 'Send Reset Link');
       }, 800);
     }
 
-    // Nav loader
+    function toggleMobileMenu() {
+      document.getElementById('sidebar-panel').classList.toggle('-translate-x-full');
+    }
+
     fetch('nav.html')
       .then(r => r.text())
       .then(html => {
@@ -296,7 +272,7 @@
         document.querySelectorAll('#nav-content .nav-link').forEach(link => {
           if (link.getAttribute('href') === 'login.html') {
             link.classList.remove('text-zinc-400');
-            link.classList.add('text-green-400', 'font-bold');
+            link.classList.add('text-green-400','font-bold');
           }
         });
       });
