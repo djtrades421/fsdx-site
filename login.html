@@ -361,11 +361,18 @@
       const email = document.getElementById('forgot-email').value.trim();
       if (!email) return showMsg('forgot-msg', 'Please enter your email.', 'error');
       setLoading('forgot-btn', true, 'Send Reset Link');
-      // TODO: wire to Worker reset endpoint when built
-      setTimeout(() => {
-        showMsg('forgot-msg', 'If an account exists for that email, a reset link has been sent.', 'success');
-        setLoading('forgot-btn', false, 'Send Reset Link');
-      }, 800);
+      try {
+        const res = await fetch(`${API}/api/auth/forgot`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        showMsg('forgot-msg', data.message || 'If an account exists for that email, a reset link has been sent.', 'success');
+      } catch (err) {
+        showMsg('forgot-msg', 'Connection error. Please try again.', 'error');
+      }
+      setLoading('forgot-btn', false, 'Send Reset Link');
     }
 
     function toggleMobileMenu() {
