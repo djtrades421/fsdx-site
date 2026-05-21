@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FSD-X — Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #000; }
+    .tab-btn.active { color: #22c55e; border-bottom-color: #22c55e; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body class="text-white bg-black min-h-screen antialiased">
+
+  <!-- Loading -->
+  <div id="loading-screen" class="min-h-screen flex items-center justify-center">
+    <div class="text-center">
+      <div class="w-8 h-8 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-zinc-500 text-sm">Verifying admin access...</p>
+    </div>
+  </div>
+
+  <!-- Unauthorized -->
+  <div id="unauth-screen" class="hidden min-h-screen flex items-center justify-center px-6">
+    <div class="text-center max-w-sm">
+      <div class="text-5xl mb-4">🔒</div>
+      <h2 class="text-xl font-black text-white mb-2">Access Denied</h2>
+      <p class="text-zinc-500 text-sm mb-6">This page is restricted to admin accounts only.</p>
+      <a href="dashboard.html" class="inline-block px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">Back to Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Admin content -->
+  <div id="admin-content" class="hidden">
+
+    <!-- Header -->
+    <div class="bg-zinc-950 border-b border-white/10 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div class="flex items-center gap-3">
+        <a href="dashboard.html" class="text-zinc-500 hover:text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+        </a>
+        <div>
+          <h1 class="text-lg font-black text-white">Admin Panel</h1>
+          <p class="text-[10px] text-zinc-500 uppercase tracking-wider">FSD-X — Restricted Access</p>
+        </div>
+      </div>
+      <button onclick="handleLogout()" class="text-xs text-zinc-500 hover:text-white transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+        Logout
+      </button>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="bg-zinc-950/60 border-b border-white/5 px-6 py-4">
+      <div class="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div><div class="text-xs text-zinc-500 mb-1">Total Members</div><div id="stat-total" class="text-2xl font-black text-white">—</div></div>
+        <div><div class="text-xs text-zinc-500 mb-1">VIP Members</div><div id="stat-vip" class="text-2xl font-black text-green-400">—</div></div>
+        <div><div class="text-xs text-zinc-500 mb-1">Trial Members</div><div id="stat-trial" class="text-2xl font-black text-white">—</div></div>
+        <div><div class="text-xs text-zinc-500 mb-1">Session Recaps</div><div id="stat-recaps" class="text-2xl font-black text-white">—</div></div>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 py-8">
+
+      <!-- Tabs -->
+      <div class="flex border-b border-white/10 mb-8">
+        <button onclick="switchTab('members')" id="tab-members" class="tab-btn active px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-green-500 text-green-400 transition mr-2">Members</button>
+        <button onclick="switchTab('recaps')" id="tab-recaps" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-2">Session Recaps</button>
+        <button onclick="switchTab('announce')" id="tab-announce" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition">Announcement</button>
+      </div>
+
+      <!-- MEMBERS TAB -->
+      <div id="panel-members" class="tab-panel active">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-black text-white">Member Accounts</h2>
+          <input type="text" id="member-search" placeholder="Search by email or name..."
+            oninput="filterMembers()"
+            class="bg-black border border-white/10 text-white text-xs px-3 py-2 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-600 w-56">
+        </div>
+        <div class="border border-white/10 rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left min-w-[600px]">
+              <thead>
+                <tr class="bg-zinc-950 border-b border-white/10 text-xs text-zinc-500 uppercase tracking-wider">
+                  <th class="px-5 py-3">Name</th>
+                  <th class="px-5 py-3">Email</th>
+                  <th class="px-5 py-3">Tier</th>
+                  <th class="px-5 py-3">Joined</th>
+                </tr>
+              </thead>
+              <tbody id="members-table" class="divide-y divide-white/5 text-sm">
+                <tr><td colspan="4" class="px-5 py-8 text-center text-zinc-600">Loading members...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECAPS TAB -->
+      <div id="panel-recaps" class="tab-panel space-y-6">
+        <!-- Add recap form -->
+        <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
+          <h2 class="text-base font-black text-white mb-4">Post New Session Recap</h2>
+          <div id="recap-msg" class="hidden rounded-xl px-4 py-3 text-xs mb-4"></div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Date</label>
+              <input type="date" id="recap-date" class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition">
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Title</label>
+              <input type="text" id="recap-title" placeholder="e.g. Strong ORB Long Setup — NQ" class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700">
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Grade</label>
+              <select id="recap-grade" class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition">
+                <option value="">Select grade...</option>
+                <option>A+</option><option>A</option><option>B+</option><option>B</option><option>C+</option><option>C</option><option>No Setup</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Result</label>
+              <select id="recap-result" class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition">
+                <option value="">Select result...</option>
+                <option>Win — TP1</option><option>Win — TP2</option><option>Win — Full</option><option>Loss — SL</option><option>Scratch / BE</option><option>No Trade</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-4">
+            <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Summary</label>
+            <textarea id="recap-summary" rows="3" placeholder="What happened in today's session? Key levels, market context, setup quality..."
+              class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700 resize-none"></textarea>
+          </div>
+          <div class="mt-4">
+            <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Notes / Lessons (optional)</label>
+            <textarea id="recap-notes" rows="2" placeholder="What went well? What to watch for next session?"
+              class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700 resize-none"></textarea>
+          </div>
+          <div class="mt-4">
+            <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Tags (comma separated, optional)</label>
+            <input type="text" id="recap-tags" placeholder="e.g. ORB Long, A+ Setup, Gap Fill" class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700">
+          </div>
+          <button onclick="postRecap()" id="recap-btn" class="mt-4 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">
+            Post Recap
+          </button>
+        </div>
+
+        <!-- Existing recaps -->
+        <div>
+          <h3 class="text-sm font-black text-white mb-4">Posted Recaps</h3>
+          <div id="recaps-list" class="space-y-3">
+            <p class="text-zinc-600 text-sm">Loading recaps...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANNOUNCEMENT TAB -->
+      <div id="panel-announce" class="tab-panel">
+        <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6 max-w-xl">
+          <h2 class="text-base font-black text-white mb-1">Post Announcement</h2>
+          <p class="text-zinc-500 text-xs mb-5">This message will appear at the top of every member's dashboard.</p>
+          <div id="announce-msg" class="hidden rounded-xl px-4 py-3 text-xs mb-4"></div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Type</label>
+              <select id="announce-type" class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition">
+                <option value="info">Info (blue)</option>
+                <option value="success">Success (green)</option>
+                <option value="warning">Warning (yellow)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Message</label>
+              <textarea id="announce-message" rows="3" placeholder="e.g. No session tomorrow — holiday. See you Monday!"
+                class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700 resize-none"></textarea>
+            </div>
+            <button onclick="postAnnouncement()" id="announce-btn"
+              class="px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">
+              Post Announcement
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const API = 'https://nexus-validator.dfuentes4211.workers.dev';
+    let allMembers = [];
+    let allRecaps = [];
+
+    function switchTab(tab) {
+      ['members','recaps','announce'].forEach(t => {
+        document.getElementById('panel-' + t).classList.remove('active');
+        const btn = document.getElementById('tab-' + t);
+        btn.classList.remove('active','text-green-400','border-green-500');
+        btn.classList.add('text-zinc-500','border-transparent');
+      });
+      document.getElementById('panel-' + tab).classList.add('active');
+      const activeBtn = document.getElementById('tab-' + tab);
+      activeBtn.classList.add('active','text-green-400','border-green-500');
+      activeBtn.classList.remove('text-zinc-500','border-transparent');
+    }
+
+    function handleLogout() {
+      const token = localStorage.getItem('fsdx_token');
+      if (token) fetch(`${API}/api/auth/logout`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }).catch(() => {});
+      localStorage.removeItem('fsdx_token');
+      localStorage.removeItem('fsdx_name');
+      localStorage.removeItem('fsdx_tier');
+      window.location.href = 'login.html';
+    }
+
+    function showAdminMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = `rounded-xl px-4 py-3 text-xs border ${type === 'error' ? 'bg-red-950/40 border-red-500/30 text-red-400' : 'bg-green-950/40 border-green-500/30 text-green-400'}`;
+    }
+
+    function renderMembers(members) {
+      const tbody = document.getElementById('members-table');
+      if (!members.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="px-5 py-8 text-center text-zinc-600">No members yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = members.map(m => `
+        <tr class="hover:bg-white/[0.02] transition">
+          <td class="px-5 py-3.5 text-white font-medium">${m.firstName || ''} ${m.lastName || ''}</td>
+          <td class="px-5 py-3.5 text-zinc-400 text-xs">${m.email}</td>
+          <td class="px-5 py-3.5">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${m.tier === 'pro' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : m.tier === 'trial' ? 'bg-zinc-800 text-zinc-400 border border-white/10' : 'bg-red-950/30 text-red-400 border border-red-500/20'}">
+              ${m.tier || 'unknown'}
+            </span>
+          </td>
+          <td class="px-5 py-3.5 text-zinc-500 text-xs">${new Date(m.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+        </tr>
+      `).join('');
+    }
+
+    function filterMembers() {
+      const q = document.getElementById('member-search').value.toLowerCase();
+      const filtered = allMembers.filter(m =>
+        m.email.includes(q) || (m.firstName || '').toLowerCase().includes(q) || (m.lastName || '').toLowerCase().includes(q)
+      );
+      renderMembers(filtered);
+    }
+
+    function renderRecaps(recaps) {
+      const container = document.getElementById('recaps-list');
+      if (!recaps.length) { container.innerHTML = '<p class="text-zinc-600 text-sm">No recaps posted yet.</p>'; return; }
+      container.innerHTML = recaps.map(r => `
+        <div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4 flex items-start justify-between gap-4">
+          <div class="flex-1">
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+              <span class="text-xs text-zinc-500">${new Date(r.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+              ${r.grade ? `<span class="px-2 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px] font-bold border border-green-500/20">${r.grade}</span>` : ''}
+              ${r.result ? `<span class="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px] border border-white/10">${r.result}</span>` : ''}
+            </div>
+            <div class="text-sm font-bold text-white">${r.title}</div>
+            <div class="text-xs text-zinc-500 mt-1 line-clamp-2">${r.summary}</div>
+          </div>
+          <button onclick="deleteRecap('${r.id}')" class="text-zinc-600 hover:text-red-400 transition shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    async function loadData() {
+      const token = localStorage.getItem('fsdx_token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      const [membersRes, recapsRes] = await Promise.all([
+        fetch(`${API}/api/admin/members`, { headers }),
+        fetch(`${API}/api/recaps`, { headers })
+      ]);
+
+      const membersData = await membersRes.json();
+      const recapsData = await recapsRes.json();
+
+      allMembers = membersData.members || [];
+      allRecaps = recapsData.recaps || [];
+
+      // Stats
+      document.getElementById('stat-total').textContent = allMembers.length;
+      document.getElementById('stat-vip').textContent = allMembers.filter(m => m.tier === 'pro').length;
+      document.getElementById('stat-trial').textContent = allMembers.filter(m => m.tier === 'trial').length;
+      document.getElementById('stat-recaps').textContent = allRecaps.length;
+
+      renderMembers(allMembers);
+      renderRecaps(allRecaps);
+    }
+
+    async function postRecap() {
+      const date = document.getElementById('recap-date').value;
+      const title = document.getElementById('recap-title').value.trim();
+      const summary = document.getElementById('recap-summary').value.trim();
+      const grade = document.getElementById('recap-grade').value;
+      const result = document.getElementById('recap-result').value;
+      const notes = document.getElementById('recap-notes').value.trim();
+      const tagsRaw = document.getElementById('recap-tags').value;
+      const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+      if (!date || !title || !summary) { showAdminMsg('recap-msg', 'Date, title, and summary are required.', 'error'); return; }
+
+      const btn = document.getElementById('recap-btn');
+      btn.disabled = true; btn.textContent = 'Posting...';
+
+      const token = localStorage.getItem('fsdx_token');
+      const res = await fetch(`${API}/api/admin/recap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ date, title, summary, grade, result, notes, tags })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showAdminMsg('recap-msg', 'Recap posted successfully!', 'success');
+        allRecaps.unshift(data.recap);
+        renderRecaps(allRecaps);
+        document.getElementById('stat-recaps').textContent = allRecaps.length;
+        // Clear form
+        ['recap-date','recap-title','recap-summary','recap-grade','recap-result','recap-notes','recap-tags'].forEach(id => {
+          const el = document.getElementById(id);
+          el.tagName === 'SELECT' ? (el.selectedIndex = 0) : (el.value = '');
+        });
+      } else {
+        showAdminMsg('recap-msg', data.error || 'Failed to post recap.', 'error');
+      }
+      btn.disabled = false; btn.textContent = 'Post Recap';
+    }
+
+    async function deleteRecap(id) {
+      if (!confirm('Delete this recap? This cannot be undone.')) return;
+      const token = localStorage.getItem('fsdx_token');
+      const res = await fetch(`${API}/api/admin/recap`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        allRecaps = allRecaps.filter(r => r.id !== id);
+        renderRecaps(allRecaps);
+        document.getElementById('stat-recaps').textContent = allRecaps.length;
+      }
+    }
+
+    async function postAnnouncement() {
+      const message = document.getElementById('announce-message').value.trim();
+      const type = document.getElementById('announce-type').value;
+      if (!message) { showAdminMsg('announce-msg', 'Message is required.', 'error'); return; }
+
+      const btn = document.getElementById('announce-btn');
+      btn.disabled = true; btn.textContent = 'Posting...';
+
+      const token = localStorage.getItem('fsdx_token');
+      const res = await fetch(`${API}/api/admin/announcement`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ message, type })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showAdminMsg('announce-msg', 'Announcement posted! Members will see it on their dashboard.', 'success');
+        document.getElementById('announce-message').value = '';
+      } else {
+        showAdminMsg('announce-msg', data.error || 'Failed to post announcement.', 'error');
+      }
+      btn.disabled = false; btn.textContent = 'Post Announcement';
+    }
+
+    async function init() {
+      const token = localStorage.getItem('fsdx_token');
+      if (!token) { window.location.href = 'login.html'; return; }
+
+      try {
+        const res = await fetch(`${API}/api/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+
+        if (!data.authenticated) { window.location.href = 'login.html'; return; }
+
+        // Check if admin
+        const membersRes = await fetch(`${API}/api/admin/members`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (membersRes.status === 403) {
+          document.getElementById('loading-screen').classList.add('hidden');
+          document.getElementById('unauth-screen').classList.remove('hidden');
+          return;
+        }
+
+        document.getElementById('loading-screen').classList.add('hidden');
+        document.getElementById('admin-content').classList.remove('hidden');
+
+        await loadData();
+      } catch (err) {
+        window.location.href = 'login.html';
+      }
+    }
+
+    // Set today's date as default
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('recap-date').value = new Date().toISOString().slice(0, 10);
+    });
+
+    init();
+  </script>
+</body>
+</html>
