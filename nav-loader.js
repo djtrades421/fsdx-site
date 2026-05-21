@@ -2,6 +2,22 @@
 // Handles logged-in and logged-out states automatically
 
 (function() {
+  // Show skeleton immediately to prevent flash
+  const navContent = document.getElementById('nav-content');
+  if (navContent) {
+    navContent.innerHTML = `<div class="animate-pulse space-y-3 pt-2 flex-1">
+      <div class="h-2 bg-white/5 rounded w-16 mb-5"></div>
+      <div class="h-2.5 bg-white/5 rounded w-3/4"></div>
+      <div class="h-2.5 bg-white/5 rounded w-2/3"></div>
+      <div class="h-2.5 bg-white/5 rounded w-3/4"></div>
+      <div class="h-2.5 bg-white/5 rounded w-1/2"></div>
+      <div class="h-2 bg-white/5 rounded w-16 mt-5 mb-3"></div>
+      <div class="h-2.5 bg-white/5 rounded w-2/3"></div>
+      <div class="h-2.5 bg-white/5 rounded w-3/4"></div>
+      <div class="h-2.5 bg-white/5 rounded w-1/2"></div>
+    </div>`;
+  }
+
   fetch('nav.html')
     .then(r => r.text())
     .then(html => {
