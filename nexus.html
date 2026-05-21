@@ -214,6 +214,7 @@
 
           <!-- BACKTEST TAB -->
           <div id="panel-backtest" class="tab-panel">
+            <!-- Sessions list -->
             <div id="bt-sessions-view">
               <div id="bt-sessions-empty" class="hidden text-center py-16">
                 <div class="text-4xl mb-3">🧪</div>
@@ -222,29 +223,102 @@
               </div>
               <div id="bt-sessions-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
+
+            <!-- Session detail -->
             <div id="bt-session-detail" class="hidden">
               <button onclick="closeBtSession()" class="flex items-center gap-2 text-zinc-500 hover:text-white text-xs mb-5 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
                 Back to Sessions
               </button>
-              <div class="flex items-start justify-between mb-6 flex-wrap gap-4">
+              <div class="flex items-start justify-between mb-5 flex-wrap gap-4">
                 <div>
                   <h2 id="bt-session-title" class="text-xl font-black text-white"></h2>
                   <div id="bt-session-meta" class="text-zinc-500 text-xs mt-1"></div>
                 </div>
                 <div id="bt-session-stats" class="flex gap-6"></div>
               </div>
-              <div class="border border-white/10 rounded-2xl overflow-hidden">
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left min-w-[600px]">
-                    <thead>
-                      <tr class="bg-zinc-950 border-b border-white/10 text-xs text-zinc-500 uppercase tracking-wider">
-                        <th class="px-4 py-3">Date</th><th class="px-4 py-3">Dir</th><th class="px-4 py-3">Grade</th>
-                        <th class="px-4 py-3">Result</th><th class="px-4 py-3">Net P&L</th><th class="px-4 py-3">Tags</th>
-                      </tr>
-                    </thead>
-                    <tbody id="bt-trades-tbody" class="divide-y divide-white/5 text-sm"></tbody>
-                  </table>
+
+              <!-- Session sub-tabs -->
+              <div class="flex border-b border-white/10 mb-6">
+                <button onclick="btSwitchTab('trades')" id="bt-tab-trades" class="bt-tab-btn px-4 py-2.5 text-xs font-bold uppercase tracking-widest border-b-2 border-green-500 text-green-400 transition mr-1">Trades</button>
+                <button onclick="btSwitchTab('stats')" id="bt-tab-stats" class="bt-tab-btn px-4 py-2.5 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-1">Stats</button>
+                <button onclick="btSwitchTab('calendar')" id="bt-tab-calendar" class="bt-tab-btn px-4 py-2.5 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition">Calendar</button>
+              </div>
+
+              <!-- Trades panel -->
+              <div id="bt-panel-trades">
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                  <select id="bt-filter-result" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-2 rounded-lg focus:outline-none">
+                    <option value="">All Results</option><option value="WIN">Win</option><option value="LOSS">Loss</option><option value="BE">BE</option>
+                  </select>
+                  <select id="bt-filter-grade" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-2 rounded-lg focus:outline-none">
+                    <option value="">All Grades</option>
+                    <option>A+</option><option>A</option><option>B+</option><option>B</option><option>C+</option><option>C</option><option>D</option>
+                  </select>
+                  <select id="bt-filter-direction" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-2 rounded-lg focus:outline-none">
+                    <option value="">All Directions</option><option value="LONG">Long</option><option value="SHORT">Short</option>
+                  </select>
+                  <button onclick="clearBtFilters()" class="px-3 py-2 bg-zinc-900 border border-white/10 text-zinc-500 hover:text-white text-xs rounded-lg transition">✕ Clear</button>
+                  <span id="bt-filter-count" class="ml-auto text-xs text-zinc-600 self-center"></span>
+                </div>
+                <div class="border border-white/10 rounded-2xl overflow-hidden">
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left min-w-[700px]">
+                      <thead>
+                        <tr class="bg-zinc-950 border-b border-white/10 text-xs text-zinc-500 uppercase tracking-wider">
+                          <th class="px-4 py-3">Date</th><th class="px-4 py-3">Ticker</th><th class="px-4 py-3">Dir</th>
+                          <th class="px-4 py-3">Grade</th><th class="px-4 py-3">Result</th><th class="px-4 py-3">Net P&L</th>
+                          <th class="px-4 py-3">Tags</th><th class="px-4 py-3"></th>
+                        </tr>
+                      </thead>
+                      <tbody id="bt-trades-tbody" class="divide-y divide-white/5 text-sm"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stats panel -->
+              <div id="bt-panel-stats" class="hidden space-y-6">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">Win Rate</div><div id="bt-stat-winrate" class="text-3xl font-black text-green-400">—</div><div id="bt-stat-trades" class="text-xs text-zinc-600 mt-1"></div></div>
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">Net P&L</div><div id="bt-stat-pnl" class="text-3xl font-black">—</div></div>
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">Avg Win</div><div id="bt-stat-avg-win" class="text-3xl font-black text-green-400">—</div></div>
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">Avg Loss</div><div id="bt-stat-avg-loss" class="text-3xl font-black text-red-400">—</div></div>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Profit Factor</div><div id="bt-stat-pf" class="text-xl font-black text-white">—</div></div>
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Best Trade</div><div id="bt-stat-best" class="text-xl font-black text-green-400">—</div></div>
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Worst Trade</div><div id="bt-stat-worst" class="text-xl font-black text-red-400">—</div></div>
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Max Consec. Losses</div><div id="bt-stat-consec" class="text-xl font-black text-white">—</div></div>
+                </div>
+                <div><h3 class="text-sm font-black text-white mb-4">By Grade</h3><div id="bt-stats-by-grade" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3"></div></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div><h3 class="text-sm font-black text-white mb-4">Long vs Short</h3><div id="bt-stats-direction" class="grid grid-cols-2 gap-3"></div></div>
+                  <div><h3 class="text-sm font-black text-white mb-4">Day of Week</h3><div id="bt-stats-dow" class="grid grid-cols-5 gap-2"></div></div>
+                </div>
+                <div><h3 class="text-sm font-black text-white mb-4">Last 20 Trades</h3><div id="bt-stats-recent" class="flex gap-1 flex-wrap"></div></div>
+              </div>
+
+              <!-- Calendar panel -->
+              <div id="bt-panel-calendar" class="hidden">
+                <div class="flex items-center justify-between mb-6">
+                  <button onclick="btCalPrev()" class="p-2 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+                  <h2 id="bt-cal-title" class="text-lg font-black text-white"></h2>
+                  <button onclick="btCalNext()" class="p-2 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg></button>
+                </div>
+                <div id="bt-cal-summary" class="grid grid-cols-4 gap-3 mb-6"></div>
+                <div class="border border-white/10 rounded-2xl overflow-hidden">
+                  <div class="grid grid-cols-7 border-b border-white/10">
+                    <div class="px-3 py-2 text-[10px] text-zinc-600 uppercase tracking-wider text-center">Sun</div>
+                    <div class="px-3 py-2 text-[10px] text-zinc-600 uppercase tracking-wider text-center">Mon</div>
+                    <div class="px-3 py-2 text-[10px] text-zinc-600 uppercase tracking-wider text-center">Tue</div>
+                    <div class="px-3 py-2 text-[10px] text-zinc-600 uppercase tracking-wider text-center">Wed</div>
+                    <div class="px-3 py-2 text-[10px] text-zinc-600 uppercase tracking-wider text-center">Thu</div>
+                    <div class="px-3 py-2 text-[10px] text-zinc-600 uppercase tracking-wider text-center">Fri</div>
+                    <div class="px-3 py-2 text-[10px] text-zinc-600 uppercase tracking-wider text-center">Sat</div>
+                  </div>
+                  <div id="bt-cal-grid" class="grid grid-cols-7"></div>
                 </div>
               </div>
             </div>
@@ -465,6 +539,8 @@
           ${t.notes ? `<div class="border-t border-white/5 pt-3"><div class="text-xs text-zinc-600 mb-1">Notes</div><p class="text-zinc-400 text-xs leading-relaxed">${t.notes}</p></div>` : ''}
           ${t.chartUrl ? `<div class="border-t border-white/5 pt-3"><a href="${t.chartUrl}" target="_blank" class="text-green-400 hover:text-green-300 text-xs transition">View Chart ↗</a></div>` : ''}
         </div>`;
+      document.getElementById('detail-edit-btn').classList.remove('hidden');
+      document.getElementById('detail-delete-btn').classList.remove('hidden');
       document.getElementById('detail-modal').classList.remove('hidden');
     }
 
@@ -743,6 +819,180 @@
     }
 
     // ── Backtest ──
+    let btAllTrades = [], btFilteredTrades = [], currentSessionId = null;
+    let btCalYear = new Date().getFullYear(), btCalMonth = new Date().getMonth();
+
+    function btSwitchTab(tab) {
+      ['trades','stats','calendar'].forEach(t => {
+        document.getElementById('bt-panel-' + t).classList.add('hidden');
+        const btn = document.getElementById('bt-tab-' + t);
+        btn.classList.remove('text-green-400','border-green-500');
+        btn.classList.add('text-zinc-500','border-transparent');
+      });
+      document.getElementById('bt-panel-' + tab).classList.remove('hidden');
+      const activeBtn = document.getElementById('bt-tab-' + tab);
+      activeBtn.classList.add('text-green-400','border-green-500');
+      activeBtn.classList.remove('text-zinc-500','border-transparent');
+      if (tab === 'stats') renderBtStats();
+      if (tab === 'calendar') renderBtCalendar();
+    }
+
+    function applyBtFilters() {
+      const result = document.getElementById('bt-filter-result').value;
+      const grade = document.getElementById('bt-filter-grade').value;
+      const direction = document.getElementById('bt-filter-direction').value;
+      btFilteredTrades = btAllTrades.filter(t =>
+        (!result || t.result === result) &&
+        (!grade || t.grade === grade) &&
+        (!direction || t.direction === direction)
+      );
+      renderBtTrades(btFilteredTrades);
+    }
+
+    function clearBtFilters() {
+      ['bt-filter-result','bt-filter-grade','bt-filter-direction'].forEach(id => document.getElementById(id).value = '');
+      btFilteredTrades = [...btAllTrades];
+      renderBtTrades(btFilteredTrades);
+    }
+
+    function renderBtTrades(trades) {
+      const tbody = document.getElementById('bt-trades-tbody');
+      document.getElementById('bt-filter-count').textContent = trades.length ? `${trades.length} trade${trades.length!==1?'s':''}` : '';
+      if (!trades.length) { tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-zinc-600">No trades match filters</td></tr>'; return; }
+      tbody.innerHTML = trades.map(t => {
+        const tp = parseFloat(t.netPnl)||0;
+        const tags = Array.isArray(t.tags) && t.tags.length ? t.tags.map(tag => `<span class="px-1.5 py-0.5 bg-zinc-800 border border-white/5 rounded text-[10px] text-zinc-500">${tag}</span>`).join('') : '';
+        return `<tr class="hover:bg-white/[0.02] transition cursor-pointer" onclick="showBtDetail('${t.id}')">
+          <td class="px-4 py-3 text-zinc-400 text-xs">${t.date||'—'}</td>
+          <td class="px-4 py-3 text-white font-bold">${t.ticker||'MNQ'}</td>
+          <td class="px-4 py-3"><span class="text-xs font-bold ${t.direction==='LONG'?'text-green-400':'text-red-400'}">${t.direction||'—'}</span></td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border bg-zinc-800 text-zinc-300 border-white/10">${t.grade||'—'}</span></td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${resultBadge(t.result)}">${t.result||'—'}</span></td>
+          <td class="px-4 py-3 font-bold ${pnlColor(tp)}">${fmt(tp)}</td>
+          <td class="px-4 py-3 flex gap-1 flex-wrap">${tags}</td>
+          <td class="px-4 py-3" onclick="event.stopPropagation()">
+            <button onclick="showBtDetail('${t.id}')" class="text-zinc-600 hover:text-green-400 transition text-xs">👁️</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function showBtDetail(id) {
+      const t = btAllTrades.find(t => t.id === id);
+      if (!t) return;
+      const p = parseFloat(t.netPnl)||0;
+      const tags = Array.isArray(t.tags) && t.tags.length ? t.tags.join(', ') : '—';
+      document.getElementById('detail-content').innerHTML = `
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-2xl font-black ${pnlColor(p)}">${fmt(p)}</span>
+            <div class="flex gap-2">
+              ${t.result ? `<span class="px-2 py-0.5 rounded text-xs font-bold border ${resultBadge(t.result)}">${t.result}</span>` : ''}
+              ${t.grade ? `<span class="px-3 py-1 bg-zinc-800 border border-white/10 rounded-lg text-sm font-black text-white">${t.grade}</span>` : ''}
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs border-t border-white/5 pt-3">
+            ${[['Date',t.date],['Ticker',t.ticker],['Direction',t.direction],['Contracts',t.contracts],['Tags',tags],['Timeframe',t.timeframe||'—']].map(([k,v])=>`<div><div class="text-zinc-600 mb-0.5">${k}</div><div class="text-white font-medium">${v||'—'}</div></div>`).join('')}
+          </div>
+          ${t.notes ? `<div class="border-t border-white/5 pt-3"><div class="text-xs text-zinc-600 mb-1">Notes</div><p class="text-zinc-400 text-xs leading-relaxed">${t.notes}</p></div>` : ''}
+          ${t.chartUrl ? `<div class="border-t border-white/5 pt-3"><a href="${t.chartUrl}" target="_blank" class="text-green-400 hover:text-green-300 text-xs">View Chart ↗</a></div>` : ''}
+        </div>`;
+      // Hide edit/delete for backtest
+      document.getElementById('detail-edit-btn').classList.add('hidden');
+      document.getElementById('detail-delete-btn').classList.add('hidden');
+      document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function renderBtStats() {
+      const trades = btAllTrades;
+      if (!trades.length) return;
+      const wins = trades.filter(t => t.result === 'WIN');
+      const losses = trades.filter(t => t.result === 'LOSS');
+      const totalPnl = trades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+      const winRate = trades.length ? Math.round(wins.length/trades.length*100) : 0;
+      const avgWin = wins.length ? wins.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0)/wins.length : 0;
+      const avgLoss = losses.length ? losses.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0)/losses.length : 0;
+      const grossWin = wins.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+      const grossLoss = Math.abs(losses.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0));
+      const pf = grossLoss > 0 ? (grossWin/grossLoss).toFixed(2) : grossWin > 0 ? '∞' : '0';
+      const best = trades.reduce((b,t)=>(parseFloat(t.netPnl)||0)>b?(parseFloat(t.netPnl)||0):b,-Infinity);
+      const worst = trades.reduce((b,t)=>(parseFloat(t.netPnl)||0)<b?(parseFloat(t.netPnl)||0):b,Infinity);
+      let maxConsec=0,cur=0;
+      trades.slice().reverse().forEach(t=>{if(t.result==='LOSS'){cur++;maxConsec=Math.max(maxConsec,cur);}else cur=0;});
+
+      document.getElementById('bt-stat-winrate').textContent = winRate + '%';
+      document.getElementById('bt-stat-trades').textContent = `${trades.length} trades · ${wins.length}W ${losses.length}L`;
+      document.getElementById('bt-stat-pnl').textContent = fmt(totalPnl);
+      document.getElementById('bt-stat-pnl').className = `text-3xl font-black ${pnlColor(totalPnl)}`;
+      document.getElementById('bt-stat-avg-win').textContent = '+$' + avgWin.toFixed(2);
+      document.getElementById('bt-stat-avg-loss').textContent = '$' + Math.abs(avgLoss).toFixed(2);
+      document.getElementById('bt-stat-pf').textContent = pf;
+      document.getElementById('bt-stat-best').textContent = fmt(best);
+      document.getElementById('bt-stat-worst').textContent = fmt(worst);
+      document.getElementById('bt-stat-consec').textContent = maxConsec;
+
+      const grades = ['A+','A','B+','B','C+','C','D'];
+      document.getElementById('bt-stats-by-grade').innerHTML = grades.map(g => {
+        const gt = trades.filter(t=>t.grade===g);
+        if (!gt.length) return '';
+        const gw = gt.filter(t=>t.result==='WIN').length;
+        const gp = gt.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+        return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center"><div class="text-sm font-black text-white mb-1">${g}</div><div class="text-lg font-black text-green-400">${Math.round(gw/gt.length*100)}%</div><div class="text-[10px] text-zinc-600">${gt.length} trades</div><div class="text-xs font-bold mt-1 ${pnlColor(gp)}">${fmt(gp)}</div></div>`;
+      }).join('');
+
+      const longs = trades.filter(t=>t.direction==='LONG');
+      const shorts = trades.filter(t=>t.direction==='SHORT');
+      document.getElementById('bt-stats-direction').innerHTML = [['LONG',longs,'text-green-400'],['SHORT',shorts,'text-red-400']].map(([label,ts,color])=>{
+        const w=ts.filter(t=>t.result==='WIN').length;
+        const p=ts.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+        return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4"><div class="text-sm font-black ${color} mb-2">${label}</div><div class="text-lg font-black text-white">${ts.length?Math.round(w/ts.length*100):0}%</div><div class="text-xs text-zinc-600">${ts.length} trades</div><div class="text-sm font-bold mt-1 ${pnlColor(p)}">${fmt(p)}</div></div>`;
+      }).join('');
+
+      const days = ['Mon','Tue','Wed','Thu','Fri'];
+      document.getElementById('bt-stats-dow').innerHTML = days.map((day,i)=>{
+        const dt=trades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T12:00:00');return d.getDay()===i+1;});
+        const p=dt.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+        return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center"><div class="text-xs text-zinc-500 mb-1">${day}</div><div class="text-sm font-black ${pnlColor(p)}">${dt.length?fmt(p):'—'}</div><div class="text-[10px] text-zinc-600">${dt.length} trades</div></div>`;
+      }).join('');
+
+      document.getElementById('bt-stats-recent').innerHTML = trades.slice(0,20).map(t=>{
+        const p=parseFloat(t.netPnl)||0;
+        return `<div class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border ${p>0?'bg-green-500/10 border-green-500/20 text-green-400':p<0?'bg-red-950/30 border-red-500/20 text-red-400':'bg-zinc-800 border-white/10 text-zinc-400'}" title="${t.date} ${fmt(p)}">${t.result==='WIN'?'W':t.result==='LOSS'?'L':'B'}</div>`;
+      }).join('');
+    }
+
+    function renderBtCalendar() {
+      const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('bt-cal-title').textContent = `${months[btCalMonth]} ${btCalYear}`;
+      const byDate={};
+      btAllTrades.forEach(t=>{if(!t.date)return;if(!byDate[t.date])byDate[t.date]=[];byDate[t.date].push(t);});
+      const monthTrades=btAllTrades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T12:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
+      const monthWins=monthTrades.filter(t=>t.result==='WIN').length;
+      const monthPnl=monthTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+      const monthWr=monthTrades.length?Math.round(monthWins/monthTrades.length*100):0;
+      document.getElementById('bt-cal-summary').innerHTML=[['Trades',monthTrades.length,'text-white'],['Win Rate',monthWr+'%','text-green-400'],['Net P&L',fmt(monthPnl),pnlColor(monthPnl)],['Green Days',Object.entries(byDate).filter(([d,ts])=>{const dd=new Date(d+'T12:00:00');return dd.getFullYear()===btCalYear&&dd.getMonth()===btCalMonth&&ts.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0)>0;}).length,'text-green-400']].map(([l,v,c])=>`<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4"><div class="text-xs text-zinc-500 mb-1">${l}</div><div class="text-xl font-black ${c}">${v}</div></div>`).join('');
+
+      const firstDay=new Date(btCalYear,btCalMonth,1).getDay();
+      const daysInMonth=new Date(btCalYear,btCalMonth+1,0).getDate();
+      let html='';
+      for(let i=0;i<firstDay;i++) html+=`<div class="cal-day border-r border-b border-white/5 p-2"></div>`;
+      for(let d=1;d<=daysInMonth;d++){
+        const dateStr=`${btCalYear}-${String(btCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dayTrades=byDate[dateStr]||[];
+        const dayPnl=dayTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+        const bgClass=dayTrades.length?(dayPnl>0?'bg-green-500/5 hover:bg-green-500/10':dayPnl<0?'bg-red-950/20 hover:bg-red-950/30':'bg-zinc-900/40'):'hover:bg-white/[0.02]';
+        html+=`<div class="cal-day border-r border-b border-white/5 p-2 ${bgClass} transition">
+          <div class="text-xs text-zinc-500 mb-1">${d}</div>
+          ${dayTrades.length?`<div class="text-xs font-bold ${pnlColor(dayPnl)}">${fmt(dayPnl)}</div><div class="text-[10px] text-zinc-600">${dayTrades.length} trade${dayTrades.length!==1?'s':''}</div>`:''}
+        </div>`;
+      }
+      document.getElementById('bt-cal-grid').innerHTML=html;
+    }
+
+    function btCalPrev(){btCalMonth--;if(btCalMonth<0){btCalMonth=11;btCalYear--;}renderBtCalendar();}
+    function btCalNext(){btCalMonth++;if(btCalMonth>11){btCalMonth=0;btCalYear++;}renderBtCalendar();}
+
+    // ── Backtest ──
     async function loadBtSessions() {
       if (!whopKey) return;
       try {
@@ -778,10 +1028,13 @@
     async function openBtSession(sessionId) {
       const session = btSessions.find(s => s.id === sessionId);
       if (!session) return;
+      currentSessionId = sessionId;
       document.getElementById('bt-sessions-view').classList.add('hidden');
       document.getElementById('bt-session-detail').classList.remove('hidden');
       document.getElementById('bt-session-title').textContent = session.name;
       document.getElementById('bt-session-meta').textContent = [session.ticker, session.strategy, session.startDate].filter(Boolean).join(' · ');
+      // Reset to trades tab
+      btSwitchTab('trades');
 
       try {
         const res = await fetch(JOURNAL_URL, {
@@ -789,27 +1042,30 @@
           body: JSON.stringify({ action: 'get-trades', key: `backtest:${whopKey}:${sessionId}` })
         });
         const data = await res.json();
-        const trades = Array.isArray(data.trades) ? data.trades : [];
-        const wins = trades.filter(t => t.result === 'WIN').length;
-        const p = trades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-        const wr = trades.length ? Math.round(wins/trades.length*100) : 0;
+        btAllTrades = Array.isArray(data.trades) ? data.trades : [];
+        btFilteredTrades = [...btAllTrades];
 
-        document.getElementById('bt-session-stats').innerHTML = [['Trades',trades.length,'text-white'],['Win Rate',wr+'%','text-green-400'],['Net P&L',fmt(p),pnlColor(p)]].map(([l,v,c]) => `<div class="text-right"><div class="text-[10px] text-zinc-600">${l}</div><div class="text-xl font-black ${c}">${v}</div></div>`).join('');
+        const wins = btAllTrades.filter(t => t.result === 'WIN').length;
+        const p = btAllTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+        const wr = btAllTrades.length ? Math.round(wins/btAllTrades.length*100) : 0;
 
-        const tbody = document.getElementById('bt-trades-tbody');
-        if (!trades.length) { tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-zinc-600">No trades in this session</td></tr>'; return; }
-        tbody.innerHTML = trades.map(t => {
-          const tp = parseFloat(t.netPnl)||0;
-          const tags = Array.isArray(t.tags) && t.tags.length ? t.tags.map(tag => `<span class="px-1.5 py-0.5 bg-zinc-800 border border-white/5 rounded text-[10px] text-zinc-500">${tag}</span>`).join('') : '—';
-          return `<tr class="hover:bg-white/[0.02] transition">
-            <td class="px-4 py-3 text-zinc-400 text-xs">${t.date||'—'}</td>
-            <td class="px-4 py-3"><span class="text-xs font-bold ${t.direction==='LONG'?'text-green-400':'text-red-400'}">${t.direction||'—'}</span></td>
-            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border bg-zinc-800 text-zinc-300 border-white/10">${t.grade||'—'}</span></td>
-            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${resultBadge(t.result)}">${t.result||'—'}</span></td>
-            <td class="px-4 py-3 font-bold ${pnlColor(tp)}">${fmt(tp)}</td>
-            <td class="px-4 py-3 flex gap-1 flex-wrap">${tags}</td>
-          </tr>`;
-        }).join('');
+        document.getElementById('bt-session-stats').innerHTML = [
+          ['Trades',btAllTrades.length,'text-white'],
+          ['Win Rate',wr+'%','text-green-400'],
+          ['Net P&L',fmt(p),pnlColor(p)]
+        ].map(([l,v,c]) => `<div class="text-right"><div class="text-[10px] text-zinc-600">${l}</div><div class="text-xl font-black ${c}">${v}</div></div>`).join('');
+
+        if (!btAllTrades.length) {
+          document.getElementById('bt-trades-tbody').innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-zinc-600">No trades in this session</td></tr>';
+          return;
+        }
+        renderBtTrades(btFilteredTrades);
+
+        // Set calendar to most recent trade month
+        if (btAllTrades[0]?.date) {
+          const d = new Date(btAllTrades[0].date + 'T12:00:00');
+          btCalYear = d.getFullYear(); btCalMonth = d.getMonth();
+        }
       } catch (err) { console.error('BT trades load error:', err); }
     }
 
