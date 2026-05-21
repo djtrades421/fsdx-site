@@ -178,10 +178,20 @@
               <textarea id="announce-message" rows="3" placeholder="e.g. No session tomorrow — holiday. See you Monday!"
                 class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 transition placeholder-zinc-700 resize-none"></textarea>
             </div>
-            <button onclick="postAnnouncement()" id="announce-btn"
-              class="px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">
-              Post Announcement
-            </button>
+            <div class="flex gap-3">
+              <button onclick="postAnnouncement()" id="announce-btn"
+                class="px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">
+                Post Announcement
+              </button>
+              <button onclick="clearAnnouncement()" id="clear-announce-btn"
+                class="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-400 hover:text-red-400 font-bold text-xs uppercase tracking-wider rounded-xl transition">
+                Clear
+              </button>
+            </div>
+            <div id="current-announce-display" class="hidden mt-4 border border-white/5 bg-zinc-900/40 rounded-xl p-4">
+              <div class="text-[10px] text-zinc-600 uppercase tracking-wider mb-2">Current Announcement</div>
+              <p id="current-announce-text" class="text-zinc-400 text-xs"></p>
+            </div>
           </div>
         </div>
       </div>
@@ -202,6 +212,7 @@
         btn.classList.add('text-zinc-500','border-transparent');
       });
       document.getElementById('panel-' + tab).classList.add('active');
+      if (tab === 'announce') loadCurrentAnnouncement();
       const activeBtn = document.getElementById('tab-' + tab);
       activeBtn.classList.add('active','text-green-400','border-green-500');
       activeBtn.classList.remove('text-zinc-500','border-transparent');
@@ -234,6 +245,11 @@
             </span>
           </td>
           <td class="px-5 py-3.5 text-zinc-500 text-xs">${new Date(m.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+          <td class="px-5 py-3.5 text-right">
+            <button onclick="deleteMember('${m.email}')" class="text-zinc-600 hover:text-red-400 transition text-xs">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+            </button>
+          </td>
         </tr>
       `).join('');
     }
@@ -268,21 +284,39 @@
     }
 
     async function loadData() {
-      const token = localStorage.getItem('fsdx_token') || '';
-      const headers = { 'Authorization': `Bearer ${token}` };
+      // Load recaps from localStorage
+      allRecaps = JSON.parse(localStorage.getItem('fsdx_recaps') || '[]');
 
-      const [membersRes, recapsRes] = await Promise.all([
-        fetch(`${API}/api/admin/members`, { headers }),
-        fetch(`${API}/api/recaps`, { headers })
-      ]);
+      // Show your own account in members
+      const name = localStorage.getItem('fsdx_name') || 'DJ';
+      allMembers = [{
+        email: 'fsdxteam@gmail.com',
+        firstName: name,
+        lastName: '',
+        tier: 'pro',
+        createdAt: new Date().toISOString()
+      }];
 
-      const membersData = await membersRes.json();
-      const recapsData = await recapsRes.json();
+      // Try to get real data from Worker but don't block if it fails
+      try {
+        const token = localStorage.getItem('fsdx_token') || '';
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const [membersRes, recapsRes] = await Promise.allSettled([
+          fetch(`${API}/api/admin/members`, { headers }),
+          fetch(`${API}/api/recaps`, { headers })
+        ]);
+        if (membersRes.status === 'fulfilled' && membersRes.value.ok) {
+          const d = await membersRes.value.json();
+          if (d.members) allMembers = d.members;
+        }
+        if (recapsRes.status === 'fulfilled' && recapsRes.value.ok) {
+          const d = await recapsRes.value.json();
+          if (d.recaps) allRecaps = d.recaps;
+        }
+      } catch (err) {
+        console.log('Worker unavailable, using local data');
+      }
 
-      allMembers = membersData.members || [];
-      allRecaps = recapsData.recaps || [];
-
-      // Stats
       document.getElementById('stat-total').textContent = allMembers.length;
       document.getElementById('stat-vip').textContent = allMembers.filter(m => m.tier === 'pro').length;
       document.getElementById('stat-trial').textContent = allMembers.filter(m => m.tier === 'trial').length;
@@ -307,44 +341,114 @@
       const btn = document.getElementById('recap-btn');
       btn.disabled = true; btn.textContent = 'Posting...';
 
-      const token = localStorage.getItem('fsdx_token');
-      const res = await fetch(`${API}/api/admin/recap`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ date, title, summary, grade, result, notes, tags })
-      });
-      const data = await res.json();
+      const recap = {
+        id: Date.now().toString(),
+        date, title, summary, grade, result, notes, tags,
+        createdAt: new Date().toISOString()
+      };
 
-      if (data.success) {
-        showAdminMsg('recap-msg', 'Recap posted successfully!', 'success');
-        allRecaps.unshift(data.recap);
-        renderRecaps(allRecaps);
-        document.getElementById('stat-recaps').textContent = allRecaps.length;
-        // Clear form
-        ['recap-date','recap-title','recap-summary','recap-grade','recap-result','recap-notes','recap-tags'].forEach(id => {
-          const el = document.getElementById(id);
-          el.tagName === 'SELECT' ? (el.selectedIndex = 0) : (el.value = '');
+      // Save to localStorage
+      allRecaps.unshift(recap);
+      localStorage.setItem('fsdx_recaps', JSON.stringify(allRecaps));
+
+      // Also try to save to Worker
+      try {
+        const token = localStorage.getItem('fsdx_token') || '';
+        await fetch(`${API}/api/admin/recap`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ date, title, summary, grade, result, notes, tags })
         });
-      } else {
-        showAdminMsg('recap-msg', data.error || 'Failed to post recap.', 'error');
+      } catch (err) {
+        console.log('Worker save failed, saved locally only');
       }
+
+      showAdminMsg('recap-msg', 'Recap posted successfully!', 'success');
+      renderRecaps(allRecaps);
+      document.getElementById('stat-recaps').textContent = allRecaps.length;
+      ['recap-date','recap-title','recap-summary','recap-grade','recap-result','recap-notes','recap-tags'].forEach(id => {
+        const el = document.getElementById(id);
+        el.tagName === 'SELECT' ? (el.selectedIndex = 0) : (el.value = '');
+      });
+      document.getElementById('recap-date').value = new Date().toISOString().slice(0, 10);
       btn.disabled = false; btn.textContent = 'Post Recap';
+    }
+
+    async function deleteMember(email) {
+      if (!confirm(`Delete account for ${email}? This cannot be undone.`)) return;
+      const token = localStorage.getItem('fsdx_token') || '';
+      try {
+        const res = await fetch(`${API}/api/admin/member`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (data.success) {
+          allMembers = allMembers.filter(m => m.email !== email);
+          renderMembers(allMembers);
+          document.getElementById('stat-total').textContent = allMembers.length;
+          document.getElementById('stat-vip').textContent = allMembers.filter(m => m.tier === 'pro').length;
+          document.getElementById('stat-trial').textContent = allMembers.filter(m => m.tier === 'trial').length;
+        } else {
+          alert(data.error || 'Failed to delete member.');
+        }
+      } catch (err) {
+        alert('Connection error. Please try again.');
+      }
     }
 
     async function deleteRecap(id) {
       if (!confirm('Delete this recap? This cannot be undone.')) return;
-      const token = localStorage.getItem('fsdx_token');
-      const res = await fetch(`${API}/api/admin/recap`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id })
-      });
-      const data = await res.json();
-      if (data.success) {
-        allRecaps = allRecaps.filter(r => r.id !== id);
-        renderRecaps(allRecaps);
-        document.getElementById('stat-recaps').textContent = allRecaps.length;
+      allRecaps = allRecaps.filter(r => r.id !== id);
+      localStorage.setItem('fsdx_recaps', JSON.stringify(allRecaps));
+      renderRecaps(allRecaps);
+      document.getElementById('stat-recaps').textContent = allRecaps.length;
+      // Also try Worker
+      try {
+        const token = localStorage.getItem('fsdx_token') || '';
+        await fetch(`${API}/api/admin/recap`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id })
+        });
+      } catch (err) {}
+    }
+
+    async function loadCurrentAnnouncement() {
+      const token = localStorage.getItem('fsdx_token') || '';
+      try {
+        const res = await fetch(`${API}/api/announcement`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.announcement) {
+          document.getElementById('current-announce-display').classList.remove('hidden');
+          document.getElementById('current-announce-text').textContent = data.announcement.message;
+        }
+      } catch (err) {}
+    }
+
+    async function clearAnnouncement() {
+      if (!confirm('Remove the current announcement from all member dashboards?')) return;
+      const token = localStorage.getItem('fsdx_token') || '';
+      const btn = document.getElementById('clear-announce-btn');
+      btn.disabled = true; btn.textContent = 'Clearing...';
+      try {
+        const res = await fetch(`${API}/api/admin/announcement`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showAdminMsg('announce-msg', 'Announcement cleared.', 'success');
+          document.getElementById('current-announce-display').classList.add('hidden');
+          document.getElementById('current-announce-text').textContent = '';
+        }
+      } catch (err) {
+        showAdminMsg('announce-msg', 'Error clearing announcement.', 'error');
       }
+      btn.disabled = false; btn.textContent = 'Clear';
     }
 
     async function postAnnouncement() {
