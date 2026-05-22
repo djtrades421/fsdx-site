@@ -418,6 +418,42 @@
     const fmtFull = n => { const p=parseFloat(n)||0; const sign=p>=0?'+':'-'; return sign+'$'+Math.abs(p).toFixed(2); };
     const statCard = (label, val, color, sub='') => `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">${label}</div><div class="text-2xl font-black" style="color:${color}">${val}</div>${sub?`<div class="text-xs text-zinc-600 mt-1">${sub}</div>`:''}</div>`;
 
+    function renderWinRateCard(wr, decided, wins, losses, bes) {
+      const color = wr >= 50 ? '#22c55e' : '#ef4444';
+      const r = 28, circ = 2 * Math.PI * r;
+      const dash = (wr / 100) * circ;
+      const gap = circ - dash;
+      const sub = `${decided} decided trades`;
+      const beSub = bes > 0 ? ` · ${bes} BE` : '';
+      return `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 flex items-center gap-4">
+        <div>
+          <div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">Win Rate</div>
+          <div class="text-2xl font-black" style="color:${color}">${wr}%</div>
+          <div class="text-xs text-zinc-600 mt-1">${wins}W · ${losses}L${beSub}</div>
+        </div>
+        <div class="ml-auto flex-shrink-0">
+          <svg width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
+            <circle cx="36" cy="36" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/>
+            <circle cx="36" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+              stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}"
+              stroke-linecap="round" opacity="0.9"
+              style="transition:stroke-dasharray 0.6s ease"/>
+          </svg>
+        </div>
+      </div>`;
+    }
+
+    function renderNetPnlCard(netPnl) {
+      const color = netPnl > 0 ? '#22c55e' : netPnl < 0 ? '#ef4444' : '#71717a';
+      const sign = netPnl >= 0 ? '+' : '-';
+      const formatted = sign + '$' + Math.abs(netPnl).toFixed(2);
+      return `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
+        <div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">Net P&amp;L</div>
+        <div class="text-2xl font-black" style="color:${color}">${formatted}</div>
+        <div class="text-xs mt-1" style="color:${color};opacity:0.5">${netPnl >= 0 ? '▲ Profitable' : '▼ In drawdown'}</div>
+      </div>`;
+    }
+
     // ── Filters ──
     function applyGlobalFilters() {
       gfResult = document.getElementById('gf-result').value;
@@ -623,8 +659,8 @@
       const pfColor = pf==='∞'?'#22c55e':pf==='—'?'#71717a':parseFloat(pf)>=1?'#22c55e':'#ef4444';
       document.getElementById('stats-top').innerHTML =
         statCard('Total Trades', trades.length, '#ffffff', `${wins.length}W · ${losses.length}L${bes.length?' · '+bes.length+'BE':''}`) +
-        statCard('Win Rate', wr+'%', wr>=50?'#22c55e':'#ef4444', `${decided} decided trades`) +
-        statCard('Net P&L', fmt(netPnl), pnlColorStyle(netPnl)) +
+        renderWinRateCard(wr, decided, wins.length, losses.length, bes.length) +
+        renderNetPnlCard(netPnl) +
         statCard('Profit Factor', pf, pfColor);
 
       document.getElementById('stats-row2').innerHTML = `
@@ -686,7 +722,6 @@
         ((a.date||'')+(a.entryTime||'')) < ((b.date||'')+(b.entryTime||'')) ? -1 : 1
       );
 
-      // Build points array: [{equity, date, pnl, result, trade}]
       const points = [{ equity: 0, date: null, pnl: 0, result: null }];
       sorted.forEach(t => {
         const prev = points[points.length - 1].equity;
@@ -697,27 +732,27 @@
       const finalPnl = points[points.length - 1].equity;
       const isPositive = finalPnl >= 0;
       const lineColor = isPositive ? '#22c55e' : '#ef4444';
-      const gradId = 'eq-grad-' + Date.now();
+      const glowColor = isPositive ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)';
+      const uid = 'eq' + Date.now();
 
-      // Update header P&L label
       const finalEl = document.getElementById('chart-final-pnl');
       if (finalEl) {
-        finalEl.textContent = (finalPnl >= 0 ? '+' : '') + '$' + Math.abs(finalPnl).toFixed(2);
+        const sign = finalPnl >= 0 ? '+' : '-';
+        finalEl.textContent = sign + '$' + Math.abs(finalPnl).toFixed(2);
         finalEl.className = 'text-sm font-black ' + (isPositive ? 'text-green-400' : 'text-red-400');
       }
 
       const W = wrap.clientWidth || 460;
-      const H = 180;
-      const PAD_L = 58, PAD_R = 14, PAD_T = 16, PAD_B = 28;
+      const H = 190;
+      const PAD_L = 60, PAD_R = 16, PAD_T = 18, PAD_B = 30;
       const CW = W - PAD_L - PAD_R;
       const CH = H - PAD_T - PAD_B;
 
       const equities = points.map(p => p.equity);
       const rawMin = Math.min(...equities);
       const rawMax = Math.max(...equities);
-      // Nice axis bounds with padding
       const range = rawMax - rawMin || 1;
-      const nicePad = range * 0.12;
+      const nicePad = range * 0.15;
       const dataMin = rawMin - nicePad;
       const dataMax = rawMax + nicePad;
       const dataRange = dataMax - dataMin;
@@ -725,138 +760,126 @@
       function toX(i) { return PAD_L + (i / (points.length - 1 || 1)) * CW; }
       function toY(v) { return PAD_T + CH - ((v - dataMin) / dataRange) * CH; }
 
-      // Nice Y-axis ticks
-      function niceStep(range, targetTicks) {
-        const rough = range / targetTicks;
-        const mag = Math.pow(10, Math.floor(Math.log10(rough)));
-        const candidates = [1,2,2.5,5,10].map(m => m * mag);
-        return candidates.find(c => c >= rough) || candidates[candidates.length-1];
+      // Smooth bezier path
+      function smoothPath(pts) {
+        if (pts.length < 2) return '';
+        let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+        for (let i = 1; i < pts.length; i++) {
+          const prev = pts[i - 1], curr = pts[i];
+          const cpx = (prev.x + curr.x) / 2;
+          d += ` C ${cpx.toFixed(1)} ${prev.y.toFixed(1)}, ${cpx.toFixed(1)} ${curr.y.toFixed(1)}, ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
+        }
+        return d;
+      }
+
+      const xyPoints = points.map((p, i) => ({ x: toX(i), y: toY(p.equity) }));
+      const pathD = smoothPath(xyPoints);
+
+      // Close fill path to zero line
+      const zeroY = Math.max(PAD_T, Math.min(PAD_T + CH, toY(0)));
+      const lastX = toX(points.length - 1).toFixed(1);
+      const firstX = toX(0).toFixed(1);
+      const fillD = pathD + ` L ${lastX} ${zeroY.toFixed(1)} L ${firstX} ${zeroY.toFixed(1)} Z`;
+
+      // Y-axis ticks
+      function niceStep(range, n) {
+        const r = range / n;
+        const mag = Math.pow(10, Math.floor(Math.log10(r)));
+        return [1,2,2.5,5,10].map(m => m * mag).find(c => c >= r) || mag * 10;
       }
       const step = niceStep(dataRange, 5);
-      const tickStart = Math.ceil(dataMin / step) * step;
       const yTicks = [];
-      for (let v = tickStart; v <= dataMax + step * 0.01; v += step) yTicks.push(parseFloat(v.toFixed(10)));
-
-      // Date labels: pick evenly spaced dates
-      const dateTrades = points.filter(p => p.date);
-      const uniqueDates = [...new Set(dateTrades.map(p => p.date))].sort();
-      const maxLabels = Math.min(6, uniqueDates.length);
-      const labelDates = [];
-      if (uniqueDates.length <= maxLabels) {
-        labelDates.push(...uniqueDates);
-      } else {
-        for (let i = 0; i < maxLabels; i++) {
-          labelDates.push(uniqueDates[Math.round(i / (maxLabels - 1) * (uniqueDates.length - 1))]);
-        }
+      for (let v = Math.ceil(dataMin / step) * step; v <= dataMax + step * 0.01; v += step) {
+        yTicks.push(parseFloat(v.toFixed(10)));
       }
 
-      // Path for line
-      const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${toX(i).toFixed(1)} ${toY(p.equity).toFixed(1)}`).join(' ');
+      // Unique date labels
+      const uniqueDates = [...new Set(points.filter(p => p.date).map(p => p.date))].sort();
+      const maxLabels = Math.min(6, uniqueDates.length);
+      const labelDates = uniqueDates.length <= maxLabels ? uniqueDates :
+        Array.from({length: maxLabels}, (_, i) => uniqueDates[Math.round(i / (maxLabels - 1) * (uniqueDates.length - 1))]);
 
-      // Fill area path (close to zero line or bottom)
-      const zeroY = Math.min(toY(0), PAD_T + CH);
-      const fillD = pathD + ` L ${toX(points.length - 1).toFixed(1)} ${zeroY.toFixed(1)} L ${toX(0).toFixed(1)} ${zeroY.toFixed(1)} Z`;
-
-      // Dots for each trade (excluding the start point)
-      const dots = points.slice(1).map((p, i) => {
-        const cx = toX(i + 1), cy = toY(p.equity);
-        const dotColor = p.result === 'WIN' ? '#22c55e' : p.result === 'LOSS' ? '#ef4444' : '#a1a1aa';
-        const sign = p.pnl >= 0 ? '+' : '';
-        const label = `${p.date||''} ${p.time} | ${p.ticker} ${p.grade} | ${sign}$${Math.abs(p.pnl).toFixed(2)} → $${p.equity.toFixed(2)}`;
-        return `<circle class="eq-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${dotColor}" stroke="#000" stroke-width="1.5" opacity="0.85">
-          <title>${label}</title>
-        </circle>`;
-      }).join('');
-
-      // Invisible fat hit targets for easier hover
-      const hitTargets = points.slice(1).map((p, i) => {
-        const cx = toX(i + 1), cy = toY(p.equity);
-        const dotColor = p.result === 'WIN' ? '#22c55e' : p.result === 'LOSS' ? '#ef4444' : '#a1a1aa';
-        const sign = p.pnl >= 0 ? '+' : '';
-        const label = `${p.date||''} ${p.time?'@ '+p.time:''} · ${p.ticker}${p.grade?' '+p.grade:''} · ${sign}$${Math.abs(p.pnl).toFixed(2)} → Eq: $${p.equity.toFixed(2)}`;
-        return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="12" fill="transparent"
-          onmouseenter="showChartTooltip(event,'${label.replace(/'/g,'&apos;')}','${dotColor}')"
-          onmouseleave="hideChartTooltip()"/>`;
-      }).join('');
-
-      // Y axis labels formatter
       function fmtY(v) {
-        const abs = Math.abs(v);
-        const sign = v < 0 ? '-' : '';
-        if (abs >= 1000) return sign + '$' + (abs/1000).toFixed(1) + 'K';
+        const abs = Math.abs(v), sign = v < 0 ? '-' : '';
+        if (abs >= 1000) return sign + '$' + (abs / 1000).toFixed(1) + 'K';
         return sign + '$' + abs.toFixed(0);
       }
+      function fmtDate(d) { if (!d) return ''; const p = d.split('-'); return p[1] + '/' + p[2]; }
 
-      // Date label formatter MM/DD
-      function fmtDateLabel(d) {
-        if (!d) return '';
-        const parts = d.split('-');
-        return parts[1] + '/' + parts[2];
-      }
-
-      // Build Y ticks SVG
       const yTicksSVG = yTicks.map(v => {
-        const y = toY(v).toFixed(1);
-        if (parseFloat(y) < PAD_T - 2 || parseFloat(y) > PAD_T + CH + 2) return '';
+        const y = toY(v);
+        if (y < PAD_T - 4 || y > PAD_T + CH + 4) return '';
         const isZero = Math.abs(v) < step * 0.01;
         return `
-          <line x1="${PAD_L}" y1="${y}" x2="${(PAD_L + CW).toFixed(1)}" y2="${y}"
-            stroke="${isZero ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.04)'}"
-            stroke-width="${isZero ? 1 : 0.75}" stroke-dasharray="${isZero ? 'none' : '3,4'}"/>
-          <text x="${(PAD_L - 6).toFixed(1)}" y="${y}" dy="0.35em" text-anchor="end"
-            fill="${isZero ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.25)'}"
-            font-size="9" font-family="monospace">${fmtY(v)}</text>`;
+          <line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${(PAD_L+CW).toFixed(1)}" y2="${y.toFixed(1)}"
+            stroke="${isZero ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)'}"
+            stroke-width="${isZero ? 1 : 1}" stroke-dasharray="${isZero ? '' : '3,5'}"/>
+          <text x="${(PAD_L-8).toFixed(1)}" y="${y.toFixed(1)}" dy="0.35em" text-anchor="end"
+            fill="${isZero ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.2)'}"
+            font-size="9.5" font-family="ui-monospace,monospace">${fmtY(v)}</text>`;
       }).join('');
 
-      // Build X date labels SVG
       const xLabelsSVG = labelDates.map(d => {
-        // find first point with this date
         const idx = points.findIndex(p => p.date === d);
         if (idx < 0) return '';
         const x = toX(idx).toFixed(1);
-        return `<text x="${x}" y="${(PAD_T + CH + 16).toFixed(1)}" text-anchor="middle"
-          fill="rgba(255,255,255,0.3)" font-size="9" font-family="monospace">${fmtDateLabel(d)}</text>`;
+        const yBot = (PAD_T + CH + 16).toFixed(1);
+        return `
+          <line x1="${x}" y1="${PAD_T}" x2="${x}" y2="${(PAD_T+CH).toFixed(1)}"
+            stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <text x="${x}" y="${yBot}" text-anchor="middle"
+            fill="rgba(255,255,255,0.28)" font-size="9.5" font-family="ui-monospace,monospace">${fmtDate(d)}</text>`;
       }).join('');
 
-      // Vertical cursor line (hidden by default)
-      const cursorLine = `<line id="eq-cursor" x1="0" y1="${PAD_T}" x2="0" y2="${PAD_T + CH}" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3,3" style="display:none" pointer-events="none"/>`;
+      // Dots per trade
+      const dotsSVG = points.slice(1).map((p, i) => {
+        const cx = toX(i + 1), cy = toY(p.equity);
+        const col = p.result === 'WIN' ? '#22c55e' : p.result === 'LOSS' ? '#ef4444' : '#a1a1aa';
+        const sign = p.pnl >= 0 ? '+' : '-';
+        const tip = `${p.date||''}${p.time?' @ '+p.time:''} · ${p.ticker}${p.grade?' ['+p.grade+']':''} · ${sign}$${Math.abs(p.pnl).toFixed(2)} → $${p.equity.toFixed(2)}`;
+        return `<g class="eq-dot-g" style="cursor:pointer">
+          <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3.5" fill="${col}" stroke="#09090b" stroke-width="1.5" opacity="0.9"/>
+          <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="13" fill="transparent"
+            onmouseenter="showChartTooltip(event,'${tip.replace(/'/g,'&apos;')}','${col}')"
+            onmouseleave="hideChartTooltip()"/>
+        </g>`;
+      }).join('');
 
       wrap.innerHTML = `
-        <svg id="equity-svg" width="100%" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+        <svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;display:block">
           <defs>
-            <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.18"/>
-              <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.01"/>
+            <linearGradient id="${uid}-g" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.28"/>
+              <stop offset="60%" stop-color="${lineColor}" stop-opacity="0.07"/>
+              <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
             </linearGradient>
-            <clipPath id="eq-clip">
-              <rect x="${PAD_L}" y="${PAD_T}" width="${CW}" height="${CH}"/>
+            <filter id="${uid}-glow">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <clipPath id="${uid}-clip">
+              <rect x="${PAD_L}" y="${PAD_T - 4}" width="${CW}" height="${CH + 8}"/>
             </clipPath>
           </defs>
 
           ${yTicksSVG}
           ${xLabelsSVG}
 
-          <!-- Fill -->
-          <path d="${fillD}" fill="url(#${gradId})" clip-path="url(#eq-clip)"/>
-
-          <!-- Line -->
-          <path d="${pathD}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#eq-clip)"/>
-
-          <!-- Cursor -->
-          ${cursorLine}
-
-          <!-- Dots -->
-          <g clip-path="url(#eq-clip)">${dots}</g>
-
-          <!-- Hit targets (on top) -->
-          <g clip-path="url(#eq-clip)">${hitTargets}</g>
+          <g clip-path="url(#${uid}-clip)">
+            <!-- Gradient fill -->
+            <path d="${fillD}" fill="url(#${uid}-g)"/>
+            <!-- Glow line -->
+            <path d="${pathD}" fill="none" stroke="${glowColor}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" filter="url(#${uid}-glow)"/>
+            <!-- Main line -->
+            <path d="${pathD}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <!-- Dots -->
+            ${dotsSVG}
+          </g>
         </svg>
-        <div id="eq-tooltip" style="
-          display:none; position:absolute; pointer-events:none; z-index:50;
-          background:rgba(9,9,11,0.95); border:1px solid rgba(255,255,255,0.12);
-          border-radius:8px; padding:8px 12px; font-size:11px; white-space:nowrap;
-          font-family:monospace; color:#e4e4e7; box-shadow:0 4px 24px rgba(0,0,0,0.6);
-        "></div>`;
+        <div id="eq-tooltip" style="display:none;position:absolute;pointer-events:none;z-index:50;
+          background:rgba(9,9,11,0.96);border:1px solid rgba(255,255,255,0.1);border-radius:10px;
+          padding:9px 13px;font-size:11px;white-space:nowrap;font-family:ui-monospace,monospace;
+          color:#e4e4e7;box-shadow:0 8px 32px rgba(0,0,0,0.7);"></div>`;
     }
 
     function showChartTooltip(e, label, color) {
@@ -864,16 +887,20 @@
       const wrap = document.getElementById('equity-chart-wrap');
       if (!tt || !wrap) return;
       const parts = label.split(' · ');
-      tt.innerHTML = parts.map((p,i) => `<div style="color:${i===2?color:'#e4e4e7'};font-weight:${i===2?'700':'400'}">${p}</div>`).join('');
+      tt.innerHTML = `
+        <div style="color:rgba(255,255,255,0.45);font-size:10px;margin-bottom:4px">${parts[0]||''}</div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <span style="color:#e4e4e7">${parts[1]||''}</span>
+          <span style="color:${color};font-weight:700;font-size:13px">${parts[2]||''}</span>
+        </div>`;
       tt.style.display = 'block';
+      tt.style.borderColor = color + '55';
       const rect = wrap.getBoundingClientRect();
       const er = e.target.getBoundingClientRect();
-      let left = er.left - rect.left + 16;
-      if (left + 220 > rect.width) left = er.left - rect.left - 230;
-      const top = er.top - rect.top - 40;
+      let left = er.left - rect.left + 18;
+      if (left + 240 > rect.width) left = er.left - rect.left - 248;
       tt.style.left = left + 'px';
-      tt.style.top = top + 'px';
-      tt.style.borderColor = color + '44';
+      tt.style.top = (er.top - rect.top - 52) + 'px';
     }
 
     function hideChartTooltip() {
