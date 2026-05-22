@@ -101,6 +101,7 @@
             <button onclick="switchSub('calendar')" id="sub-calendar" class="tab-btn active px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-green-500 text-green-400 transition mr-1 whitespace-nowrap">Calendar</button>
             <button onclick="switchSub('history')" id="sub-history" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-1 whitespace-nowrap">History</button>
             <button onclick="switchSub('stats')" id="sub-stats" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-1 whitespace-nowrap">Stats</button>
+            <button onclick="switchSub('accounts')" id="sub-accounts" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-1 whitespace-nowrap">Accounts</button>
           </div>
         </div>
       </div>
@@ -255,10 +256,79 @@
 
           </div>
 
-        </div>
-      </div>
-    </div>
-  </main>
+          <!-- ACCOUNTS -->
+          <div id="panel-accounts" class="sub-panel space-y-6">
+
+            <!-- My Accounts -->
+            <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
+              <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">My Accounts</div>
+              <div id="accounts-list" class="space-y-2 mb-5"></div>
+              <!-- Add/Edit form -->
+              <div id="account-form" class="border border-white/10 bg-zinc-900/50 rounded-xl p-4 space-y-3">
+                <div class="text-xs text-zinc-400 font-bold mb-1" id="account-form-title">Add Account</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs text-zinc-600 mb-1">Nickname <span class="text-red-500">*</span></label>
+                    <input id="af-name" type="text" placeholder="e.g. Apex Funded #1" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-green-500/50 placeholder-zinc-700">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-zinc-600 mb-1">Account # — Optional</label>
+                    <input id="af-number" type="text" placeholder="Full account number" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-green-500/50 placeholder-zinc-700">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-zinc-600 mb-1">Account Size — Optional</label>
+                    <input id="af-size" type="number" placeholder="e.g. 50000" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-green-500/50 placeholder-zinc-700">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-zinc-600 mb-1">Type</label>
+                    <select id="af-type" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-green-500/50">
+                      <option value="">Select...</option>
+                      <option value="Funded">Funded</option>
+                      <option value="Evaluation">Evaluation</option>
+                      <option value="Personal">Personal</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="af-msg" class="hidden text-xs py-1.5 rounded-lg text-center"></div>
+                <div class="flex gap-2">
+                  <button onclick="saveAccount()" class="flex-1 py-2 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-lg transition" id="af-btn">+ Add Account</button>
+                  <button onclick="cancelEditAccount()" id="af-cancel" class="hidden px-4 py-2 border border-white/10 text-zinc-400 hover:text-white text-xs font-bold rounded-lg transition">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Journal Defaults -->
+            <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
+              <div class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Journal Defaults</div>
+              <div class="text-xs text-zinc-700 mb-4">Leave blank to not pre-fill</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-zinc-600 mb-1">Default Ticker</label>
+                  <input id="def-ticker" type="text" placeholder="MNQ" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-green-500/50 placeholder-zinc-700">
+                </div>
+                <div>
+                  <label class="block text-xs text-zinc-600 mb-1">Default Timeframe</label>
+                  <select id="def-timeframe" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-green-500/50">
+                    <option value="">—</option>
+                    <option value="1m">1m</option><option value="2m">2m</option><option value="3m">3m</option>
+                    <option value="5m">5m</option><option value="10m">10m</option><option value="15m">15m</option>
+                    <option value="30m">30m</option><option value="1h">1h</option><option value="4h">4h</option><option value="1D">1D</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs text-zinc-600 mb-1">Default Contracts</label>
+                  <input id="def-contracts" type="number" placeholder="e.g. 2" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-green-500/50 placeholder-zinc-700">
+                </div>
+                <div>
+                  <label class="block text-xs text-zinc-600 mb-1">Default Strategy</label>
+                  <input id="def-strategy" type="text" placeholder="FSD-X ORB PRO" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-green-500/50 placeholder-zinc-700">
+                </div>
+              </div>
+              <div id="def-msg" class="hidden text-xs py-1.5 rounded-lg text-center mt-3"></div>
+              <button onclick="saveDefaults()" class="mt-4 w-full py-2.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-lg transition">Save Defaults</button>
+            </div>
+
+          </div>
 
   <!-- Log Trade Modal -->
   <div id="log-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-4">
@@ -581,7 +651,7 @@
       const { from, to } = getDateRange();
       filteredTrades = allTrades.filter(t =>
         (!gfResult    || t.result === gfResult) &&
-        (!gfAccount   || t.accountType === gfAccount) &&
+        (!gfAccount   || t.accountName === gfAccount || t.accountType === gfAccount) &&
         (!gfGrade     || t.grade === gfGrade) &&
         (!gfDirection || t.direction === gfDirection) &&
         (!from        || (t.date && t.date >= from)) &&
@@ -603,7 +673,7 @@
     }
     // ── Sub tabs ──
     function switchSub(tab) {
-      ['calendar','history','stats'].forEach(t => {
+      ['calendar','history','stats','accounts'].forEach(t => {
         document.getElementById('panel-' + t).classList.remove('active');
         const btn = document.getElementById('sub-' + t);
         btn.classList.remove('active','text-green-400','border-green-500');
@@ -613,6 +683,7 @@
       document.getElementById('sub-' + tab).classList.add('active','text-green-400','border-green-500');
       document.getElementById('sub-' + tab).classList.remove('text-zinc-500','border-transparent');
       if (tab === 'stats') renderStats();
+      if (tab === 'accounts') renderAccountsList();
     }
 
     // ── Calendar ──
@@ -1748,6 +1819,198 @@
     }
 
     // ── Backtest ──
+    // ── Accounts & Defaults ──
+    let journalAccounts = [], journalDefaults = {}, editingAccountId = null;
+
+    async function loadSettings() {
+      try {
+        const res = await fetch(JOURNAL_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get-settings', key: whopKey })
+        });
+        const data = await res.json();
+        journalAccounts = data.accounts || [];
+        journalDefaults = data.defaults || {};
+      } catch(e) {}
+      updateAccountFilter();
+      updateAccountDropdowns();
+      applyDefaults();
+    }
+
+    async function saveAccountsToKV() {
+      await fetch(JOURNAL_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save-settings', key: whopKey, payload: { accounts: journalAccounts } })
+      });
+    }
+
+    async function saveDefaultsToKV() {
+      await fetch(JOURNAL_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save-settings', key: whopKey, payload: { defaults: journalDefaults } })
+      });
+    }
+
+    function updateAccountFilter() {
+      const sel = document.getElementById('gf-account');
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">All Accounts</option>';
+      if (journalAccounts.length) {
+        // Group by type
+        const types = [...new Set(journalAccounts.map(a => a.accountType).filter(Boolean))];
+        journalAccounts.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.name;
+          opt.textContent = a.name + (a.accountType ? ' (' + a.accountType + ')' : '');
+          sel.appendChild(opt);
+        });
+      } else {
+        // Fallback to generic types
+        ['Funded','Evaluation','Personal'].forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t; opt.textContent = t; sel.appendChild(opt);
+        });
+      }
+      sel.value = cur;
+    }
+
+    function updateAccountDropdowns() {
+      // Update log trade account name dropdown
+      const acctSel = document.getElementById('t-acct-name-sel');
+      if (!acctSel) return;
+      const cur = acctSel.value;
+      acctSel.innerHTML = '<option value="">Select account...</option>';
+      journalAccounts.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.name;
+        opt.textContent = a.name + (a.accountType ? ' — ' + a.accountType : '');
+        acctSel.appendChild(opt);
+      });
+      acctSel.value = cur;
+    }
+
+    function applyDefaults() {
+      if (!journalDefaults) return;
+      // Apply to log trade form if fields are empty
+      if (journalDefaults.ticker && !document.getElementById('t-ticker')?.value)
+        document.getElementById('t-ticker').value = journalDefaults.ticker;
+      if (journalDefaults.timeframe) {
+        const tf = document.getElementById('t-timeframe');
+        if (tf && !tf.value) tf.value = journalDefaults.timeframe;
+      }
+      if (journalDefaults.contracts && !document.getElementById('t-contracts')?.value)
+        document.getElementById('t-contracts').value = journalDefaults.contracts;
+      if (journalDefaults.strategy && !document.getElementById('t-strategy')?.value)
+        document.getElementById('t-strategy').value = journalDefaults.strategy;
+    }
+
+    function renderAccountsList() {
+      const el = document.getElementById('accounts-list');
+      if (!el) return;
+      // Load current defaults into form
+      document.getElementById('def-ticker').value = journalDefaults.ticker || '';
+      document.getElementById('def-timeframe').value = journalDefaults.timeframe || '';
+      document.getElementById('def-contracts').value = journalDefaults.contracts || '';
+      document.getElementById('def-strategy').value = journalDefaults.strategy || '';
+      if (!journalAccounts.length) {
+        el.innerHTML = '<div class="text-xs text-zinc-600 py-2">No accounts added yet.</div>';
+        return;
+      }
+      el.innerHTML = journalAccounts.map((a, idx) => `
+        <div class="flex items-center justify-between border border-white/5 bg-zinc-900/40 rounded-xl px-4 py-3">
+          <div>
+            <div class="text-sm font-bold text-white">${a.name}</div>
+            <div class="text-xs text-zinc-500 mt-0.5">
+              ${a.accountType||''}${a.accountSize?' · $'+Number(a.accountSize).toLocaleString():''}${a.accountNumber?' · #'+a.accountNumber:''}
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="editAccount('${a.id}')" class="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+            </button>
+            <button onclick="deleteAccount('${a.id}')" class="p-1.5 rounded-lg bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+            </button>
+          </div>
+        </div>`).join('');
+    }
+
+    function editAccount(id) {
+      const a = journalAccounts.find(a => a.id === id);
+      if (!a) return;
+      editingAccountId = id;
+      document.getElementById('af-name').value = a.name || '';
+      document.getElementById('af-number').value = a.accountNumber || '';
+      document.getElementById('af-size').value = a.accountSize || '';
+      document.getElementById('af-type').value = a.accountType || '';
+      document.getElementById('account-form-title').textContent = 'Edit Account';
+      document.getElementById('af-btn').textContent = 'Save Changes';
+      document.getElementById('af-cancel').classList.remove('hidden');
+      document.getElementById('af-name').focus();
+    }
+
+    function cancelEditAccount() {
+      editingAccountId = null;
+      ['af-name','af-number','af-size'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('af-type').value = '';
+      document.getElementById('account-form-title').textContent = 'Add Account';
+      document.getElementById('af-btn').textContent = '+ Add Account';
+      document.getElementById('af-cancel').classList.add('hidden');
+      document.getElementById('af-msg').classList.add('hidden');
+    }
+
+    async function saveAccount() {
+      const name = document.getElementById('af-name').value.trim();
+      if (!name) { showAfMsg('Nickname is required.', 'error'); return; }
+      if (editingAccountId) {
+        const idx = journalAccounts.findIndex(a => a.id === editingAccountId);
+        if (idx >= 0) journalAccounts[idx] = { ...journalAccounts[idx], name, accountNumber: document.getElementById('af-number').value.trim(), accountSize: parseFloat(document.getElementById('af-size').value)||null, accountType: document.getElementById('af-type').value };
+      } else {
+        if (journalAccounts.find(a => a.name === name)) { showAfMsg('Account with this name already exists.', 'error'); return; }
+        journalAccounts.push({ id: Date.now().toString(), name, accountNumber: document.getElementById('af-number').value.trim(), accountSize: parseFloat(document.getElementById('af-size').value)||null, accountType: document.getElementById('af-type').value });
+      }
+      await saveAccountsToKV();
+      cancelEditAccount();
+      renderAccountsList();
+      updateAccountFilter();
+      updateAccountDropdowns();
+      showAfMsg('Saved!', 'success');
+    }
+
+    async function deleteAccount(id) {
+      const a = journalAccounts.find(a => a.id === id);
+      if (!a || !confirm(`Delete account "${a.name}"?`)) return;
+      journalAccounts = journalAccounts.filter(a => a.id !== id);
+      await saveAccountsToKV();
+      renderAccountsList();
+      updateAccountFilter();
+      updateAccountDropdowns();
+    }
+
+    function showAfMsg(msg, type) {
+      const el = document.getElementById('af-msg');
+      el.textContent = msg;
+      el.className = 'text-xs py-1.5 rounded-lg text-center ' + (type==='error'?'bg-red-500/10 text-red-400':'bg-green-500/10 text-green-400');
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 3000);
+    }
+
+    async function saveDefaults() {
+      journalDefaults = {
+        ticker: document.getElementById('def-ticker').value.trim(),
+        timeframe: document.getElementById('def-timeframe').value,
+        contracts: document.getElementById('def-contracts').value,
+        strategy: document.getElementById('def-strategy').value.trim(),
+      };
+      await saveDefaultsToKV();
+      const el = document.getElementById('def-msg');
+      el.textContent = 'Defaults saved!';
+      el.className = 'text-xs py-1.5 rounded-lg text-center bg-green-500/10 text-green-400';
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 3000);
+    }
+
     // ── Init ──
     async function init() {
       const token = localStorage.getItem('fsdx_token');
@@ -1766,6 +2029,7 @@
       } catch(err) { console.error(err); }
       document.getElementById('loading-screen').classList.add('hidden');
       document.getElementById('page-content').classList.remove('hidden');
+      await loadSettings();
       renderCalendar();
       renderHistory();
     }
