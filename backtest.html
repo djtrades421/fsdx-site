@@ -1,4 +1,4 @@
-<div class="hidden"><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -16,15 +16,8 @@
     .cal-day { min-height: 110px; height: 110px; }
     .cal-day-win  { background: rgba(34,197,94,0.09); border-left: 2px solid rgba(34,197,94,0.45) !important; }
     .cal-day-loss { background: rgba(239,68,68,0.09); border-left: 2px solid rgba(239,68,68,0.4) !important; }
-    .cal-day:hover .cal-empty-hint { color: rgba(255,255,255,0.3) !important; }
+    .cal-day:hover .cal-empty-hint { color: rgba(255,255,255,0.2) !important; }
     .cal-day:not(.cal-day-win):not(.cal-day-loss):hover { background: rgba(255,255,255,0.02); }
-    @media (max-width: 640px) {
-      .cal-day { min-height: 72px; height: 72px; padding: 6px !important; }
-      .cal-day .text-sm { font-size: 11px !important; }
-      .cal-day .text-xs { font-size: 10px !important; }
-      .cal-day .text-\[11px\] { font-size: 9px !important; }
-      .cal-header-stats { flex-wrap: wrap; gap: 8px !important; }
-    }
     .tag-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 999px; font-size: 11px; color: #22c55e; }
     .direction-btn { transition: all 0.15s; }
     .direction-btn.active-long { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.5); color: #22c55e; font-weight: 700; }
@@ -58,13 +51,14 @@
           <div class="text-green-400 uppercase tracking-[0.3em] text-[10px] font-bold mb-2">// VIP Members</div>
           <div class="flex items-end justify-between mb-4">
             <div>
-              <h1 class="text-3xl font-black tracking-tight">Backtest</h1>
-              <p class="text-zinc-500 text-sm mt-1">Backtest sessions and performance analytics</p>
+              <h1 class="text-3xl font-black tracking-tight">Journal</h1>
+              <p class="text-zinc-500 text-sm mt-1">Live trade journal, backtest sessions, and performance analytics</p>
             </div>
+            <button onclick="openLogModal()" class="px-4 py-2 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">+ Log Trade</button>
           </div>
 
-          <!-- Global Filters (hidden on backtest page) -->
-          <div class="hidden">
+          <!-- Global Filters -->
+          <div class="flex flex-wrap gap-2 mb-4 pb-2 border-b border-white/5">
             <select id="gf-result" onchange="applyGlobalFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
               <option value="">All Results</option><option value="WIN">Win</option><option value="LOSS">Loss</option><option value="BE">BE</option>
             </select>
@@ -84,9 +78,10 @@
 
           <!-- Sub tabs -->
           <div class="flex -mb-px overflow-x-auto">
-            <button onclick="switchSub('calendar')" id="sub-calendar" class="tab-btn active px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-green-500 text-green-400 transition mr-1 whitespace-nowrap">Calendar</button>
+            <button onclick="switchSub('calendar')" id="sub-calendar" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 transition mr-1 whitespace-nowrap">Calendar</button>
             <button onclick="switchSub('history')" id="sub-history" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-1 whitespace-nowrap">History</button>
             <button onclick="switchSub('stats')" id="sub-stats" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-1 whitespace-nowrap">Stats</button>
+            <button onclick="switchSub('backtest')" id="sub-backtest" class="tab-btn active px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-green-500 text-green-400 hover:text-zinc-300 transition whitespace-nowrap">Backtest</button>
           </div>
         </div>
       </div>
@@ -96,34 +91,30 @@
         <div class="max-w-7xl mx-auto">
 
           <!-- CALENDAR -->
-          <div id="panel-calendar" class="sub-panel active">
-            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-              <div class="flex items-center gap-3">
+          <div id="panel-calendar" class="sub-panel">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-4">
                 <button onclick="calPrev()" class="p-2 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
-                <h2 id="cal-title" class="text-lg font-black text-white w-36 text-center"></h2>
+                <h2 id="cal-title" class="text-lg font-black text-white w-40 text-center"></h2>
                 <button onclick="calNext()" class="p-2 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg></button>
               </div>
-              <div class="cal-header-stats flex gap-4 text-sm flex-wrap">
-                <div><span class="text-zinc-500 text-xs mr-1.5">MONTHLY</span><span id="cal-monthly" class="font-black">—</span></div>
-                <div><span class="text-zinc-500 text-xs mr-1.5">YEARLY</span><span id="cal-yearly" class="font-black">—</span></div>
-                <div><span class="text-zinc-500 text-xs mr-1.5">WIN RATE</span><span id="cal-wr" class="font-black text-green-400">—</span></div>
-                <div><span class="text-zinc-500 text-xs mr-1.5">DAYS</span><span id="cal-days-traded" class="font-black text-zinc-400">—</span></div>
+              <div class="flex gap-6 text-sm">
+                <div><span class="text-zinc-500 text-xs mr-2">MONTHLY</span><span id="cal-monthly" class="font-black">—</span></div>
+                <div><span class="text-zinc-500 text-xs mr-2">YEARLY</span><span id="cal-yearly" class="font-black">—</span></div>
+                <div><span class="text-zinc-500 text-xs mr-2">WIN RATE</span><span id="cal-wr" class="font-black text-green-400">—</span></div>
+                <div><span class="text-zinc-500 text-xs mr-2">DAYS</span><span id="cal-days-traded" class="font-black text-zinc-400">—</span></div>
               </div>
             </div>
             <div class="border border-white/10 rounded-2xl overflow-hidden">
-              <div class="overflow-x-auto">
-                <div style="min-width:420px">
-                  <div class="grid grid-cols-6 border-b border-white/10 bg-zinc-950/80">
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Mon</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Tue</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Wed</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Thu</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Fri</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest text-right">Weekly</div>
-                  </div>
-                  <div id="cal-grid"></div>
-                </div>
+              <div class="grid grid-cols-6 border-b border-white/10 bg-zinc-950/80">
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Mon</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Tue</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Wed</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Thu</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Fri</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest text-right">Weekly</div>
               </div>
+              <div id="cal-grid"></div>
             </div>
           </div>
 
@@ -251,6 +242,68 @@
             </div>
           </div>
 
+          <!-- BACKTEST -->
+          <div id="panel-backtest" class="sub-panel active">
+            <div id="bt-sessions-view">
+              <div id="bt-empty" class="hidden text-center py-16">
+                <div class="text-4xl mb-3">🧪</div>
+                <h3 class="text-lg font-black mb-2">No sessions yet</h3>
+                <p class="text-zinc-500 text-sm">Create backtest sessions from the FSD-X Nexus Chrome extension.</p>
+              </div>
+              <div id="bt-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+            <div id="bt-detail" class="hidden">
+              <button onclick="closeBt()" class="flex items-center gap-2 text-zinc-500 hover:text-white text-xs mb-5 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>Back to Sessions
+              </button>
+              <div class="flex items-start justify-between mb-5 flex-wrap gap-4">
+                <div><h2 id="bt-title" class="text-xl font-black"></h2><div id="bt-meta" class="text-zinc-500 text-xs mt-1"></div></div>
+                <div id="bt-summary" class="flex gap-6"></div>
+              </div>
+              <!-- BT sub tabs -->
+              <div class="flex border-b border-white/10 mb-5">
+                <button onclick="btSub('trades')" id="btsub-trades" class="tab-btn active px-4 py-2.5 text-xs font-bold uppercase tracking-widest border-b-2 border-green-500 text-green-400 mr-1">Trades</button>
+                <button onclick="btSub('stats')" id="btsub-stats" class="tab-btn px-4 py-2.5 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 mr-1">Stats</button>
+                <button onclick="btSub('calendar')" id="btsub-calendar" class="tab-btn px-4 py-2.5 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300">Calendar</button>
+              </div>
+              <div id="bt-panel-trades">
+                <div class="border border-white/10 rounded-2xl overflow-hidden">
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left min-w-[600px]">
+                      <thead><tr class="bg-zinc-950 border-b border-white/10 text-xs text-zinc-500 uppercase tracking-wider">
+                        <th class="px-4 py-3">Date</th><th class="px-4 py-3">Dir</th><th class="px-4 py-3">Grade</th>
+                        <th class="px-4 py-3">Result</th><th class="px-4 py-3">Net P&L</th><th class="px-4 py-3">Tags</th>
+                      </tr></thead>
+                      <tbody id="bt-tbody" class="divide-y divide-white/5 text-sm"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div id="bt-panel-stats" class="hidden space-y-6">
+                <div id="bt-stats-top" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+                <div><div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">By Grade</div><div id="bt-stats-grades" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3"></div></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div><div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Long vs Short</div><div id="bt-stats-dir" class="grid grid-cols-2 gap-3"></div></div>
+                  <div><div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Day of Week</div><div id="bt-stats-dow" class="grid grid-cols-5 gap-2"></div></div>
+                </div>
+              </div>
+              <div id="bt-panel-calendar" class="hidden">
+                <div class="flex items-center justify-between mb-4">
+                  <button onclick="btCalPrev()" class="p-2 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+                  <h3 id="bt-cal-title" class="text-base font-black"></h3>
+                  <button onclick="btCalNext()" class="p-2 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg></button>
+                </div>
+                <div id="bt-cal-summary" class="grid grid-cols-3 gap-3 mb-4"></div>
+                <div class="border border-white/10 rounded-2xl overflow-hidden">
+                  <div class="grid grid-cols-6 border-b border-white/10 bg-zinc-950">
+                    <div class="px-4 py-2 text-[10px] text-zinc-600 uppercase">Mon</div><div class="px-4 py-2 text-[10px] text-zinc-600 uppercase">Tue</div>
+                    <div class="px-4 py-2 text-[10px] text-zinc-600 uppercase">Wed</div><div class="px-4 py-2 text-[10px] text-zinc-600 uppercase">Thu</div>
+                    <div class="px-4 py-2 text-[10px] text-zinc-600 uppercase">Fri</div><div class="px-4 py-2 text-[10px] text-zinc-600 uppercase text-right">Weekly</div>
+                  </div>
+                  <div id="bt-cal-grid"></div>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -501,6 +554,7 @@
     let editingId = null, detailId = null, currentTags = [];
     let tradeDir = 'LONG', pnlMode = 'price', statsTime = 'today';
     let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
+    let btSessions = [], btTrades = [], btCalYear = new Date().getFullYear(), btCalMonth = new Date().getMonth();
     let gfResult = '', gfAccount = '', gfGrade = '', gfDirection = '';
 
     function toggleMobileMenu() { document.getElementById('sidebar-panel').classList.toggle('-translate-x-full'); }
@@ -568,7 +622,7 @@
 
     // ── Sub tabs ──
     function switchSub(tab) {
-      ['calendar','history','stats'].forEach(t => {
+      ['calendar','history','stats','backtest'].forEach(t => {
         document.getElementById('panel-' + t).classList.remove('active');
         const btn = document.getElementById('sub-' + t);
         btn.classList.remove('active','text-green-400','border-green-500');
@@ -578,6 +632,7 @@
       document.getElementById('sub-' + tab).classList.add('active','text-green-400','border-green-500');
       document.getElementById('sub-' + tab).classList.remove('text-zinc-500','border-transparent');
       if (tab === 'stats') renderStats();
+      if (tab === 'backtest') loadBtSessions();
     }
 
     // ── Calendar ──
@@ -667,16 +722,13 @@
               cell.appendChild(countDiv);
               cell.onclick = () => { filterByDate(ds); switchSub('history'); };
             } else {
-              // Empty day — click/tap to log a trade for this date
+              // Empty day — click to log a trade for this date
               cell.style.cursor = 'pointer';
               cell.title = 'Log trade for ' + ds;
               cell.onclick = () => { openLogModal(); document.getElementById('t-date').value = ds; };
-              cell.ontouchend = (e) => { e.preventDefault(); openLogModal(); document.getElementById('t-date').value = ds; };
-              // + hint — always slightly visible, pointer-events:none so it never blocks the tap
+              // Subtle + hint on hover
               const hint = document.createElement('div');
-              hint.className = 'text-zinc-700 text-xl font-black mt-2 cal-empty-hint';
-              hint.style.pointerEvents = 'none';
-              hint.style.userSelect = 'none';
+              hint.className = 'text-zinc-800 text-lg font-black mt-3 cal-empty-hint';
               hint.textContent = '+';
               cell.appendChild(hint);
             }
@@ -1710,19 +1762,6 @@
       detailId = id;
       const p = parseFloat(t.netPnl)||0;
       const tags = Array.isArray(t.tags)&&t.tags.length?t.tags.map(tg=>`<span class="tag-pill text-[10px]">${tg}</span>`).join(''):'—';
-      const chartBlock = t.chartUrl ? `
-        <div class="border-t border-white/5 pt-4">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-xs text-zinc-600 uppercase tracking-wider">Chart</div>
-            <a href="${t.chartUrl}" target="_blank" class="text-xs text-green-400 hover:text-green-300 transition">Open full size ↗</a>
-          </div>
-          <div class="rounded-xl overflow-hidden border border-white/10 bg-zinc-950">
-            <img src="${t.chartUrl}" alt="Trade chart"
-              class="w-full max-h-64 object-contain bg-zinc-950"
-              onerror="this.parentElement.innerHTML='<div class=\\'p-4 text-center\\'><a href=\\'${t.chartUrl}\\' target=\\'_blank\\' class=\\'text-green-400 text-xs hover:underline\\'>View Chart ↗</a></div>'"
-            />
-          </div>
-        </div>` : '';
       document.getElementById('detail-body').innerHTML = `
         <div class="space-y-3">
           <div class="flex items-center justify-between">
@@ -1733,11 +1772,11 @@
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2 text-xs border-t border-white/5 pt-3">
-            ${[['Date',t.date],['Ticker',t.ticker],['Direction',t.direction],['Contracts',t.contracts],['Account',t.accountType+(t.accountName?' — '+t.accountName:'')],['Strategy',t.strategy||'—'],['Entry Time',t.entryTime||'—'],['Exit Time',t.exitTime||'—'],['TP1 P&L',t.tp1Pnl?fmt(t.tp1Pnl):'—'],['TP2 P&L',t.tp2Pnl?fmt(t.tp2Pnl):'—'],['Commissions',t.commissions?'-$'+parseFloat(t.commissions).toFixed(2):'—']].map(([k,v])=>`<div><div class="text-zinc-600 mb-0.5">${k}</div><div class="text-white font-medium">${v||'—'}</div></div>`).join('')}
+            ${[['Date',t.date],['Ticker',t.ticker],['Direction',t.direction],['Contracts',t.contracts],['Account',t.accountType],['Strategy',t.strategy||'—'],['Entry Time',t.entryTime||'—'],['Exit Time',t.exitTime||'—'],['TP1 P&L',t.tp1Pnl?fmt(t.tp1Pnl):'—'],['TP2 P&L',t.tp2Pnl?fmt(t.tp2Pnl):'—']].map(([k,v])=>`<div><div class="text-zinc-600 mb-0.5">${k}</div><div class="text-white font-medium">${v||'—'}</div></div>`).join('')}
           </div>
           ${t.tags&&t.tags.length?`<div class="border-t border-white/5 pt-3"><div class="text-xs text-zinc-600 mb-2">Tags</div><div class="flex flex-wrap gap-1">${tags}</div></div>`:''}
           ${t.notes?`<div class="border-t border-white/5 pt-3"><div class="text-xs text-zinc-600 mb-1">Notes</div><p class="text-zinc-400 text-xs leading-relaxed">${t.notes}</p></div>`:''}
-          ${chartBlock}
+          ${t.chartUrl?`<div class="border-t border-white/5 pt-3"><a href="${t.chartUrl}" target="_blank" class="text-green-400 hover:text-green-300 text-xs">View Chart ↗</a></div>`:''}
         </div>`;
       document.getElementById('detail-modal').classList.remove('hidden');
     }
@@ -1761,38 +1800,136 @@
     }
 
     // ── Backtest ──
-    // ── Backtest filter state ──
-    let btSessions = [], btTrades = [], filteredBtTrades = [];
-    let btCalYear = new Date().getFullYear(), btCalMonth = new Date().getMonth();
-
-    function applyBtFilters() {
-      const res = document.getElementById('bt-f-result')?.value || '';
-      const grade = document.getElementById('bt-f-grade')?.value || '';
-      const dir = document.getElementById('bt-f-direction')?.value || '';
-      filteredBtTrades = btTrades.filter(t => (!res||t.result===res) && (!grade||t.grade===grade) && (!dir||t.direction===dir));
-      updateBtFilterBadge(); updateBtSummary();
-      const sub = [...document.querySelectorAll('[id^="btsub-"]')].find(b=>b.classList.contains('active'))?.id?.replace('btsub-','')||'trades';
-      if (sub==='trades') renderBtTrades(); else if (sub==='stats') renderBtStats(); else if (sub==='calendar') renderBtCal();
-    }
-    function clearBtFilters() {
-      ['bt-f-result','bt-f-grade','bt-f-direction'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-      filteredBtTrades=[...btTrades]; updateBtFilterBadge(); updateBtSummary();
-      const sub=[...document.querySelectorAll('[id^="btsub-"]')].find(b=>b.classList.contains('active'))?.id?.replace('btsub-','')||'trades';
-      if (sub==='trades') renderBtTrades(); else if (sub==='stats') renderBtStats(); else if (sub==='calendar') renderBtCal();
-    }
-    function updateBtSummary() {
-      const wins=filteredBtTrades.filter(t=>t.result==='WIN').length;
-      const p=filteredBtTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-      const wr=filteredBtTrades.length?Math.round(wins/filteredBtTrades.length*100):0;
-      const el=document.getElementById('bt-summary');
-      if (el) el.innerHTML=[['Trades',filteredBtTrades.length,'text-white'],['Win Rate',wr+'%','text-green-400'],['Net P&L',fmt(p),pnlColor(p)]].map(([l,v,c])=>`<div class="text-right"><div class="text-[10px] text-zinc-600">${l}</div><div class="text-xl font-black ${c}">${v}</div></div>`).join('');
-    }
-    function updateBtFilterBadge() {
-      const active=['bt-f-result','bt-f-grade','bt-f-direction'].filter(id=>document.getElementById(id)?.value!=='').length;
-      const badge=document.getElementById('bt-filter-badge');
-      if (badge){badge.textContent=active>0?active+' filter'+(active>1?'s':'')+' active':'';badge.classList.toggle('hidden',active===0);}
+    async function loadBtSessions() {
+      try {
+        const res = await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'get-trades',key:'backtest_sessions:'+whopKey}) });
+        const data = await res.json();
+        btSessions = Array.isArray(data.trades)?data.trades:[];
+        const grid=document.getElementById('bt-grid'), empty=document.getElementById('bt-empty');
+        if (!btSessions.length) { empty.classList.remove('hidden'); grid.classList.add('hidden'); return; }
+        empty.classList.add('hidden'); grid.classList.remove('hidden');
+        grid.innerHTML = btSessions.map(s=>{
+          const p=parseFloat(s.netPnl)||0;
+          return `<div onclick="openBtSession('${s.id}')" class="border border-white/10 bg-zinc-950/40 hover:border-white/20 rounded-2xl p-5 cursor-pointer transition">
+            <div class="text-sm font-black text-white mb-1 truncate">${s.name}</div>
+            <div class="text-xs text-zinc-500 mb-3">${[s.ticker,s.strategy].filter(Boolean).join(' · ')}</div>
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div><div class="text-[10px] text-zinc-600 mb-0.5">Trades</div><div class="text-sm font-bold text-white">${s.tradeCount||0}</div></div>
+              <div><div class="text-[10px] text-zinc-600 mb-0.5">Win Rate</div><div class="text-sm font-bold text-green-400">${s.winRate||0}%</div></div>
+              <div><div class="text-[10px] text-zinc-600 mb-0.5">Net P&L</div><div class="text-sm font-bold ${pnlColor(p)}">${fmt(p)}</div></div>
+            </div>
+          </div>`;
+        }).join('');
+      } catch(err) { console.error(err); }
     }
 
+    async function openBtSession(id) {
+      const s = btSessions.find(s=>s.id===id); if(!s) return;
+      document.getElementById('bt-sessions-view').classList.add('hidden');
+      document.getElementById('bt-detail').classList.remove('hidden');
+      document.getElementById('bt-title').textContent = s.name;
+      document.getElementById('bt-meta').textContent = [s.ticker,s.strategy,s.startDate].filter(Boolean).join(' · ');
+      btSub('trades');
+      try {
+        const res = await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'get-trades',key:'backtest:'+whopKey+':'+id}) });
+        const data = await res.json();
+        btTrades = Array.isArray(data.trades)?data.trades:[];
+        const wins=btTrades.filter(t=>t.result==='WIN').length;
+        const p=btTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+        const wr=btTrades.length?Math.round(wins/btTrades.length*100):0;
+        document.getElementById('bt-summary').innerHTML=[['Trades',btTrades.length,'text-white'],['Win Rate',wr+'%','text-green-400'],['Net P&L',fmt(p),pnlColor(p)]].map(([l,v,c])=>`<div class="text-right"><div class="text-[10px] text-zinc-600">${l}</div><div class="text-xl font-black ${c}">${v}</div></div>`).join('');
+        renderBtTrades();
+        if (btTrades[0]?.date) { const d=new Date(btTrades[0].date+'T00:00:00'); btCalYear=d.getFullYear(); btCalMonth=d.getMonth(); }
+      } catch(err) { console.error(err); }
+    }
+
+    function closeBt() { document.getElementById('bt-detail').classList.add('hidden'); document.getElementById('bt-sessions-view').classList.remove('hidden'); }
+
+    function btSub(tab) {
+      ['trades','stats','calendar'].forEach(t=>{
+        document.getElementById('bt-panel-'+t).classList.add('hidden');
+        const b=document.getElementById('btsub-'+t);
+        b.classList.remove('active','text-green-400','border-green-500');
+        b.classList.add('text-zinc-500','border-transparent');
+      });
+      document.getElementById('bt-panel-'+tab).classList.remove('hidden');
+      const ab=document.getElementById('btsub-'+tab);
+      ab.classList.add('active','text-green-400','border-green-500');
+      ab.classList.remove('text-zinc-500','border-transparent');
+      if(tab==='stats') renderBtStats();
+      if(tab==='calendar') renderBtCal();
+    }
+
+    function renderBtTrades() {
+      const tbody=document.getElementById('bt-tbody');
+      if(!btTrades.length){tbody.innerHTML='<tr><td colspan="6" class="px-4 py-8 text-center text-zinc-600">No trades</td></tr>';return;}
+      tbody.innerHTML=btTrades.map(t=>{
+        const tp=parseFloat(t.netPnl)||0;
+        const tags=Array.isArray(t.tags)&&t.tags.length?t.tags.map(tg=>`<span class="px-1.5 py-0.5 bg-zinc-800 border border-white/5 rounded text-[10px] text-zinc-500">${tg}</span>`).join(''):'—';
+        return `<tr class="hover:bg-white/[0.02] transition"><td class="px-4 py-3 text-zinc-400 text-xs">${t.date||'—'}</td><td class="px-4 py-3"><span class="text-xs font-bold ${t.direction==='LONG'?'text-green-400':'text-red-400'}">${t.direction||'—'}</span></td><td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border bg-zinc-800 text-zinc-300 border-white/10">${t.grade||'—'}</span></td><td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${resultBadge(t.result)}">${t.result||'—'}</span></td><td class="px-4 py-3 font-bold ${pnlColor(tp)}">${fmt(tp)}</td><td class="px-4 py-3 flex gap-1 flex-wrap">${tags}</td></tr>`;
+      }).join('');
+    }
+
+    function renderBtStats() {
+      const trades=btTrades;
+      if(!trades.length) return;
+      const wins=trades.filter(t=>t.result==='WIN'),losses=trades.filter(t=>t.result==='LOSS');
+      const decided=wins.length+losses.length, wr=decided?Math.round(wins.length/decided*100):0;
+      const netPnl=trades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+      const gw=wins.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+      const gl=Math.abs(losses.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0));
+      const pf=gl===0?(gw>0?'∞':'—'):(gw/gl).toFixed(2);
+      document.getElementById('bt-stats-top').innerHTML=
+        statCard('Total Trades',trades.length,'#ffffff',`${wins.length}W · ${losses.length}L`)+
+        statCard('Win Rate',wr+'%',wr>=50?'#22c55e':'#ef4444')+
+        statCard('Net P&L',fmt(netPnl),pnlColorStyle(netPnl))+
+        statCard('Profit Factor',pf,gl===0?'#22c55e':gw/gl>=1?'#22c55e':'#ef4444');
+      const grades=['A+','A','B+','B','C+','C','D'];
+      document.getElementById('bt-stats-grades').innerHTML=grades.map(g=>{
+        const gt=trades.filter(t=>t.grade===g);if(!gt.length)return'';
+        const gwr=gt.filter(t=>t.result==='WIN').length,gp=gt.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+        return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center"><div class="text-sm font-black text-white mb-1">${g}</div><div class="text-base font-black ${gwr/gt.length>=0.5?'text-green-400':'text-red-400'}">${Math.round(gwr/gt.length*100)}%</div><div class="text-[10px] text-zinc-600">${gt.length} trades</div><div class="text-xs font-bold mt-1 ${pnlColor(gp)}">${fmt(gp)}</div></div>`;
+      }).join('');
+      const longs=trades.filter(t=>t.direction==='LONG'),shorts=trades.filter(t=>t.direction==='SHORT');
+      document.getElementById('bt-stats-dir').innerHTML=[['LONG',longs,'text-green-400'],['SHORT',shorts,'text-red-400']].map(([l,ts,c])=>{
+        const w=ts.filter(t=>t.result==='WIN').length,p=ts.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+        return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4"><div class="text-sm font-black ${c} mb-2">${l}</div><div class="text-xl font-black text-white">${ts.length?Math.round(w/ts.length*100):0}%</div><div class="text-xs text-zinc-600">${ts.length} trades</div><div class="text-sm font-bold mt-1 ${pnlColor(p)}">${fmt(p)}</div></div>`;
+      }).join('');
+      const days=['Mon','Tue','Wed','Thu','Fri'];
+      document.getElementById('bt-stats-dow').innerHTML=days.map((day,i)=>{
+        const dt=trades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T00:00:00');return d.getDay()===i+1;});
+        const p=dt.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+        return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center"><div class="text-xs text-zinc-500 mb-1">${day}</div><div class="text-sm font-black ${pnlColor(p)}">${dt.length?fmt(p):'—'}</div><div class="text-[10px] text-zinc-600">${dt.length}</div></div>`;
+      }).join('');
+    }
+
+    function renderBtCal() {
+      const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('bt-cal-title').textContent=months[btCalMonth]+' '+btCalYear;
+      const byDate={};
+      btTrades.forEach(t=>{if(!t.date)return;if(!byDate[t.date])byDate[t.date]={pnl:0,count:0};byDate[t.date].pnl+=parseFloat(t.netPnl)||0;byDate[t.date].count++;});
+      const monthTrades=btTrades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T00:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
+      const mPnl=monthTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+      const mW=monthTrades.filter(t=>t.result==='WIN').length, mD=monthTrades.filter(t=>t.result==='WIN'||t.result==='LOSS').length;
+      document.getElementById('bt-cal-summary').innerHTML=[['Trades',monthTrades.length,'text-white'],['Win Rate',mD?Math.round(mW/mD*100)+'%':'—','text-green-400'],['Net P&L',fmt(mPnl),pnlColor(mPnl)]].map(([l,v,c])=>`<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center"><div class="text-xs text-zinc-500 mb-1">${l}</div><div class="text-lg font-black ${c}">${v}</div></div>`).join('');
+      const daysInMonth=new Date(btCalYear,btCalMonth+1,0).getDate();
+      const weekdays=[];for(let d=1;d<=daysInMonth;d++){const dow=new Date(btCalYear,btCalMonth,d).getDay();if(dow!==0&&dow!==6)weekdays.push(d);}
+      const firstDow=new Date(btCalYear,btCalMonth,weekdays[0]).getDay()-1;
+      let cells=[];for(let i=0;i<firstDow;i++)cells.push(null);weekdays.forEach(d=>cells.push(d));while(cells.length%5!==0)cells.push(null);
+      const grid=document.getElementById('bt-cal-grid');grid.innerHTML='';
+      for(let r=0;r<cells.length/5;r++){
+        const row=document.createElement('div');row.className='grid grid-cols-6 border-b border-white/5 last:border-0';
+        let rowPnl=0;
+        for(let c=0;c<5;c++){
+          const d=cells[r*5+c];const cell=document.createElement('div');cell.className='cal-day border-r border-white/5 p-3';
+          if(d){const ds=btCalYear+'-'+String(btCalMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');const data=byDate[ds];if(data)rowPnl+=data.pnl;if(data)cell.classList.add(data.pnl>0?'bg-green-500/5':'bg-red-950/10');cell.innerHTML=`<div class="text-xs text-zinc-600 mb-1">${btCalMonth+1}/${d}</div>`+(data?`<div class="text-xs font-bold ${data.pnl>=0?'text-green-400':'text-red-400'}">${(data.pnl>=0?'+':'')+' $'+Math.abs(data.pnl).toFixed(0)}</div><div class="text-[10px] text-zinc-600">${data.count} trade${data.count!==1?'s':''}</div>`:'');}
+          row.appendChild(cell);
+        }
+        const wc=document.createElement('div');wc.className='cal-day p-3 text-right';wc.innerHTML=`<div class="text-xs font-black ${rowPnl>=0?'text-green-400':'text-red-400'}">${rowPnl!==0?fmtShort(rowPnl):'$0'}</div>`;row.appendChild(wc);grid.appendChild(row);
+      }
+    }
+    function btCalPrev(){btCalMonth--;if(btCalMonth<0){btCalMonth=11;btCalYear--;}renderBtCal();}
+    function btCalNext(){btCalMonth++;if(btCalMonth>11){btCalMonth=0;btCalYear++;}renderBtCal();}
 
     // ── Init ──
     async function init() {
@@ -1812,15 +1949,6 @@
       } catch(err) { console.error(err); }
       document.getElementById('loading-screen').classList.add('hidden');
       document.getElementById('page-content').classList.remove('hidden');
-      // Switch to backtest view
-      ['calendar','history','stats','backtest'].forEach(t => {
-        const p = document.getElementById('panel-' + t);
-        if (p) p.classList.remove('active');
-        const b = document.getElementById('sub-' + t);
-        if (b) { b.classList.remove('active','text-green-400','border-green-500'); b.classList.add('text-zinc-500','border-transparent'); }
-      });
-      const btp = document.getElementById('panel-backtest');
-      if (btp) btp.classList.add('active');
       loadBtSessions();
     }
 
@@ -1828,119 +1956,3 @@
   </script>
 </body>
 </html>
-          <!-- BACKTEST -->
-          <div id="panel-backtest" class="sub-panel">
-            <div id="bt-sessions-view">
-              <div id="bt-empty" class="hidden text-center py-16">
-                <div class="text-4xl mb-3">🧪</div>
-                <h3 class="text-lg font-black mb-2">No sessions yet</h3>
-                <p class="text-zinc-500 text-sm">Create backtest sessions from the FSD-X Nexus Chrome extension.</p>
-              </div>
-              <div id="bt-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-            </div>
-            <div id="bt-detail" class="hidden">
-              <button onclick="closeBt()" class="flex items-center gap-2 text-zinc-500 hover:text-white text-xs mb-5 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>Back to Sessions
-              </button>
-              <div class="flex items-start justify-between mb-5 flex-wrap gap-4">
-                <div><h2 id="bt-title" class="text-xl font-black"></h2><div id="bt-meta" class="text-zinc-500 text-xs mt-1"></div></div>
-                <div class="flex flex-col items-end gap-2">
-                  <div id="bt-summary" class="flex gap-6"></div>
-                  <div id="bt-filter-badge" class="hidden text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 rounded-full px-2.5 py-0.5 font-bold"></div>
-                </div>
-              </div>
-              <!-- BT-specific filters -->
-              <div class="flex flex-wrap gap-2 mb-5 pb-4 border-b border-white/5">
-                <select id="bt-f-result" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-                  <option value="">All Results</option><option value="WIN">Win</option><option value="LOSS">Loss</option><option value="BE">BE</option>
-                </select>
-                <select id="bt-f-grade" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-                  <option value="">All Grades</option>
-                  <option>A+</option><option>A</option><option>B+</option><option>B</option><option>C+</option><option>C</option><option>D</option>
-                </select>
-                <select id="bt-f-direction" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-                  <option value="">All Directions</option><option value="LONG">Long</option><option value="SHORT">Short</option>
-                </select>
-                <button onclick="clearBtFilters()" class="text-xs text-zinc-500 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition">✕ Clear</button>
-              </div>
-              <!-- Sub tabs -->
-              <div class="flex border-b border-white/10 mb-5">
-                <button onclick="btSub('trades')" id="btsub-trades" class="tab-btn active px-4 py-2.5 text-xs font-bold uppercase tracking-widest border-b-2 border-green-500 text-green-400 mr-1">Trades</button>
-                <button onclick="btSub('stats')" id="btsub-stats" class="tab-btn px-4 py-2.5 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 mr-1">Stats</button>
-                <button onclick="btSub('calendar')" id="btsub-calendar" class="tab-btn px-4 py-2.5 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300">Calendar</button>
-              </div>
-              <!-- TRADES -->
-              <div id="bt-panel-trades">
-                <div class="border border-white/10 rounded-2xl overflow-hidden"><div class="overflow-x-auto">
-                  <table class="w-full text-left min-w-[700px]">
-                    <thead><tr class="bg-zinc-950 border-b border-white/10 text-xs text-zinc-500 uppercase tracking-wider">
-                      <th class="px-4 py-3">Date</th><th class="px-4 py-3">Dir</th><th class="px-4 py-3">Ticker</th>
-                      <th class="px-4 py-3">Grade</th><th class="px-4 py-3">Result</th>
-                      <th class="px-4 py-3">TP1</th><th class="px-4 py-3">TP2</th>
-                      <th class="px-4 py-3">Net P&L</th><th class="px-4 py-3">Tags</th>
-                    </tr></thead>
-                    <tbody id="bt-tbody" class="divide-y divide-white/5 text-sm"></tbody>
-                  </table>
-                </div></div>
-              </div>
-              <!-- STATS -->
-              <div id="bt-panel-stats" class="hidden space-y-5">
-                <div id="bt-stats-top" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
-                <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
-                  <div class="flex items-start justify-between mb-1">
-                    <div><div class="text-xs text-zinc-500 uppercase tracking-[0.2em]">Cumulative P&L</div><div id="bt-chart-final-pnl" class="text-2xl font-black mt-1"></div></div>
-                    <div id="bt-chart-legend" class="flex gap-4 text-xs text-zinc-500 mt-1"></div>
-                  </div>
-                  <div id="bt-equity-chart-wrap" class="relative mt-4" style="height:260px"></div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Outcome Breakdown</div><div id="bt-stats-outcome" class="space-y-3"></div></div>
-                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Runner Stats</div><div id="bt-stats-runner" class="space-y-2"></div></div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Trade Summary</div><div id="bt-stats-summary" class="space-y-2 text-xs"></div></div>
-                  <div class="grid grid-rows-2 gap-4">
-                    <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Commissions &amp; Fees</div><div id="bt-stats-commissions" class="space-y-2 text-xs"></div></div>
-                    <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Contracts</div><div id="bt-stats-contracts" class="space-y-2 text-xs"></div></div>
-                  </div>
-                </div>
-                <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">By Grade</div><div id="bt-stats-grades"></div></div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Long vs Short</div><div id="bt-stats-dir" class="space-y-4"></div></div>
-                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Day of Week</div><div id="bt-stats-dow" class="space-y-2"></div></div>
-                </div>
-                <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
-                  <div class="text-xs text-zinc-500 uppercase tracking-[0.2em] mb-4">Drawdown Metrics</div>
-                  <div id="bt-stats-drawdown" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6"></div>
-                  <div class="text-xs text-zinc-600 uppercase tracking-wider mb-3">Drawdown From Peak</div>
-                  <div id="bt-dd-chart-wrap" class="relative" style="height:190px"></div>
-                </div>
-              </div>
-              <!-- CALENDAR -->
-              <div id="bt-panel-calendar" class="hidden">
-                <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-                  <div class="flex items-center gap-3">
-                    <button onclick="btCalPrev()" class="p-2 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
-                    <h3 id="bt-cal-title" class="text-lg font-black text-white w-44 text-center"></h3>
-                    <button onclick="btCalNext()" class="p-2 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg></button>
-                  </div>
-                  <div class="cal-header-stats flex gap-4 text-sm">
-                    <div><span class="text-zinc-500 text-xs mr-1.5">MONTHLY</span><span id="bt-cal-monthly" class="font-black">—</span></div>
-                    <div><span class="text-zinc-500 text-xs mr-1.5">WIN RATE</span><span id="bt-cal-wr" class="font-black text-green-400">—</span></div>
-                    <div><span class="text-zinc-500 text-xs mr-1.5">DAYS</span><span id="bt-cal-days" class="font-black text-zinc-400">—</span></div>
-                  </div>
-                </div>
-                <div class="border border-white/10 rounded-2xl overflow-hidden"><div class="overflow-x-auto"><div style="min-width:420px">
-                  <div class="grid grid-cols-6 border-b border-white/10 bg-zinc-950/80">
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Mon</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Tue</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Wed</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Thu</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Fri</div>
-                    <div class="px-3 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest text-right">Weekly</div>
-                  </div>
-                  <div id="bt-cal-grid"></div>
-                </div></div></div>
-              </div>
-            </div><!-- /bt-detail -->
-          </div>
