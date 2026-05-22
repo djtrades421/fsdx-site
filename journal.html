@@ -13,15 +13,15 @@
     .tab-btn.active { color: #22c55e; border-bottom-color: #22c55e; }
     .sub-panel { display: none; }
     .sub-panel.active { display: block; }
-    .cal-day { min-height: 80px; }
+    .cal-day { min-height: 110px; }
+    .cal-day-win  { background: rgba(34,197,94,0.09); border-left: 2px solid rgba(34,197,94,0.45) !important; }
+    .cal-day-loss { background: rgba(239,68,68,0.09); border-left: 2px solid rgba(239,68,68,0.4) !important; }
     .tag-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 999px; font-size: 11px; color: #22c55e; }
     .direction-btn { transition: all 0.15s; }
     .direction-btn.active-long { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.5); color: #22c55e; font-weight: 700; }
     .direction-btn.active-short { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.5); color: #ef4444; font-weight: 700; }
     .pnl-mode-btn.active { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.4); color: #22c55e; }
     canvas { width: 100%; }
-    .eq-dot { transition: r 0.1s, opacity 0.1s; cursor: pointer; }
-    .eq-dot:hover { r: 6; opacity: 1; }
     #equity-chart-wrap svg { display: block; overflow: visible; }
   </style>
 </head>
@@ -104,13 +104,13 @@
               </div>
             </div>
             <div class="border border-white/10 rounded-2xl overflow-hidden">
-              <div class="grid grid-cols-6 border-b border-white/10 bg-zinc-950">
-                <div class="px-4 py-2 text-[10px] text-zinc-600 uppercase tracking-wider">Mon</div>
-                <div class="px-4 py-2 text-[10px] text-zinc-600 uppercase tracking-wider">Tue</div>
-                <div class="px-4 py-2 text-[10px] text-zinc-600 uppercase tracking-wider">Wed</div>
-                <div class="px-4 py-2 text-[10px] text-zinc-600 uppercase tracking-wider">Thu</div>
-                <div class="px-4 py-2 text-[10px] text-zinc-600 uppercase tracking-wider">Fri</div>
-                <div class="px-4 py-2 text-[10px] text-zinc-600 uppercase tracking-wider text-right">Weekly</div>
+              <div class="grid grid-cols-6 border-b border-white/10 bg-zinc-950/80">
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Mon</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Tue</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Wed</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Thu</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest">Fri</div>
+                <div class="px-4 py-3 text-xs text-zinc-400 font-bold uppercase tracking-widest text-right">Weekly</div>
               </div>
               <div id="cal-grid"></div>
             </div>
@@ -585,29 +585,50 @@
       grid.innerHTML = '';
       for (let r = 0; r < cells.length/5; r++) {
         const row = document.createElement('div');
-        row.className = 'grid grid-cols-6 border-b border-white/5 last:border-0';
+        row.className = 'grid grid-cols-6 border-b border-white/[0.06] last:border-0';
         let rowPnl = 0;
         for (let c = 0; c < 5; c++) {
           const d = cells[r*5+c];
           const cell = document.createElement('div');
-          cell.className = 'cal-day border-r border-white/5 p-3 last:border-0';
+          cell.className = 'cal-day border-r border-white/[0.06] p-4';
           if (d) {
             const ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
             const data = byDate[ds];
             if (data) rowPnl += data.pnl;
             const isToday = ds === today;
-            if (data) cell.classList.add(data.pnl>0?'bg-green-500/5':'bg-red-950/10');
-            if (data) cell.style.cursor = 'pointer';
-            const pnlLine = data ? `<div class="text-xs font-black ${data.pnl>=0?'text-green-400':'text-red-400'} mt-1">${fmtShort(data.pnl)}</div>` : '';
-            const tradeLine = data ? `<div class="text-[10px] text-zinc-500 mt-0.5">${data.count} trade${data.count!==1?'s':''}</div>` : '';
-            cell.innerHTML = `<div class="text-[11px] font-bold ${isToday?'text-green-400':'text-zinc-600'}">${calMonth+1}/${d}</div>${pnlLine}${tradeLine}`;
-            if (data) cell.onclick = () => { filterByDate(ds); switchSub('history'); };
+            if (isToday) cell.style.outline = '1px solid rgba(34,197,94,0.3)';
+            if (data) {
+              cell.classList.add(data.pnl > 0 ? 'cal-day-win' : 'cal-day-loss');
+              cell.style.cursor = 'pointer';
+            }
+            // Date number
+            const dateDiv = document.createElement('div');
+            dateDiv.className = isToday ? 'text-xs font-black text-green-400 mb-2' : 'text-xs font-bold text-zinc-500 mb-2';
+            dateDiv.textContent = `${calMonth+1}/${d}`;
+            cell.appendChild(dateDiv);
+            if (data) {
+              // P&L — large and bold
+              const pnlDiv = document.createElement('div');
+              pnlDiv.className = 'text-sm font-black ' + (data.pnl >= 0 ? 'text-green-400' : 'text-red-400');
+              pnlDiv.textContent = fmtShort(data.pnl);
+              cell.appendChild(pnlDiv);
+              // Trade count
+              const countDiv = document.createElement('div');
+              countDiv.className = 'text-[11px] text-zinc-500 mt-1';
+              countDiv.textContent = `${data.count} trade${data.count !== 1 ? 's' : ''}`;
+              cell.appendChild(countDiv);
+              cell.onclick = () => { filterByDate(ds); switchSub('history'); };
+            }
           }
           row.appendChild(cell);
         }
+        // Weekly total col
         const wc = document.createElement('div');
-        wc.className = 'cal-day p-3 flex flex-col items-end justify-start';
-        wc.innerHTML = `<div class="text-xs font-black ${rowPnl>=0?'text-green-400':'text-red-400'}">${rowPnl!==0?fmtShort(rowPnl):'—'}</div>`;
+        wc.className = 'cal-day p-4 flex flex-col items-end justify-start bg-zinc-950/30';
+        const wcInner = document.createElement('div');
+        wcInner.className = 'text-sm font-black ' + (rowPnl >= 0 ? 'text-green-400' : 'text-red-400');
+        wcInner.textContent = rowPnl !== 0 ? fmtShort(rowPnl) : '—';
+        wc.appendChild(wcInner);
         row.appendChild(wc);
         grid.appendChild(row);
       }
