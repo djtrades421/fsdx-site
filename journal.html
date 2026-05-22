@@ -154,11 +154,11 @@
               </div>
             </div>
             <div id="stats-empty" class="hidden text-center py-16 text-zinc-600 text-sm">No trades for this period.</div>
-            <div id="stats-content" class="hidden space-y-6">
-              <!-- Top cards -->
+            <div id="stats-content" class="hidden space-y-5">
+              <!-- Top 4 KPI cards -->
               <div id="stats-top" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
-              <!-- Row 2 -->
-              <!-- Equity curve — full width -->
+
+              <!-- Cumulative P&L chart — full width -->
               <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
                 <div class="flex items-start justify-between mb-1">
                   <div>
@@ -169,30 +169,67 @@
                 </div>
                 <div id="equity-chart-wrap" class="relative mt-4" style="height:260px"></div>
               </div>
-              <!-- Trade Summary -->
+
+              <!-- Row: Outcome Breakdown + Runner Stats -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div id="stats-row2" class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"></div>
                 <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
                   <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Outcome Breakdown</div>
                   <div id="stats-outcome" class="space-y-3"></div>
                 </div>
+                <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
+                  <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Runner Stats</div>
+                  <div id="stats-runner" class="space-y-2"></div>
+                </div>
               </div>
-              <!-- Grade breakdown -->
+
+              <!-- Row: Trade Summary + Commissions & Contracts -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
+                  <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Trade Summary</div>
+                  <div id="stats-row2" class="space-y-2 text-xs"></div>
+                </div>
+                <div class="grid grid-rows-2 gap-4">
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
+                    <div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Commissions &amp; Fees</div>
+                    <div id="stats-commissions" class="space-y-2 text-xs"></div>
+                  </div>
+                  <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
+                    <div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Contracts</div>
+                    <div id="stats-contracts" class="space-y-2 text-xs"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- By Grade — table style -->
               <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
                 <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">By Grade</div>
-                <div id="stats-grades" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3"></div>
+                <div id="stats-grades"></div>
               </div>
-              <!-- Direction + DOW -->
+
+              <!-- Row: Long vs Short + Day of Week -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
                   <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Long vs Short</div>
-                  <div id="stats-direction" class="grid grid-cols-2 gap-3"></div>
+                  <div id="stats-direction" class="space-y-4"></div>
                 </div>
                 <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
                   <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Day of Week</div>
-                  <div id="stats-dow" class="grid grid-cols-5 gap-2"></div>
+                  <div id="stats-dow" class="space-y-2"></div>
                 </div>
               </div>
+
+              <!-- Time of Day -->
+              <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
+                <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Time of Day</div>
+                <div id="stats-tod" class="space-y-2"></div>
+              </div>
+
+              <!-- By Account -->
+              <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
+                <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">By Account</div>
+                <div id="stats-accounts" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+              </div>
+
               <!-- Drawdown -->
               <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
                 <div class="text-xs text-zinc-500 uppercase tracking-[0.2em] mb-4">Drawdown Metrics</div>
@@ -624,6 +661,30 @@
       renderStats();
     }
 
+    function statRow(label, val, valClass='text-white') {
+      return `<div class="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
+        <span class="text-zinc-500">${label}</span>
+        <span class="font-bold ${valClass}">${val}</span>
+      </div>`;
+    }
+
+    function barRow(label, pnl, wr, count, maxAbs) {
+      const pnlCol = pnl >= 0 ? '#22c55e' : '#ef4444';
+      const wrCol = wr >= 50 ? '#22c55e' : wr > 0 ? '#ef4444' : '#71717a';
+      const barW = maxAbs > 0 ? Math.round(Math.abs(pnl) / maxAbs * 100) : 0;
+      const barCol = pnl >= 0 ? '#22c55e' : '#ef4444';
+      const sign = pnl >= 0 ? '+' : '-';
+      return `<div class="grid items-center gap-2 py-2 border-b border-white/5 last:border-0" style="grid-template-columns:3rem 1fr 4rem 3rem 2rem">
+        <span class="text-xs text-zinc-400 font-bold">${label}</span>
+        <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div class="h-full rounded-full" style="width:${barW}%;background:${barCol};opacity:0.75"></div>
+        </div>
+        <span class="text-xs font-black text-right" style="color:${pnlCol}">${sign}$${Math.abs(pnl).toFixed(0)}</span>
+        <span class="text-xs font-bold text-right" style="color:${wrCol}">${wr}%</span>
+        <span class="text-[10px] text-zinc-600 text-right">${count}t</span>
+      </div>`;
+    }
+
     function renderStats() {
       const now = new Date();
       const today = now.toISOString().slice(0,10);
@@ -657,6 +718,11 @@
       const avgLoss = losses.length ? grossLoss/losses.length : 0;
       const best = wins.length ? wins.reduce((m,t)=>Math.max(m,parseFloat(t.netPnl)||0),-Infinity) : 0;
       const worst = losses.length ? losses.reduce((m,t)=>Math.min(m,parseFloat(t.netPnl)||0),Infinity) : 0;
+      const totalCommissions = trades.reduce((s,t)=>s+(parseFloat(t.commissions)||0),0);
+      const totalContracts = trades.reduce((s,t)=>s+(parseInt(t.contracts)||0),0);
+      const avgContracts = trades.length ? (totalContracts/trades.length).toFixed(1) : '—';
+      const avgContractsWin = wins.length ? (wins.reduce((s,t)=>s+(parseInt(t.contracts)||0),0)/wins.length).toFixed(1) : '—';
+      const avgContractsLoss = losses.length ? (losses.reduce((s,t)=>s+(parseInt(t.contracts)||0),0)/losses.length).toFixed(1) : '—';
 
       // Avg duration
       const timed = trades.filter(t=>t.entryTime&&t.exitTime);
@@ -667,6 +733,7 @@
         avgDur = avg>=60?Math.floor(avg/60)+'h '+(avg%60)+'m':avg+'m';
       }
 
+      // ── Top KPI cards ──
       const pfColor = pf==='∞'?'#22c55e':pf==='—'?'#71717a':parseFloat(pf)>=1?'#22c55e':'#ef4444';
       document.getElementById('stats-top').innerHTML =
         statCard('Total Trades', trades.length, '#ffffff', `${wins.length}W · ${losses.length}L${bes.length?' · '+bes.length+'BE':''}`) +
@@ -674,82 +741,236 @@
         renderNetPnlCard(netPnl) +
         statCard('Profit Factor', pf, pfColor);
 
-      document.getElementById('stats-row2').innerHTML = `
-        <div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Trade Summary</div>
-        <div class="grid grid-cols-2 gap-4 text-xs">
-          <div class="space-y-2">
-            <div class="flex justify-between"><span class="text-zinc-500">Avg Win</span><span class="text-green-400 font-bold">+$${avgWin.toFixed(2)}</span></div>
-            <div class="flex justify-between"><span class="text-zinc-500">Avg Loss</span><span class="text-red-400 font-bold">-$${avgLoss.toFixed(2)}</span></div>
-            <div class="flex justify-between"><span class="text-zinc-500">Avg Duration</span><span class="text-white font-bold">${avgDur}</span></div>
-          </div>
-          <div class="space-y-2">
-            <div class="flex justify-between"><span class="text-zinc-500">Best Trade</span><span class="text-green-400 font-bold">${best>0?'+$'+best.toFixed(2):'—'}</span></div>
-            <div class="flex justify-between"><span class="text-zinc-500">Worst Trade</span><span class="text-red-400 font-bold">${worst<0?'-$'+Math.abs(worst).toFixed(2):'—'}</span></div>
-            <div class="flex justify-between"><span class="text-zinc-500">Win Rate</span><span class="font-bold" style="color:${wr>=50?'#22c55e':'#ef4444'}">${wr}%</span></div>
-          </div>
-        </div>`;
-
-      // Equity curve
+      // ── Equity curve ──
       drawEquityCurve(trades);
 
-      // Outcome breakdown
+      // ── Outcome Breakdown ──
       const obEl = document.getElementById('stats-outcome');
       if (obEl) {
         const total = trades.length || 1;
-        const wPct = Math.round(wins.length/total*100);
-        const lPct = Math.round(losses.length/total*100);
-        const bePct = Math.round(bes.length/total*100);
-        const wPnl = wins.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-        const lPnl = losses.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-        obEl.innerHTML = [
-          ['WIN', wins.length, wPct, '#22c55e', '+$'+wPnl.toFixed(2)],
-          ['LOSS', losses.length, lPct, '#ef4444', '-$'+Math.abs(lPnl).toFixed(2)],
-          ['BE', bes.length, bePct, '#71717a', '$0.00'],
-        ].map(([label, count, pct, col, pnlStr]) => `
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span style="color:${col}" class="font-bold">${label}</span>
-              <span class="text-zinc-400">${count} trades <span class="text-zinc-600">·</span> <span style="color:${col}">${pnlStr}</span></span>
-            </div>
-            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div class="h-full rounded-full transition-all" style="width:${pct}%;background:${col};opacity:0.8"></div>
-            </div>
-          </div>`).join('');
+        const wPnl = grossWin, lPnl = -grossLoss;
+        obEl.innerHTML = `
+          <div class="flex gap-1 mb-3 h-2 rounded-full overflow-hidden">
+            <div style="width:${Math.round(wins.length/total*100)}%;background:#22c55e;opacity:0.85" class="rounded-l-full"></div>
+            <div style="width:${Math.round(losses.length/total*100)}%;background:#ef4444;opacity:0.85"></div>
+            <div style="width:${Math.round(bes.length/total*100)}%;background:#52525b;opacity:0.85" class="rounded-r-full"></div>
+          </div>` +
+          [['WIN',wins.length,'#22c55e','+$'+wPnl.toFixed(2)],
+           ['LOSS',losses.length,'#ef4444','-$'+grossLoss.toFixed(2)],
+           ['BE',bes.length,'#71717a','$0.00']
+          ].map(([label,count,col,pnlStr]) => `
+            <div class="flex items-center gap-3 py-1.5 border-b border-white/5 last:border-0">
+              <span class="w-8 text-xs font-black" style="color:${col}">${label}</span>
+              <div class="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full rounded-full" style="width:${Math.round(count/total*100)}%;background:${col};opacity:0.8"></div>
+              </div>
+              <span class="text-xs text-zinc-400 w-4 text-center">${count}</span>
+              <span class="text-xs text-zinc-500 w-8 text-right">${Math.round(count/total*100)}%</span>
+            </div>`).join('');
       }
 
-      // By grade
-      const grades = ['A+','A','B+','B','C+','C','D'];
-      document.getElementById('stats-grades').innerHTML = grades.map(g=>{
-        const gt=trades.filter(t=>t.grade===g); if(!gt.length) return '';
-        const gw=gt.filter(t=>t.result==='WIN').length;
-        const gp=gt.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-        return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center">
-          <div class="text-sm font-black text-white mb-1">${g}</div>
-          <div class="text-base font-black ${gw/gt.length>=0.5?'text-green-400':'text-red-400'}">${Math.round(gw/gt.length*100)}%</div>
-          <div class="text-[10px] text-zinc-600">${gt.length} trades</div>
-          <div class="text-xs font-bold mt-1 ${pnlColor(gp)}">${fmt(gp)}</div>
+      // ── Runner Stats ──
+      const runnerEl = document.getElementById('stats-runner');
+      if (runnerEl) {
+        const tp1hits = trades.filter(t => parseFloat(t.tp1Pnl||0) !== 0).length;
+        const tp2hits = trades.filter(t => parseFloat(t.tp2Pnl||0) !== 0).length;
+        const tp1Rate = trades.length ? Math.round(tp1hits/trades.length*100) : 0;
+        const tp2Rate = trades.length ? Math.round(tp2hits/trades.length*100) : 0;
+        const avgTp1 = tp1hits ? trades.reduce((s,t)=>s+(parseFloat(t.tp1Pnl)||0),0)/tp1hits : 0;
+        const avgTp2 = tp2hits ? trades.reduce((s,t)=>s+(parseFloat(t.tp2Pnl)||0),0)/tp2hits : 0;
+        // Runner outcomes (trades that went to runner = had tp2 contracts > 0)
+        const runners = trades.filter(t => (parseInt(t.tp2Contracts)||0) > 0 || parseFloat(t.runnerPnl||0) !== 0);
+        const rWin = runners.filter(t=>t.result==='WIN').length;
+        const rBE = runners.filter(t=>t.result==='BE').length;
+        const rLoss = runners.filter(t=>t.result==='LOSS').length;
+        const statLine = (label, val, col='text-zinc-300') =>
+          `<div class="flex justify-between items-center py-1.5 border-b border-white/5 last:border-0 text-xs">
+            <span class="text-zinc-500">${label}</span><span class="font-bold ${col}">${val}</span></div>`;
+        runnerEl.innerHTML =
+          statLine('TP1 hit rate', tp1Rate+'%', tp1Rate>=50?'text-green-400':'text-red-400') +
+          statLine('TP2 hit rate', tp2Rate+'%', tp2Rate>=50?'text-green-400':'text-red-400') +
+          statLine('Runner → Win', rWin, 'text-green-400') +
+          statLine('Runner → BE', rBE, 'text-zinc-400') +
+          statLine('Runner → Loss', rLoss, 'text-red-400') +
+          statLine('Avg TP1 P&L', avgTp1 ? (avgTp1>=0?'+':'-')+'$'+Math.abs(avgTp1).toFixed(2) : '—', avgTp1>=0?'text-green-400':'text-red-400') +
+          statLine('Avg TP2 P&L', avgTp2 ? (avgTp2>=0?'+':'-')+'$'+Math.abs(avgTp2).toFixed(2) : '—', avgTp2>=0?'text-green-400':'text-red-400');
+      }
+
+      // ── Trade Summary ──
+      const row2El = document.getElementById('stats-row2');
+      if (row2El) {
+        const sl = (label, val, cls='text-white') =>
+          `<div class="flex justify-between items-center py-1.5 border-b border-white/5 last:border-0">
+            <span class="text-zinc-500">${label}</span><span class="font-bold ${cls}">${val}</span></div>`;
+        row2El.innerHTML =
+          sl('Wins / Losses / BE', `<span class="text-green-400">${wins.length}</span> <span class="text-zinc-600">/</span> <span class="text-red-400">${losses.length}</span> <span class="text-zinc-600">/</span> <span class="text-zinc-400">${bes.length}</span>`) +
+          sl('Avg Win / Loss', `<span class="text-green-400">+$${avgWin.toFixed(2)}</span> <span class="text-zinc-600">/</span> <span class="text-red-400">-$${avgLoss.toFixed(2)}</span>`) +
+          sl('Best / Worst', `<span class="text-green-400">${best>0?'+$'+best.toFixed(2):'—'}</span> <span class="text-zinc-600">/</span> <span class="text-red-400">${worst<0?'-$'+Math.abs(worst).toFixed(2):'—'}</span>`) +
+          sl('Avg Duration', avgDur) +
+          sl('Gross P&L', `<span class="${netPnl>=0?'text-green-400':'text-red-400'}">${netPnl>=0?'+':'-'}$${Math.abs(netPnl).toFixed(2)}</span>`);
+      }
+
+      // ── Commissions ──
+      const commEl = document.getElementById('stats-commissions');
+      if (commEl) {
+        const sl = (label, val, cls='text-white') =>
+          `<div class="flex justify-between items-center py-1 border-b border-white/5 last:border-0">
+            <span class="text-zinc-500">${label}</span><span class="font-bold ${cls}">${val}</span></div>`;
+        const avgComm = trades.length ? totalCommissions/trades.length : 0;
+        commEl.innerHTML =
+          sl('Total paid', totalCommissions ? '-$'+totalCommissions.toFixed(2) : '—', 'text-red-400') +
+          sl('Avg per trade', '$'+avgComm.toFixed(2)) +
+          sl('Net after fees', (netPnl-totalCommissions>=0?'+':'-')+'$'+Math.abs(netPnl-totalCommissions).toFixed(2), netPnl-totalCommissions>=0?'text-green-400':'text-red-400');
+      }
+
+      // ── Contracts ──
+      const conEl = document.getElementById('stats-contracts');
+      if (conEl) {
+        const sl = (label, val) =>
+          `<div class="flex justify-between items-center py-1 border-b border-white/5 last:border-0">
+            <span class="text-zinc-500">${label}</span><span class="font-bold text-white">${val}</span></div>`;
+        conEl.innerHTML =
+          sl('Avg contracts', avgContracts) +
+          sl('Avg on winners', avgContractsWin) +
+          sl('Avg on losers', avgContractsLoss) +
+          sl('Total contracts', totalContracts);
+      }
+
+      // ── By Grade — table style ──
+      const gradeEl = document.getElementById('stats-grades');
+      if (gradeEl) {
+        const grades = ['A+','A','B+','B','C+','C','D','F'];
+        const maxGradePnl = Math.max(...grades.map(g => {
+          const gt = trades.filter(t=>t.grade===g);
+          return gt.length ? Math.abs(gt.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0)) : 0;
+        }));
+        const header = `<div class="grid gap-2 py-2 border-b border-white/10 mb-1 text-[10px] text-zinc-600 uppercase tracking-wider" style="grid-template-columns:3rem 1fr 4rem 4rem 5rem 5rem">
+          <span>Grade</span><span></span><span class="text-right">Trades</span><span class="text-right">Win %</span><span class="text-right">Net P&L</span><span class="text-right">Avg P&L</span>
         </div>`;
-      }).join('');
+        const rows = grades.map(g => {
+          const gt = trades.filter(t=>t.grade===g);
+          if (!gt.length) {
+            return `<div class="grid gap-2 py-2.5 border-b border-white/5 last:border-0 text-xs" style="grid-template-columns:3rem 1fr 4rem 4rem 5rem 5rem">
+              <span class="text-zinc-600 font-bold">${g}</span>
+              <div></div>
+              <span class="text-right text-zinc-700">—</span><span class="text-right text-zinc-700">—</span>
+              <span class="text-right text-zinc-700">—</span><span class="text-right text-zinc-700">—</span>
+            </div>`;
+          }
+          const gw = gt.filter(t=>t.result==='WIN').length;
+          const gd = gw + gt.filter(t=>t.result==='LOSS').length;
+          const gwr = gd ? Math.round(gw/gd*100) : 0;
+          const gp = gt.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+          const gavg = gp/gt.length;
+          const barW = maxGradePnl>0 ? Math.round(Math.abs(gp)/maxGradePnl*100) : 0;
+          const col = gp>=0?'#22c55e':'#ef4444';
+          const wrCol = gwr>=50?'text-green-400':'text-red-400';
+          return `<div class="grid gap-2 items-center py-2.5 border-b border-white/5 last:border-0 text-xs" style="grid-template-columns:3rem 1fr 4rem 4rem 5rem 5rem">
+            <span class="font-black" style="color:${col}">${g}</span>
+            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+              <div class="h-full rounded-full" style="width:${barW}%;background:${col};opacity:0.75"></div>
+            </div>
+            <span class="text-right text-zinc-400">${gt.length}t</span>
+            <span class="text-right font-bold ${wrCol}">${gwr}%</span>
+            <span class="text-right font-black" style="color:${col}">${gp>=0?'+':'-'}$${Math.abs(gp).toFixed(2)}</span>
+            <span class="text-right text-zinc-400">${gavg>=0?'+':'-'}$${Math.abs(gavg).toFixed(2)}</span>
+          </div>`;
+        }).join('');
+        gradeEl.innerHTML = header + rows;
+      }
 
-      // Direction
-      const longs=trades.filter(t=>t.direction==='LONG'), shorts=trades.filter(t=>t.direction==='SHORT');
-      document.getElementById('stats-direction').innerHTML = [['LONG',longs,'text-green-400'],['SHORT',shorts,'text-red-400']].map(([l,ts,c])=>{
-        const w=ts.filter(t=>t.result==='WIN').length, p=ts.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-        return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4"><div class="text-sm font-black ${c} mb-2">${l}</div><div class="text-xl font-black text-white">${ts.length?Math.round(w/ts.length*100):0}%</div><div class="text-xs text-zinc-600">${ts.length} trades</div><div class="text-sm font-bold mt-1 ${pnlColor(p)}">${fmt(p)}</div></div>`;
-      }).join('');
+      // ── Long vs Short — detailed ──
+      const dirEl = document.getElementById('stats-direction');
+      if (dirEl) {
+        dirEl.innerHTML = [['LONG',trades.filter(t=>t.direction==='LONG'),'#22c55e'],['SHORT',trades.filter(t=>t.direction==='SHORT'),'#ef4444']].map(([label,ts,col]) => {
+          const w=ts.filter(t=>t.result==='WIN').length, l=ts.filter(t=>t.result==='LOSS').length;
+          const d=w+l, wrate=d?Math.round(w/d*100):0;
+          const p=ts.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+          const aw=w?ts.filter(t=>t.result==='WIN').reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0)/w:0;
+          const al=l?Math.abs(ts.filter(t=>t.result==='LOSS').reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0)/l):0;
+          return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-sm font-black" style="color:${col}">${label}</span>
+              <span class="text-xs text-zinc-500">${ts.length} trades · <span style="color:${wrate>=50?'#22c55e':'#ef4444'}">${wrate}% WR</span></span>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between"><span class="text-zinc-500">Net P&L</span><span class="font-black" style="color:${p>=0?'#22c55e':'#ef4444'}">${p>=0?'+':'-'}$${Math.abs(p).toFixed(2)}</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Avg Win</span><span class="text-green-400 font-bold">+$${aw.toFixed(2)}</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Avg Loss</span><span class="text-red-400 font-bold">-$${al.toFixed(2)}</span></div>
+            </div>
+          </div>`;
+        }).join('');
+      }
 
-      // DOW
-      const days=['Mon','Tue','Wed','Thu','Fri'];
-      document.getElementById('stats-dow').innerHTML = days.map((day,i)=>{
-        const dt=trades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T00:00:00');return d.getDay()===i+1;});
-        const p=dt.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-        return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center"><div class="text-xs text-zinc-500 mb-1">${day}</div><div class="text-sm font-black ${pnlColor(p)}">${dt.length?fmt(p):'—'}</div><div class="text-[10px] text-zinc-600">${dt.length}</div></div>`;
-      }).join('');
+      // ── Day of Week — bar table ──
+      const dowEl = document.getElementById('stats-dow');
+      if (dowEl) {
+        const days = ['Mon','Tue','Wed','Thu','Fri'];
+        const dayData = days.map((day,i) => {
+          const dt = trades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T00:00:00');return d.getDay()===i+1;});
+          const p = dt.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+          const w = dt.filter(t=>t.result==='WIN').length;
+          const d2 = w + dt.filter(t=>t.result==='LOSS').length;
+          return { day, dt, p, wr: d2?Math.round(w/d2*100):0 };
+        });
+        const maxAbs = Math.max(...dayData.map(d=>Math.abs(d.p)), 1);
+        dowEl.innerHTML = dayData.map(({day,dt,p,wr}) => barRow(day, p, wr, dt.length, maxAbs)).join('');
+      }
 
-      // Drawdown
+      // ── Time of Day ──
+      const todEl = document.getElementById('stats-tod');
+      if (todEl) {
+        const hourMap = {};
+        trades.forEach(t => {
+          if (!t.entryTime) return;
+          const h = parseInt(t.entryTime.split(':')[0]);
+          if (isNaN(h)) return;
+          if (!hourMap[h]) hourMap[h] = [];
+          hourMap[h].push(t);
+        });
+        const hours = Object.keys(hourMap).map(Number).sort((a,b)=>a-b);
+        const maxAbs = Math.max(...hours.map(h => Math.abs(hourMap[h].reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0))), 1);
+        if (!hours.length) {
+          todEl.innerHTML = '<div class="text-xs text-zinc-600 py-2">No entry times recorded</div>';
+        } else {
+          todEl.innerHTML = hours.map(h => {
+            const ts = hourMap[h];
+            const p = ts.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+            const w = ts.filter(t=>t.result==='WIN').length;
+            const d = w + ts.filter(t=>t.result==='LOSS').length;
+            const hourWr = d ? Math.round(w/d*100) : 0;
+            const ampm = h < 12 ? h+'AM' : h===12?'12PM':(h-12)+'PM';
+            return barRow(ampm, p, hourWr, ts.length, maxAbs);
+          }).join('');
+        }
+      }
+
+      // ── By Account ──
+      const acctEl = document.getElementById('stats-accounts');
+      if (acctEl) {
+        const types = ['Personal','Evaluation','Funded'];
+        acctEl.innerHTML = types.map(type => {
+          const at = trades.filter(t=>t.accountType===type);
+          const ap = at.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+          const aw2 = at.filter(t=>t.result==='WIN').length;
+          const ad = aw2 + at.filter(t=>t.result==='LOSS').length;
+          const awr = ad ? Math.round(aw2/ad*100) : 0;
+          const col = ap>=0?'#22c55e':'#ef4444';
+          if (!at.length) return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4 text-center">
+            <div class="text-xs text-zinc-600 mb-1">${type}</div>
+            <div class="text-xs text-zinc-700">No trades</div>
+          </div>`;
+          return `<div class="border border-white/5 bg-zinc-950/40 rounded-xl p-4 text-center">
+            <div class="text-xs text-zinc-500 mb-2">${type}</div>
+            <div class="text-xl font-black" style="color:${col}">${ap>=0?'+':'-'}$${Math.abs(ap).toFixed(0)}</div>
+            <div class="text-xs text-zinc-500 mt-1">${at.length}t · <span style="color:${awr>=50?'#22c55e':'#ef4444'}">${awr}% WR</span></div>
+          </div>`;
+        }).join('');
+      }
+
+      // ── Drawdown ──
       renderDrawdown(trades);
     }
-
     function drawEquityCurve(trades) {
       const wrap = document.getElementById('equity-chart-wrap');
       if (!wrap) return;
