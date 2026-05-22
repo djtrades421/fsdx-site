@@ -385,43 +385,57 @@
       const result = document.getElementById('recap-result').value;
       const notes = document.getElementById('recap-notes').value.trim();
       const tagsRaw = document.getElementById('recap-tags').value;
+      const chartUrl = document.getElementById('recap-chart').value.trim();
       const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
 
       if (!date || !title || !summary) { showAdminMsg('recap-msg', 'Date, title, and summary are required.', 'error'); return; }
 
       const btn = document.getElementById('recap-btn');
-      btn.disabled = true; btn.textContent = 'Posting...';
+      btn.disabled = true; btn.textContent = editingRecapId ? 'Saving...' : 'Posting...';
+      const token = localStorage.getItem('fsdx_token') || '';
 
-      const recap = {
-        id: Date.now().toString(),
-        date, title, summary, grade, result, notes, tags,
-        createdAt: new Date().toISOString()
-      };
-
-      // Save to localStorage
-      allRecaps.unshift(recap);
-      localStorage.setItem('fsdx_recaps', JSON.stringify(allRecaps));
-
-      // Also try to save to Worker
-      try {
-        const token = localStorage.getItem('fsdx_token') || '';
-        await fetch(`${API}/api/admin/recap`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ date, title, summary, grade, result, notes, tags })
+      if (editingRecapId) {
+        // UPDATE existing recap
+        const idx = allRecaps.findIndex(r => r.id === editingRecapId);
+        if (idx >= 0) {
+          allRecaps[idx] = { ...allRecaps[idx], date, title, summary, grade, result, notes, tags, chartUrl };
+        }
+        localStorage.setItem('fsdx_recaps', JSON.stringify(allRecaps));
+        try {
+          await fetch(`${API}/api/admin/recap`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ id: editingRecapId, date, title, summary, grade, result, notes, tags, chartUrl })
+          });
+        } catch (err) {}
+        showAdminMsg('recap-msg', 'Recap updated!', 'success');
+        cancelEditRecap();
+      } else {
+        // CREATE new recap
+        const recap = {
+          id: Date.now().toString(),
+          date, title, summary, grade, result, notes, tags, chartUrl,
+          createdAt: new Date().toISOString()
+        };
+        allRecaps.unshift(recap);
+        localStorage.setItem('fsdx_recaps', JSON.stringify(allRecaps));
+        try {
+          await fetch(`${API}/api/admin/recap`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ date, title, summary, grade, result, notes, tags, chartUrl })
+          });
+        } catch (err) {}
+        showAdminMsg('recap-msg', 'Recap posted successfully!', 'success');
+        ['recap-date','recap-title','recap-summary','recap-grade','recap-result','recap-notes','recap-tags','recap-chart'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.tagName === 'SELECT' ? (el.selectedIndex = 0) : (el.value = '');
         });
-      } catch (err) {
-        console.log('Worker save failed, saved locally only');
+        document.getElementById('recap-date').value = new Date().toISOString().slice(0, 10);
       }
 
-      showAdminMsg('recap-msg', 'Recap posted successfully!', 'success');
       renderRecaps(allRecaps);
       document.getElementById('stat-recaps').textContent = allRecaps.length;
-      ['recap-date','recap-title','recap-summary','recap-grade','recap-result','recap-notes','recap-tags'].forEach(id => {
-        const el = document.getElementById(id);
-        el.tagName === 'SELECT' ? (el.selectedIndex = 0) : (el.value = '');
-      });
-      document.getElementById('recap-date').value = new Date().toISOString().slice(0, 10);
       btn.disabled = false; btn.textContent = 'Post Recap';
     }
 
