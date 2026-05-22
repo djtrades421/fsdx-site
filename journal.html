@@ -269,7 +269,10 @@
               </button>
               <div class="flex items-start justify-between mb-5 flex-wrap gap-4">
                 <div><h2 id="bt-title" class="text-xl font-black"></h2><div id="bt-meta" class="text-zinc-500 text-xs mt-1"></div></div>
-                <div id="bt-summary" class="flex gap-6"></div>
+                <div class="flex flex-col items-end gap-2">
+                  <div id="bt-summary" class="flex gap-6"></div>
+                  <div id="bt-filter-badge" class="hidden text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 rounded-full px-2.5 py-0.5 font-bold"></div>
+                </div>
               </div>
               <!-- BT sub tabs -->
               <div class="flex border-b border-white/10 mb-5">
@@ -644,7 +647,7 @@
     let editingId = null, detailId = null, currentTags = [];
     let tradeDir = 'LONG', pnlMode = 'price', statsTime = 'today';
     let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
-    let btSessions = [], btTrades = [], btCalYear = new Date().getFullYear(), btCalMonth = new Date().getMonth();
+    let btSessions = [], btTrades = [], filteredBtTrades = [], btCalYear = new Date().getFullYear(), btCalMonth = new Date().getMonth();
     let gfResult = '', gfAccount = '', gfGrade = '', gfDirection = '';
 
     function toggleMobileMenu() { document.getElementById('sidebar-panel').classList.toggle('-translate-x-full'); }
@@ -690,6 +693,44 @@
     }
 
     // ── Filters ──
+    function isInBacktest() {
+      return document.getElementById('panel-backtest')?.classList.contains('active') &&
+             document.getElementById('bt-detail') && !document.getElementById('bt-detail').classList.contains('hidden');
+    }
+
+    function applyBtFilters() {
+      const res = document.getElementById('gf-result').value;
+      const acct = document.getElementById('gf-account').value;
+      const grade = document.getElementById('gf-grade').value;
+      const dir = document.getElementById('gf-direction').value;
+      filteredBtTrades = btTrades.filter(t =>
+        (!res   || t.result === res) &&
+        (!acct  || t.accountType === acct) &&
+        (!grade || t.grade === grade) &&
+        (!dir   || t.direction === dir)
+      );
+      updateBtFilterBadge();
+      const activeBtSub = [...document.querySelectorAll('[id^="btsub-"]')].find(b => b.classList.contains('active'))?.id?.replace('btsub-','') || 'trades';
+      if (activeBtSub === 'trades') renderBtTrades();
+      else if (activeBtSub === 'stats') renderBtStats();
+      else if (activeBtSub === 'calendar') renderBtCal();
+      updateBtSummary();
+    }
+
+    function updateBtSummary() {
+      const wins = filteredBtTrades.filter(t=>t.result==='WIN').length;
+      const p = filteredBtTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+      const wr = filteredBtTrades.length ? Math.round(wins/filteredBtTrades.length*100) : 0;
+      const sumEl = document.getElementById('bt-summary');
+      if (sumEl) sumEl.innerHTML = [['Trades',filteredBtTrades.length,'text-white'],['Win Rate',wr+'%','text-green-400'],['Net P&L',fmt(p),pnlColor(p)]].map(([l,v,c])=>`<div class="text-right"><div class="text-[10px] text-zinc-600">${l}</div><div class="text-xl font-black ${c}">${v}</div></div>`).join('');
+    }
+
+    function updateBtFilterBadge() {
+      const active = ['gf-result','gf-account','gf-grade','gf-direction'].filter(id => document.getElementById(id).value !== '').length;
+      const badge = document.getElementById('bt-filter-badge');
+      if (badge) { badge.textContent = active > 0 ? active + ' filter' + (active>1?'s':'') + ' active' : ''; badge.classList.toggle('hidden', active === 0); }
+    }
+
     function applyGlobalFilters() {
       gfResult = document.getElementById('gf-result').value;
       gfAccount = document.getElementById('gf-account').value;
@@ -702,12 +743,23 @@
         (!gfDirection || t.direction === gfDirection)
       );
       renderHistory(); renderCalendar(); renderStats();
+      // Also apply to backtest if detail is open
+      if (btTrades.length) applyBtFilters();
     }
     function clearGlobalFilters() {
       ['gf-result','gf-account','gf-grade','gf-direction'].forEach(id => document.getElementById(id).value = '');
       gfResult = gfAccount = gfGrade = gfDirection = '';
       filteredTrades = [...allTrades];
       renderHistory(); renderCalendar(); renderStats();
+      if (btTrades.length) {
+        filteredBtTrades = [...btTrades];
+        updateBtFilterBadge();
+        updateBtSummary();
+        const activeBtSub = [...document.querySelectorAll('[id^="btsub-"]')].find(b=>b.classList.contains('active'))?.id?.replace('btsub-','')||'trades';
+        if (activeBtSub==='trades') renderBtTrades();
+        else if (activeBtSub==='stats') renderBtStats();
+        else if (activeBtSub==='calendar') renderBtCal();
+      }
     }
 
     // ── Sub tabs ──
@@ -1937,10 +1989,15 @@
         const res = await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'get-trades',key:'backtest:'+whopKey+':'+id}) });
         const data = await res.json();
         btTrades = Array.isArray(data.trades)?data.trades:[];
-        const wins=btTrades.filter(t=>t.result==='WIN').length;
-        const p=btTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-        const wr=btTrades.length?Math.round(wins/btTrades.length*100):0;
-        document.getElementById('bt-summary').innerHTML=[['Trades',btTrades.length,'text-white'],['Win Rate',wr+'%','text-green-400'],['Net P&L',fmt(p),pnlColor(p)]].map(([l,v,c])=>`<div class="text-right"><div class="text-[10px] text-zinc-600">${l}</div><div class="text-xl font-black ${c}">${v}</div></div>`).join('');
+        // Apply any currently active global filters to BT trades
+        filteredBtTrades = btTrades.filter(t =>
+          (!gfResult || t.result === gfResult) &&
+          (!gfAccount || t.accountType === gfAccount) &&
+          (!gfGrade || t.grade === gfGrade) &&
+          (!gfDirection || t.direction === gfDirection)
+        );
+        updateBtSummary();
+        updateBtFilterBadge();
         renderBtTrades();
         if (btTrades[0]?.date) { const d=new Date(btTrades[0].date+'T00:00:00'); btCalYear=d.getFullYear(); btCalMonth=d.getMonth(); }
       } catch(err) { console.error(err); }
@@ -1965,8 +2022,8 @@
 
     function renderBtTrades() {
       const tbody = document.getElementById('bt-tbody');
-      if (!btTrades.length) { tbody.innerHTML='<tr><td colspan="9" class="px-4 py-8 text-center text-zinc-600">No trades</td></tr>'; return; }
-      tbody.innerHTML = btTrades.map(t => {
+      if (!filteredBtTrades.length) { tbody.innerHTML=`<tr><td colspan="9" class="px-4 py-8 text-center text-zinc-600">${btTrades.length?'No trades match current filters':'No trades'}</td></tr>`; return; }
+      tbody.innerHTML = filteredBtTrades.map(t => {
         const tp = parseFloat(t.netPnl)||0;
         const tp1 = parseFloat(t.tp1Pnl)||0, tp2 = parseFloat(t.tp2Pnl)||0;
         const tags = Array.isArray(t.tags)&&t.tags.length ? t.tags.map(tg=>`<span class="px-1.5 py-0.5 bg-zinc-800 border border-white/5 rounded text-[10px] text-zinc-500">${tg}</span>`).join('') : '—';
@@ -1989,8 +2046,8 @@
     }
 
     function renderBtStats() {
-      const trades = btTrades;
-      if (!trades.length) return;
+      const trades = filteredBtTrades;
+      if (!trades.length) { document.getElementById('bt-stats-top').innerHTML = '<div class="col-span-4 text-center text-zinc-600 text-sm py-8">No trades match current filters</div>'; return; }
       const wins = trades.filter(t=>t.result==='WIN');
       const losses = trades.filter(t=>t.result==='LOSS');
       const bes = trades.filter(t=>t.result==='BE');
@@ -2018,7 +2075,7 @@
         renderNetPnlCard(netPnl) +
         statCard('Profit Factor', pf, pfColor);
 
-      // Equity curve — reuse drawEquityCurve but target BT wrap/header els
+      // Equity curve — pass filtered trades
       drawBtEquityCurve(trades);
 
       // Outcome Breakdown
@@ -2205,11 +2262,11 @@
       const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       document.getElementById('bt-cal-title').textContent = months[btCalMonth]+' '+btCalYear;
       const byDate = {};
-      btTrades.forEach(t => { if(!t.date)return; if(!byDate[t.date])byDate[t.date]={pnl:0,count:0}; byDate[t.date].pnl+=parseFloat(t.netPnl)||0; byDate[t.date].count++; });
+      filteredBtTrades.forEach(t => { if(!t.date)return; if(!byDate[t.date])byDate[t.date]={pnl:0,count:0}; byDate[t.date].pnl+=parseFloat(t.netPnl)||0; byDate[t.date].count++; });
 
       const monthKeys = Object.keys(byDate).filter(ds => { const d=new Date(ds+'T00:00:00'); return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth; });
       const monthDaysTraded = monthKeys.length;
-      const monthTrades = btTrades.filter(t => { if(!t.date)return false; const d=new Date(t.date+'T00:00:00'); return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth; });
+      const monthTrades = filteredBtTrades.filter(t => { if(!t.date)return false; const d=new Date(t.date+'T00:00:00'); return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth; });
       const mPnl = monthTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
       const mW = monthTrades.filter(t=>t.result==='WIN').length;
       const mD = mW + monthTrades.filter(t=>t.result==='LOSS').length;
