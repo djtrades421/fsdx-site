@@ -209,18 +209,42 @@
       renderRecaps(filtered);
     }
 
+    const JOURNAL_URL = 'https://nexus-validator.dfuentes4211.workers.dev/api/nexus-journal';
+
     async function init() {
       const token = localStorage.getItem('fsdx_token');
       if (!token) { window.location.href = 'login.html'; return; }
+
+      // Get whopKey for admin save-all key lookup
+      let whopKey = null;
+      try {
+        const profileRes = await fetch(`${API}/api/auth/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const profileData = await profileRes.json();
+        whopKey = profileData.user?.whopKey;
+      } catch(e) {}
+
+      // Try primary recaps endpoint first
       try {
         const res = await fetch(`${API}/api/recaps`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (res.ok) {
           const data = await res.json();
           allRecaps = data.recaps || [];
         }
-      } catch (err) {
-        console.log('Could not load recaps');
+      } catch (err) {}
+
+      // If no recaps from primary, try the save-all KV key used by admin edit
+      if (!allRecaps.length && whopKey) {
+        try {
+          const res = await fetch(JOURNAL_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'get-trades', key: 'recaps:' + whopKey })
+          });
+          const data = await res.json();
+          if (Array.isArray(data.trades) && data.trades.length) allRecaps = data.trades;
+        } catch(e) {}
       }
+
       document.getElementById('loading-screen').classList.add('hidden');
       document.getElementById('page-content').classList.remove('hidden');
       renderRecaps(allRecaps);
