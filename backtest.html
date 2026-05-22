@@ -51,14 +51,13 @@
           <div class="text-green-400 uppercase tracking-[0.3em] text-[10px] font-bold mb-2">// VIP Members</div>
           <div class="flex items-end justify-between mb-4">
             <div>
-              <h1 class="text-3xl font-black tracking-tight">Journal</h1>
-              <p class="text-zinc-500 text-sm mt-1">Live trade journal, backtest sessions, and performance analytics</p>
+              <h1 class="text-3xl font-black tracking-tight">Backtest</h1>
+              <p class="text-zinc-500 text-sm mt-1">Backtest sessions and performance analytics</p>
             </div>
-            <button onclick="openLogModal()" class="px-4 py-2 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">+ Log Trade</button>
           </div>
 
-          <!-- Global Filters -->
-          <div class="flex flex-wrap gap-2 mb-4 pb-2 border-b border-white/5">
+          <!-- Global Filters (hidden on backtest page) -->
+          <div class="hidden">
             <select id="gf-result" onchange="applyGlobalFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
               <option value="">All Results</option><option value="WIN">Win</option><option value="LOSS">Loss</option><option value="BE">BE</option>
             </select>
@@ -77,7 +76,7 @@
           </div>
 
           <!-- Sub tabs -->
-          <div class="flex -mb-px overflow-x-auto">
+          <div class="hidden">
             <button onclick="switchSub('calendar')" id="sub-calendar" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 transition mr-1 whitespace-nowrap">Calendar</button>
             <button onclick="switchSub('history')" id="sub-history" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-1 whitespace-nowrap">History</button>
             <button onclick="switchSub('stats')" id="sub-stats" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-1 whitespace-nowrap">Stats</button>
@@ -259,6 +258,21 @@
               <div class="flex items-start justify-between mb-5 flex-wrap gap-4">
                 <div><h2 id="bt-title" class="text-xl font-black"></h2><div id="bt-meta" class="text-zinc-500 text-xs mt-1"></div></div>
                 <div id="bt-summary" class="flex gap-6"></div>
+              </div>
+              <!-- BT Filters -->
+              <div class="flex flex-wrap gap-2 mb-5 pb-4 border-b border-white/5">
+                <select id="bt-f-result" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
+                  <option value="">All Results</option><option value="WIN">Win</option><option value="LOSS">Loss</option><option value="BE">BE</option>
+                </select>
+                <select id="bt-f-grade" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
+                  <option value="">All Grades</option>
+                  <option>A+</option><option>A</option><option>B+</option><option>B</option><option>C+</option><option>C</option><option>D</option>
+                </select>
+                <select id="bt-f-direction" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
+                  <option value="">All Directions</option><option value="LONG">Long</option><option value="SHORT">Short</option>
+                </select>
+                <button onclick="clearBtFilters()" class="text-xs text-zinc-500 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition">✕ Clear</button>
+                <div id="bt-filter-badge" class="hidden self-center text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 rounded-full px-2.5 py-0.5 font-bold"></div>
               </div>
               <!-- BT sub tabs -->
               <div class="flex border-b border-white/10 mb-5">
@@ -1838,6 +1852,7 @@
         const p=btTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
         const wr=btTrades.length?Math.round(wins/btTrades.length*100):0;
         document.getElementById('bt-summary').innerHTML=[['Trades',btTrades.length,'text-white'],['Win Rate',wr+'%','text-green-400'],['Net P&L',fmt(p),pnlColor(p)]].map(([l,v,c])=>`<div class="text-right"><div class="text-[10px] text-zinc-600">${l}</div><div class="text-xl font-black ${c}">${v}</div></div>`).join('');
+        filteredBtTrades = [...btTrades]; updateBtSummary(); updateBtFilterBadge();
         renderBtTrades();
         if (btTrades[0]?.date) { const d=new Date(btTrades[0].date+'T00:00:00'); btCalYear=d.getFullYear(); btCalMonth=d.getMonth(); }
       } catch(err) { console.error(err); }
@@ -1871,7 +1886,7 @@
     }
 
     function renderBtStats() {
-      const trades=btTrades;
+      const trades=filteredBtTrades;
       if(!trades.length) return;
       const wins=trades.filter(t=>t.result==='WIN'),losses=trades.filter(t=>t.result==='LOSS');
       const decided=wins.length+losses.length, wr=decided?Math.round(wins.length/decided*100):0;
@@ -1907,8 +1922,8 @@
       const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
       document.getElementById('bt-cal-title').textContent=months[btCalMonth]+' '+btCalYear;
       const byDate={};
-      btTrades.forEach(t=>{if(!t.date)return;if(!byDate[t.date])byDate[t.date]={pnl:0,count:0};byDate[t.date].pnl+=parseFloat(t.netPnl)||0;byDate[t.date].count++;});
-      const monthTrades=btTrades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T00:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
+      filteredBtTrades.forEach(t=>{if(!t.date)return;if(!byDate[t.date])byDate[t.date]={pnl:0,count:0};byDate[t.date].pnl+=parseFloat(t.netPnl)||0;byDate[t.date].count++;});
+      const monthTrades=filteredBtTrades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T00:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
       const mPnl=monthTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
       const mW=monthTrades.filter(t=>t.result==='WIN').length, mD=monthTrades.filter(t=>t.result==='WIN'||t.result==='LOSS').length;
       document.getElementById('bt-cal-summary').innerHTML=[['Trades',monthTrades.length,'text-white'],['Win Rate',mD?Math.round(mW/mD*100)+'%':'—','text-green-400'],['Net P&L',fmt(mPnl),pnlColor(mPnl)]].map(([l,v,c])=>`<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center"><div class="text-xs text-zinc-500 mb-1">${l}</div><div class="text-lg font-black ${c}">${v}</div></div>`).join('');
@@ -1930,6 +1945,50 @@
     }
     function btCalPrev(){btCalMonth--;if(btCalMonth<0){btCalMonth=11;btCalYear--;}renderBtCal();}
     function btCalNext(){btCalMonth++;if(btCalMonth>11){btCalMonth=0;btCalYear++;}renderBtCal();}
+
+    // ── Backtest filter state ──
+    let filteredBtTrades = [];
+
+    function applyBtFilters() {
+      const res = document.getElementById('bt-f-result')?.value || '';
+      const grade = document.getElementById('bt-f-grade')?.value || '';
+      const dir = document.getElementById('bt-f-direction')?.value || '';
+      filteredBtTrades = btTrades.filter(t =>
+        (!res || t.result === res) &&
+        (!grade || t.grade === grade) &&
+        (!dir || t.direction === dir)
+      );
+      updateBtFilterBadge(); updateBtSummary();
+      const sub = [...document.querySelectorAll('[id^="btsub-"]')].find(b=>b.classList.contains('active'))?.id?.replace('btsub-','')||'trades';
+      if (sub==='trades') renderBtTrades();
+      else if (sub==='stats') renderBtStats();
+      else if (sub==='calendar') renderBtCal();
+    }
+
+    function clearBtFilters() {
+      ['bt-f-result','bt-f-grade','bt-f-direction'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+      filteredBtTrades = [...btTrades];
+      updateBtFilterBadge(); updateBtSummary();
+      const sub = [...document.querySelectorAll('[id^="btsub-"]')].find(b=>b.classList.contains('active'))?.id?.replace('btsub-','')||'trades';
+      if (sub==='trades') renderBtTrades();
+      else if (sub==='stats') renderBtStats();
+      else if (sub==='calendar') renderBtCal();
+    }
+
+    function updateBtSummary() {
+      const wins = filteredBtTrades.filter(t=>t.result==='WIN').length;
+      const p = filteredBtTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
+      const wr = filteredBtTrades.length ? Math.round(wins/filteredBtTrades.length*100) : 0;
+      const el = document.getElementById('bt-summary');
+      if (el) el.innerHTML = [['Trades',filteredBtTrades.length,'text-white'],['Win Rate',wr+'%','text-green-400'],['Net P&L',fmt(p),pnlColor(p)]].map(([l,v,c])=>`<div class="text-right"><div class="text-[10px] text-zinc-600">${l}</div><div class="text-xl font-black ${c}">${v}</div></div>`).join('');
+    }
+
+    function updateBtFilterBadge() {
+      const active = ['bt-f-result','bt-f-grade','bt-f-direction'].filter(id => document.getElementById(id)?.value !== '').length;
+      const badge = document.getElementById('bt-filter-badge');
+      if (badge) { badge.textContent = active>0 ? active+' filter'+(active>1?'s':'')+' active' : ''; badge.classList.toggle('hidden', active===0); }
+    }
+
 
     // ── Init ──
     async function init() {
