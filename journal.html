@@ -13,9 +13,11 @@
     .tab-btn.active { color: #22c55e; border-bottom-color: #22c55e; }
     .sub-panel { display: none; }
     .sub-panel.active { display: block; }
-    .cal-day { min-height: 110px; }
+    .cal-day { min-height: 110px; height: 110px; }
     .cal-day-win  { background: rgba(34,197,94,0.09); border-left: 2px solid rgba(34,197,94,0.45) !important; }
     .cal-day-loss { background: rgba(239,68,68,0.09); border-left: 2px solid rgba(239,68,68,0.4) !important; }
+    .cal-day:hover .cal-empty-hint { color: rgba(255,255,255,0.2) !important; }
+    .cal-day:not(.cal-day-win):not(.cal-day-loss):hover { background: rgba(255,255,255,0.02); }
     .tag-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 999px; font-size: 11px; color: #22c55e; }
     .direction-btn { transition: all 0.15s; }
     .direction-btn.active-long { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.5); color: #22c55e; font-weight: 700; }
@@ -618,6 +620,16 @@
               countDiv.textContent = `${data.count} trade${data.count !== 1 ? 's' : ''}`;
               cell.appendChild(countDiv);
               cell.onclick = () => { filterByDate(ds); switchSub('history'); };
+            } else {
+              // Empty day — click to log a trade for this date
+              cell.style.cursor = 'pointer';
+              cell.title = 'Log trade for ' + ds;
+              cell.onclick = () => { openLogModal(); document.getElementById('t-date').value = ds; };
+              // Subtle + hint on hover
+              const hint = document.createElement('div');
+              hint.className = 'text-zinc-800 text-lg font-black mt-3 cal-empty-hint';
+              hint.textContent = '+';
+              cell.appendChild(hint);
             }
           }
           row.appendChild(cell);
