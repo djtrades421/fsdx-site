@@ -417,12 +417,18 @@
       </div>
       <div class="space-y-4">
         <div>
-          <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Session Name</label>
+          <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Session Name <span class="text-red-500">*</span></label>
           <input id="es-name" type="text" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2.5 rounded-xl focus:outline-none focus:border-green-500/50 placeholder-zinc-700" placeholder="e.g. FSD-X ORB PRO 2026">
         </div>
-        <div>
-          <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Ticker</label>
-          <input id="es-ticker" type="text" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2.5 rounded-xl focus:outline-none focus:border-green-500/50 placeholder-zinc-700" placeholder="MNQ">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Ticker</label>
+            <input id="es-ticker" type="text" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2.5 rounded-xl focus:outline-none focus:border-green-500/50 placeholder-zinc-700" placeholder="MNQ">
+          </div>
+          <div>
+            <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Account Size</label>
+            <input id="es-size" type="number" class="w-full bg-black border border-white/10 text-white text-sm px-3 py-2.5 rounded-xl focus:outline-none focus:border-green-500/50 placeholder-zinc-700" placeholder="50000">
+          </div>
         </div>
         <div>
           <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Strategy</label>
@@ -437,6 +443,9 @@
       <div class="flex gap-3 mt-6">
         <button onclick="saveEditSession()" class="flex-1 py-2.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">Save Changes</button>
         <button onclick="closeEditSession()" class="px-4 py-2.5 border border-white/10 text-zinc-400 hover:text-white text-xs font-bold rounded-xl transition">Cancel</button>
+      </div>
+      <div class="mt-3 pt-3 border-t border-white/5">
+        <button onclick="deleteSession()" class="w-full py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/5 rounded-xl transition font-bold">🗑 Delete Session &amp; All Trades</button>
       </div>
     </div>
   </div>
@@ -2322,6 +2331,7 @@
       editingSessionId = id;
       document.getElementById('es-name').value = s.name || '';
       document.getElementById('es-ticker').value = s.ticker || '';
+      document.getElementById('es-size').value = s.accountSize || '';
       document.getElementById('es-strategy').value = s.strategy || '';
       document.getElementById('es-startdate').value = s.startDate || '';
       document.getElementById('es-msg').classList.add('hidden');
@@ -2341,11 +2351,11 @@
       btSessions[idx] = {
         ...btSessions[idx],
         name,
-        ticker: document.getElementById('es-ticker').value.trim(),
+        ticker: document.getElementById('es-ticker').value.trim().toUpperCase(),
+        accountSize: parseFloat(document.getElementById('es-size').value) || null,
         strategy: document.getElementById('es-strategy').value.trim(),
         startDate: document.getElementById('es-startdate').value,
       };
-      // Save updated sessions list to KV
       try {
         await fetch(JOURNAL_URL, {
           method: 'POST',
@@ -2356,6 +2366,24 @@
         setTimeout(() => { closeEditSession(); loadBtSessions(); }, 800);
       } catch(err) {
         showEsMsg('Save failed. Try again.', 'error');
+      }
+    }
+
+    async function deleteSession() {
+      const s = btSessions.find(s => s.id === editingSessionId);
+      if (!s) return;
+      if (!confirm(`Delete "${s.name}"?\n\nThis will permanently delete the session and ALL its trades.`)) return;
+      btSessions = btSessions.filter(s => s.id !== editingSessionId);
+      try {
+        await fetch(JOURNAL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save-all', key: 'backtest_sessions:' + whopKey, payload: { trades: btSessions } })
+        });
+        closeEditSession();
+        loadBtSessions();
+      } catch(err) {
+        showEsMsg('Delete failed. Try again.', 'error');
       }
     }
 
