@@ -237,7 +237,7 @@
                 <div class="text-xs text-zinc-500 uppercase tracking-[0.2em] mb-4">Drawdown Metrics</div>
                 <div id="stats-drawdown" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6"></div>
                 <div class="text-xs text-zinc-600 uppercase tracking-wider mb-3">Drawdown From Peak</div>
-                <div id="dd-chart-wrap" class="relative" style="height:160px"></div>
+                <div id="dd-chart-wrap" class="relative" style="height:190px"></div>
               </div>
             </div>
           </div>
@@ -1384,15 +1384,15 @@
       if (!wrap || ddPoints.length < 2) return;
 
       const W = wrap.clientWidth || 700;
-      const H = 160;
-      const PAD_L = 60, PAD_R = 20, PAD_T = 14, PAD_B = 30;
+      const H = 190;
+      const PAD_L = 60, PAD_R = 20, PAD_T = 28, PAD_B = 36;
       const CW = W - PAD_L - PAD_R;
       const CH = H - PAD_T - PAD_B;
       const uid = 'dd' + Date.now();
 
       const ddVals = ddPoints.map(p=>p.dd);
-      const dataMin = Math.min(...ddVals) * 1.12;
-      const dataMax = Math.max(...ddVals, 0) + Math.abs(dataMin) * 0.06;
+      const dataMin = Math.min(...ddVals) * 1.18;
+      const dataMax = Math.abs(dataMin) * 0.08;  // always give room above zero
       const dataRange = dataMax - dataMin || 1;
       const toX = i => PAD_L + (i / (ddPoints.length-1||1)) * CW;
       const toY = v => PAD_T + CH - ((v - dataMin) / dataRange) * CH;
@@ -1467,7 +1467,7 @@
               <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
             <clipPath id="${uid}-clip">
-              <rect x="${PAD_L}" y="${PAD_T-2}" width="${CW+1}" height="${CH+4}"/>
+              <rect x="${PAD_L}" y="${PAD_T - 12}" width="${CW+1}" height="${CH + 20}"/>
             </clipPath>
           </defs>
           ${gridLines}
@@ -1480,7 +1480,7 @@
             <text x="${minX.toFixed(1)}" y="${(minY+16).toFixed(1)}" text-anchor="middle"
               fill="#ef4444" font-size="10" font-family="ui-monospace,monospace" font-weight="700">${minLabel}</text>
             <!-- Zero line label -->
-            <text x="${PAD_L.toFixed(1)}" y="${(zeroY-5).toFixed(1)}"
+            <text x="${PAD_L.toFixed(1)}" y="${(zeroY - 8).toFixed(1)}"
               fill="rgba(255,255,255,0.25)" font-size="9" font-family="ui-monospace,monospace">at peak</text>
             <line id="${uid}-vline" x1="0" y1="${PAD_T}" x2="0" y2="${(PAD_T+CH).toFixed(1)}"
               stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4,3" style="display:none" pointer-events="none"/>
