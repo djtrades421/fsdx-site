@@ -20,6 +20,9 @@
     .direction-btn.active-short { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.5); color: #ef4444; font-weight: 700; }
     .pnl-mode-btn.active { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.4); color: #22c55e; }
     canvas { width: 100%; }
+    .eq-dot { transition: r 0.1s, opacity 0.1s; cursor: pointer; }
+    .eq-dot:hover { r: 6; opacity: 1; }
+    #equity-chart-wrap svg { display: block; overflow: visible; }
   </style>
 </head>
 <body class="text-white bg-black min-h-screen flex flex-col md:flex-row overflow-x-hidden antialiased">
@@ -158,8 +161,11 @@
                 <div id="stats-row2" class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"></div>
                 <!-- Equity curve -->
                 <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
-                  <div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">P&L Curve</div>
-                  <canvas id="equity-chart" height="120"></canvas>
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="text-xs text-zinc-500 uppercase tracking-wider">Cumulative P&L</div>
+                    <div id="chart-final-pnl" class="text-sm font-black"></div>
+                  </div>
+                  <div id="equity-chart-wrap" class="relative" style="height:180px"></div>
                 </div>
               </div>
               <!-- Grade breakdown -->
@@ -673,31 +679,206 @@
     }
 
     function drawEquityCurve(trades) {
-      const canvas = document.getElementById('equity-chart');
-      if (!canvas) return;
-      const sorted = [...trades].sort((a,b)=>(a.date||'')+(a.entryTime||'')<(b.date||'')+(b.entryTime||'')?-1:1);
-      const points = [0];
-      sorted.forEach(t => points.push(points[points.length-1]+(parseFloat(t.netPnl)||0)));
-      const ctx = canvas.getContext('2d');
-      const W = canvas.offsetWidth || 400, H = 120;
-      canvas.width = W; canvas.height = H;
-      const min = Math.min(...points), max = Math.max(...points);
-      const range = max - min || 1;
-      const pad = 20;
-      ctx.clearRect(0,0,W,H);
-      // Zero line
-      const zeroY = H - pad - ((0-min)/range*(H-pad*2));
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(0,zeroY); ctx.lineTo(W,zeroY); ctx.stroke();
-      // Curve
-      ctx.beginPath();
-      points.forEach((p,i) => {
-        const x = (i/(points.length-1||1))*(W-pad*2)+pad;
-        const y = H-pad-((p-min)/range*(H-pad*2));
-        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      const wrap = document.getElementById('equity-chart-wrap');
+      if (!wrap) return;
+
+      const sorted = [...trades].sort((a,b) =>
+        ((a.date||'')+(a.entryTime||'')) < ((b.date||'')+(b.entryTime||'')) ? -1 : 1
+      );
+
+      // Build points array: [{equity, date, pnl, result, trade}]
+      const points = [{ equity: 0, date: null, pnl: 0, result: null }];
+      sorted.forEach(t => {
+        const prev = points[points.length - 1].equity;
+        const pnl = parseFloat(t.netPnl) || 0;
+        points.push({ equity: prev + pnl, date: t.date, pnl, result: t.result, ticker: t.ticker||'MNQ', grade: t.grade||'', time: t.entryTime||'' });
       });
-      ctx.strokeStyle = points[points.length-1]>=0?'#22c55e':'#ef4444';
-      ctx.lineWidth = 2; ctx.stroke();
+
+      const finalPnl = points[points.length - 1].equity;
+      const isPositive = finalPnl >= 0;
+      const lineColor = isPositive ? '#22c55e' : '#ef4444';
+      const gradId = 'eq-grad-' + Date.now();
+
+      // Update header P&L label
+      const finalEl = document.getElementById('chart-final-pnl');
+      if (finalEl) {
+        finalEl.textContent = (finalPnl >= 0 ? '+' : '') + '$' + Math.abs(finalPnl).toFixed(2);
+        finalEl.className = 'text-sm font-black ' + (isPositive ? 'text-green-400' : 'text-red-400');
+      }
+
+      const W = wrap.clientWidth || 460;
+      const H = 180;
+      const PAD_L = 58, PAD_R = 14, PAD_T = 16, PAD_B = 28;
+      const CW = W - PAD_L - PAD_R;
+      const CH = H - PAD_T - PAD_B;
+
+      const equities = points.map(p => p.equity);
+      const rawMin = Math.min(...equities);
+      const rawMax = Math.max(...equities);
+      // Nice axis bounds with padding
+      const range = rawMax - rawMin || 1;
+      const nicePad = range * 0.12;
+      const dataMin = rawMin - nicePad;
+      const dataMax = rawMax + nicePad;
+      const dataRange = dataMax - dataMin;
+
+      function toX(i) { return PAD_L + (i / (points.length - 1 || 1)) * CW; }
+      function toY(v) { return PAD_T + CH - ((v - dataMin) / dataRange) * CH; }
+
+      // Nice Y-axis ticks
+      function niceStep(range, targetTicks) {
+        const rough = range / targetTicks;
+        const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+        const candidates = [1,2,2.5,5,10].map(m => m * mag);
+        return candidates.find(c => c >= rough) || candidates[candidates.length-1];
+      }
+      const step = niceStep(dataRange, 5);
+      const tickStart = Math.ceil(dataMin / step) * step;
+      const yTicks = [];
+      for (let v = tickStart; v <= dataMax + step * 0.01; v += step) yTicks.push(parseFloat(v.toFixed(10)));
+
+      // Date labels: pick evenly spaced dates
+      const dateTrades = points.filter(p => p.date);
+      const uniqueDates = [...new Set(dateTrades.map(p => p.date))].sort();
+      const maxLabels = Math.min(6, uniqueDates.length);
+      const labelDates = [];
+      if (uniqueDates.length <= maxLabels) {
+        labelDates.push(...uniqueDates);
+      } else {
+        for (let i = 0; i < maxLabels; i++) {
+          labelDates.push(uniqueDates[Math.round(i / (maxLabels - 1) * (uniqueDates.length - 1))]);
+        }
+      }
+
+      // Path for line
+      const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${toX(i).toFixed(1)} ${toY(p.equity).toFixed(1)}`).join(' ');
+
+      // Fill area path (close to zero line or bottom)
+      const zeroY = Math.min(toY(0), PAD_T + CH);
+      const fillD = pathD + ` L ${toX(points.length - 1).toFixed(1)} ${zeroY.toFixed(1)} L ${toX(0).toFixed(1)} ${zeroY.toFixed(1)} Z`;
+
+      // Dots for each trade (excluding the start point)
+      const dots = points.slice(1).map((p, i) => {
+        const cx = toX(i + 1), cy = toY(p.equity);
+        const dotColor = p.result === 'WIN' ? '#22c55e' : p.result === 'LOSS' ? '#ef4444' : '#a1a1aa';
+        const sign = p.pnl >= 0 ? '+' : '';
+        const label = `${p.date||''} ${p.time} | ${p.ticker} ${p.grade} | ${sign}$${Math.abs(p.pnl).toFixed(2)} → $${p.equity.toFixed(2)}`;
+        return `<circle class="eq-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${dotColor}" stroke="#000" stroke-width="1.5" opacity="0.85">
+          <title>${label}</title>
+        </circle>`;
+      }).join('');
+
+      // Invisible fat hit targets for easier hover
+      const hitTargets = points.slice(1).map((p, i) => {
+        const cx = toX(i + 1), cy = toY(p.equity);
+        const dotColor = p.result === 'WIN' ? '#22c55e' : p.result === 'LOSS' ? '#ef4444' : '#a1a1aa';
+        const sign = p.pnl >= 0 ? '+' : '';
+        const label = `${p.date||''} ${p.time?'@ '+p.time:''} · ${p.ticker}${p.grade?' '+p.grade:''} · ${sign}$${Math.abs(p.pnl).toFixed(2)} → Eq: $${p.equity.toFixed(2)}`;
+        return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="12" fill="transparent"
+          onmouseenter="showChartTooltip(event,'${label.replace(/'/g,'&apos;')}','${dotColor}')"
+          onmouseleave="hideChartTooltip()"/>`;
+      }).join('');
+
+      // Y axis labels formatter
+      function fmtY(v) {
+        const abs = Math.abs(v);
+        const sign = v < 0 ? '-' : '';
+        if (abs >= 1000) return sign + '$' + (abs/1000).toFixed(1) + 'K';
+        return sign + '$' + abs.toFixed(0);
+      }
+
+      // Date label formatter MM/DD
+      function fmtDateLabel(d) {
+        if (!d) return '';
+        const parts = d.split('-');
+        return parts[1] + '/' + parts[2];
+      }
+
+      // Build Y ticks SVG
+      const yTicksSVG = yTicks.map(v => {
+        const y = toY(v).toFixed(1);
+        if (parseFloat(y) < PAD_T - 2 || parseFloat(y) > PAD_T + CH + 2) return '';
+        const isZero = Math.abs(v) < step * 0.01;
+        return `
+          <line x1="${PAD_L}" y1="${y}" x2="${(PAD_L + CW).toFixed(1)}" y2="${y}"
+            stroke="${isZero ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.04)'}"
+            stroke-width="${isZero ? 1 : 0.75}" stroke-dasharray="${isZero ? 'none' : '3,4'}"/>
+          <text x="${(PAD_L - 6).toFixed(1)}" y="${y}" dy="0.35em" text-anchor="end"
+            fill="${isZero ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.25)'}"
+            font-size="9" font-family="monospace">${fmtY(v)}</text>`;
+      }).join('');
+
+      // Build X date labels SVG
+      const xLabelsSVG = labelDates.map(d => {
+        // find first point with this date
+        const idx = points.findIndex(p => p.date === d);
+        if (idx < 0) return '';
+        const x = toX(idx).toFixed(1);
+        return `<text x="${x}" y="${(PAD_T + CH + 16).toFixed(1)}" text-anchor="middle"
+          fill="rgba(255,255,255,0.3)" font-size="9" font-family="monospace">${fmtDateLabel(d)}</text>`;
+      }).join('');
+
+      // Vertical cursor line (hidden by default)
+      const cursorLine = `<line id="eq-cursor" x1="0" y1="${PAD_T}" x2="0" y2="${PAD_T + CH}" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3,3" style="display:none" pointer-events="none"/>`;
+
+      wrap.innerHTML = `
+        <svg id="equity-svg" width="100%" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+          <defs>
+            <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.01"/>
+            </linearGradient>
+            <clipPath id="eq-clip">
+              <rect x="${PAD_L}" y="${PAD_T}" width="${CW}" height="${CH}"/>
+            </clipPath>
+          </defs>
+
+          ${yTicksSVG}
+          ${xLabelsSVG}
+
+          <!-- Fill -->
+          <path d="${fillD}" fill="url(#${gradId})" clip-path="url(#eq-clip)"/>
+
+          <!-- Line -->
+          <path d="${pathD}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#eq-clip)"/>
+
+          <!-- Cursor -->
+          ${cursorLine}
+
+          <!-- Dots -->
+          <g clip-path="url(#eq-clip)">${dots}</g>
+
+          <!-- Hit targets (on top) -->
+          <g clip-path="url(#eq-clip)">${hitTargets}</g>
+        </svg>
+        <div id="eq-tooltip" style="
+          display:none; position:absolute; pointer-events:none; z-index:50;
+          background:rgba(9,9,11,0.95); border:1px solid rgba(255,255,255,0.12);
+          border-radius:8px; padding:8px 12px; font-size:11px; white-space:nowrap;
+          font-family:monospace; color:#e4e4e7; box-shadow:0 4px 24px rgba(0,0,0,0.6);
+        "></div>`;
+    }
+
+    function showChartTooltip(e, label, color) {
+      const tt = document.getElementById('eq-tooltip');
+      const wrap = document.getElementById('equity-chart-wrap');
+      if (!tt || !wrap) return;
+      const parts = label.split(' · ');
+      tt.innerHTML = parts.map((p,i) => `<div style="color:${i===2?color:'#e4e4e7'};font-weight:${i===2?'700':'400'}">${p}</div>`).join('');
+      tt.style.display = 'block';
+      const rect = wrap.getBoundingClientRect();
+      const er = e.target.getBoundingClientRect();
+      let left = er.left - rect.left + 16;
+      if (left + 220 > rect.width) left = er.left - rect.left - 230;
+      const top = er.top - rect.top - 40;
+      tt.style.left = left + 'px';
+      tt.style.top = top + 'px';
+      tt.style.borderColor = color + '44';
+    }
+
+    function hideChartTooltip() {
+      const tt = document.getElementById('eq-tooltip');
+      if (tt) tt.style.display = 'none';
     }
 
     function renderDrawdown(trades) {
