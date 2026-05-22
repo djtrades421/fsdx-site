@@ -27,7 +27,10 @@
       const pathPart = window.location.pathname.split('/').pop() || 'index.html';
       const current = pathPart.includes('.') ? pathPart : pathPart + '.html';
       document.querySelectorAll('#nav-content .nav-link').forEach(link => {
-        if (link.getAttribute('href') === current) {
+        const href = link.getAttribute('href') || '';
+        const hrefBase = href.replace('.html', '');
+        const currentBase = current.replace('.html', '');
+        if (href === current || hrefBase === currentBase || href === pathPart) {
           link.classList.remove('text-zinc-400');
           link.classList.add('text-green-400', 'font-bold');
         }
