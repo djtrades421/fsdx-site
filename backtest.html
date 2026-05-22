@@ -61,14 +61,14 @@
     <div class="flex-1 px-6 md:px-10 py-8">
       <div class="max-w-7xl mx-auto">
 
-        <!-- Loading -->
-        <div id="bt-loading" class="text-center py-20">
-          <div class="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p class="text-zinc-600 text-sm">Loading sessions...</p>
-        </div>
-
         <!-- Main content (shown when authed) -->
         <div id="bt-main" class="hidden">
+
+          <!-- Loading -->
+          <div id="bt-loading" class="text-center py-20">
+            <div class="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-zinc-600 text-sm">Loading sessions...</p>
+          </div>
 
           <!-- Sessions view -->
           <div id="bt-sessions-view">
@@ -664,10 +664,12 @@
 
 
     async function loadBtSessions() {
+      const loading = document.getElementById('bt-loading');
       try {
         const res = await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'get-trades',key:'backtest_sessions:'+whopKey}) });
         const data = await res.json();
         btSessions = Array.isArray(data.trades)?data.trades:[];
+        if (loading) loading.classList.add('hidden');
         const grid=document.getElementById('bt-grid'), empty=document.getElementById('bt-empty');
         if (!btSessions.length) { empty.classList.remove('hidden'); grid.classList.add('hidden'); return; }
         empty.classList.add('hidden'); grid.classList.remove('hidden');
@@ -683,9 +685,14 @@
             </div>
           </div>`;
         }).join('');
-      } catch(err) { console.error(err); }
+      } catch(err) {
+        console.error('loadBtSessions error:', err);
+        if (loading) loading.classList.add('hidden');
+        const empty = document.getElementById('bt-empty');
+        empty.innerHTML = '<div class="text-center py-16"><div class="text-4xl mb-3">⚠️</div><h3 class="text-lg font-black mb-2">Could not load sessions</h3><p class="text-zinc-500 text-sm">Check your connection and try refreshing.</p></div>';
+        empty.classList.remove('hidden');
+      }
     }
-
     async function openBtSession(id) {
       const s = btSessions.find(s=>s.id===id); if(!s) return;
       document.getElementById('bt-sessions-view').classList.add('hidden');
