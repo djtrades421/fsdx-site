@@ -100,6 +100,7 @@
                 <div><span class="text-zinc-500 text-xs mr-2">MONTHLY</span><span id="cal-monthly" class="font-black">—</span></div>
                 <div><span class="text-zinc-500 text-xs mr-2">YEARLY</span><span id="cal-yearly" class="font-black">—</span></div>
                 <div><span class="text-zinc-500 text-xs mr-2">WIN RATE</span><span id="cal-wr" class="font-black text-green-400">—</span></div>
+                <div><span class="text-zinc-500 text-xs mr-2">DAYS</span><span id="cal-days-traded" class="font-black text-zinc-400">—</span></div>
               </div>
             </div>
             <div class="border border-white/10 rounded-2xl overflow-hidden">
@@ -193,10 +194,11 @@
                 </div>
               </div>
               <!-- Drawdown -->
-              <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
-                <div class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Drawdown Metrics</div>
-                <div id="stats-drawdown" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
-                <canvas id="dd-chart" height="80" class="mt-4"></canvas>
+              <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
+                <div class="text-xs text-zinc-500 uppercase tracking-[0.2em] mb-4">Drawdown Metrics</div>
+                <div id="stats-drawdown" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6"></div>
+                <div class="text-xs text-zinc-600 uppercase tracking-wider mb-3">Drawdown From Peak</div>
+                <div id="dd-chart-wrap" class="relative" style="height:160px"></div>
               </div>
             </div>
           </div>
@@ -424,30 +426,25 @@
     const fmt = n => { const p = parseFloat(n)||0; return (p>=0?'+':'')+' $'+Math.abs(p).toFixed(2); };
     const fmtShort = n => { const p=parseFloat(n)||0; const abs=Math.abs(p); const sign=p>=0?'+':'-'; if(abs>=1000) return sign+'$'+(abs/1000).toFixed(abs>=10000?0:1)+'K'; return sign+'$'+abs.toFixed(0); };
     const fmtFull = n => { const p=parseFloat(n)||0; const sign=p>=0?'+':'-'; return sign+'$'+Math.abs(p).toFixed(2); };
-    const statCard = (label, val, color, sub='') => `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">${label}</div><div class="text-2xl font-black" style="color:${color}">${val}</div>${sub?`<div class="text-xs text-zinc-600 mt-1">${sub}</div>`:''}</div>`;
+    const statCard = (label, val, color, sub='') => `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 flex flex-col items-center justify-center text-center"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">${label}</div><div class="text-2xl font-black" style="color:${color}">${val}</div>${sub?`<div class="text-xs text-zinc-600 mt-1">${sub}</div>`:''}</div>`;
 
     function renderWinRateCard(wr, decided, wins, losses, bes) {
       const color = wr >= 50 ? '#22c55e' : '#ef4444';
       const r = 28, circ = 2 * Math.PI * r;
-      const dash = (wr / 100) * circ;
-      const gap = circ - dash;
-      const sub = `${decided} decided trades`;
+      const dash = (wr / 100) * circ, gap = circ - dash;
       const beSub = bes > 0 ? ` · ${bes} BE` : '';
-      return `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 flex items-center gap-4">
-        <div>
-          <div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">Win Rate</div>
-          <div class="text-2xl font-black" style="color:${color}">${wr}%</div>
-          <div class="text-xs text-zinc-600 mt-1">${wins}W · ${losses}L${beSub}</div>
-        </div>
-        <div class="ml-auto flex-shrink-0">
-          <svg width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
-            <circle cx="36" cy="36" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/>
-            <circle cx="36" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+      return `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
+        <div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Win Rate</div>
+        <div class="relative flex items-center justify-center" style="width:80px;height:80px">
+          <svg width="80" height="80" viewBox="0 0 80 80" style="transform:rotate(-90deg);position:absolute;inset:0">
+            <circle cx="40" cy="40" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+            <circle cx="40" cy="40" r="${r}" fill="none" stroke="${color}" stroke-width="8"
               stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}"
-              stroke-linecap="round" opacity="0.9"
-              style="transition:stroke-dasharray 0.6s ease"/>
+              stroke-linecap="round" opacity="0.9"/>
           </svg>
+          <div style="color:${color}" class="text-lg font-black relative z-10">${wr}%</div>
         </div>
+        <div class="text-xs text-zinc-600 mt-2">${wins}W · ${losses}L${beSub}</div>
       </div>`;
     }
 
@@ -455,10 +452,10 @@
       const color = netPnl > 0 ? '#22c55e' : netPnl < 0 ? '#ef4444' : '#71717a';
       const sign = netPnl >= 0 ? '+' : '-';
       const formatted = sign + '$' + Math.abs(netPnl).toFixed(2);
-      return `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
+      return `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
         <div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">Net P&amp;L</div>
         <div class="text-2xl font-black" style="color:${color}">${formatted}</div>
-        <div class="text-xs mt-1" style="color:${color};opacity:0.5">${netPnl >= 0 ? '▲ Profitable' : '▼ In drawdown'}</div>
+        <div class="text-xs mt-2" style="color:${color};opacity:0.55">${netPnl >= 0 ? '▲ Profitable' : '▼ In drawdown'}</div>
       </div>`;
     }
 
@@ -518,6 +515,11 @@
         if (t.result === 'WIN') wins++;
         if (t.result === 'WIN' || t.result === 'LOSS') decided++;
       });
+      const monthDayKeys = Object.keys(byDate).filter(ds => {
+        const d = new Date(ds + 'T00:00:00');
+        return d.getFullYear() === calYear && d.getMonth() === calMonth;
+      });
+      const monthDaysTraded = monthDayKeys.length;
       const wr = decided ? Math.round(wins/decided*100) : null;
       const mEl = document.getElementById('cal-monthly');
       mEl.textContent = fmtFull(monthPnl);
@@ -526,10 +528,11 @@
       yEl.textContent = fmtFull(yearPnl);
       yEl.className = 'font-black ' + (yearPnl>=0?'text-green-400':'text-red-400');
       document.getElementById('cal-wr').textContent = wr !== null ? wr+'%' : '—';
+      const daysEl = document.getElementById('cal-days-traded');
+      if (daysEl) daysEl.textContent = monthDaysTraded + ' day' + (monthDaysTraded!==1?'s':'') + ' traded';
 
       const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
       const today = new Date().toISOString().slice(0,10);
-      // Weekdays only Mon-Fri
       const weekdays = [];
       for (let d = 1; d <= daysInMonth; d++) {
         const dow = new Date(calYear, calMonth, d).getDay();
@@ -558,16 +561,16 @@
             const isToday = ds === today;
             if (data) cell.classList.add(data.pnl>0?'bg-green-500/5':'bg-red-950/10');
             if (data) cell.style.cursor = 'pointer';
-            cell.innerHTML = `<div class="text-xs ${isToday?'text-green-400 font-bold':'text-zinc-600'} mb-1">${calMonth+1}/${d}</div>`+
-              (data?`<div class="text-xs font-bold ${data.pnl>=0?'text-green-400':'text-red-400'}">${fmtShort(data.pnl)}</div><div class="text-[10px] text-zinc-600">${data.count} trade${data.count!==1?'s':''}</div>`:'');
+            const pnlLine = data ? `<div class="text-xs font-black ${data.pnl>=0?'text-green-400':'text-red-400'} mt-1">${fmtShort(data.pnl)}</div>` : '';
+            const tradeLine = data ? `<div class="text-[10px] text-zinc-500 mt-0.5">${data.count} trade${data.count!==1?'s':''}</div>` : '';
+            cell.innerHTML = `<div class="text-[11px] font-bold ${isToday?'text-green-400':'text-zinc-600'}">${calMonth+1}/${d}</div>${pnlLine}${tradeLine}`;
             if (data) cell.onclick = () => { filterByDate(ds); switchSub('history'); };
           }
           row.appendChild(cell);
         }
-        // Weekly total
         const wc = document.createElement('div');
-        wc.className = 'cal-day p-3 text-right';
-        wc.innerHTML = `<div class="text-xs font-black ${rowPnl>=0?'text-green-400':'text-red-400'}">${rowPnl!==0?fmtShort(rowPnl):'$0'}</div>`;
+        wc.className = 'cal-day p-3 flex flex-col items-end justify-start';
+        wc.innerHTML = `<div class="text-xs font-black ${rowPnl>=0?'text-green-400':'text-red-400'}">${rowPnl!==0?fmtShort(rowPnl):'—'}</div>`;
         row.appendChild(wc);
         grid.appendChild(row);
       }
@@ -993,26 +996,174 @@
       const sorted = [...trades].sort((a,b)=>(a.date||'')<(b.date||'')?-1:1);
       let equity=0, peak=0, maxDD=0, curDD=0;
       let consecL=0, maxConsecL=0;
-      const ddSeries=[0];
       const byDay={};
-      sorted.forEach(t=>{
-        equity+=(parseFloat(t.netPnl)||0);
-        if(equity>peak) peak=equity;
-        curDD=equity-peak;
-        if(curDD<maxDD) maxDD=curDD;
-        ddSeries.push(curDD);
-        if(t.result==='LOSS'){consecL++;if(consecL>maxConsecL)maxConsecL=consecL;}else consecL=0;
-        if(t.date) byDay[t.date]=(byDay[t.date]||0)+(parseFloat(t.netPnl)||0);
+      // Build per-trade drawdown series with date info
+      const ddPoints = [{ dd: 0, date: null }];
+      sorted.forEach(t => {
+        equity += (parseFloat(t.netPnl)||0);
+        if (equity > peak) peak = equity;
+        curDD = equity - peak;
+        if (curDD < maxDD) maxDD = curDD;
+        if (t.result==='LOSS') { consecL++; if(consecL>maxConsecL) maxConsecL=consecL; } else consecL=0;
+        if (t.date) byDay[t.date] = (byDay[t.date]||0) + (parseFloat(t.netPnl)||0);
+        ddPoints.push({ dd: curDD, date: t.date||null, pnl: parseFloat(t.netPnl)||0 });
       });
-      const maxDailyLoss=Object.values(byDay).length?Math.min(0,Math.min(...Object.values(byDay))):0;
-      const rf=maxDD!==0?-(equity/maxDD):null;
+      const maxDailyLoss = Object.values(byDay).length ? Math.min(0, Math.min(...Object.values(byDay))) : 0;
+      const rf = maxDD !== 0 ? (equity / maxDD) : null;
 
+      // Stat cards — centered like the rest
       document.getElementById('stats-drawdown').innerHTML = [
-        ['Max Drawdown','$'+Math.abs(maxDD).toFixed(2),'text-red-400'],
-        ['Current DD','$'+Math.abs(curDD).toFixed(2),'text-red-400'],
-        ['Max Daily Loss','$'+Math.abs(maxDailyLoss).toFixed(2),'text-red-400'],
-        ['Max Consec. Losses',maxConsecL,'text-white'],
-      ].map(([l,v,c])=>`<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4 text-center"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-1">${l}</div><div class="text-lg font-black ${c}">${v}</div></div>`).join('');
+        ['Max Drawdown', '-$'+Math.abs(maxDD).toFixed(2), '#ef4444', 'peak to trough'],
+        ['Current DD', '-$'+Math.abs(curDD).toFixed(2), '#ef4444', 'from current peak'],
+        ['Max Daily Loss', '-$'+Math.abs(maxDailyLoss).toFixed(2), '#ef4444', 'worst single day'],
+        ['Max Consec. Losses', maxConsecL, '#ffffff', 'in a row'],
+      ].map(([l,v,col,sub]) => `
+        <div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+          <div class="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">${l}</div>
+          <div class="text-xl font-black" style="color:${col}">${v}</div>
+          <div class="text-[10px] text-zinc-600 mt-1">${sub}</div>
+        </div>`).join('');
+
+      // Draw DD chart — same cinematic style but red
+      const wrap = document.getElementById('dd-chart-wrap');
+      if (!wrap || ddPoints.length < 2) return;
+
+      const W = wrap.clientWidth || 700;
+      const H = 160;
+      const PAD_L = 60, PAD_R = 20, PAD_T = 14, PAD_B = 30;
+      const CW = W - PAD_L - PAD_R;
+      const CH = H - PAD_T - PAD_B;
+      const uid = 'dd' + Date.now();
+
+      const ddVals = ddPoints.map(p=>p.dd);
+      const dataMin = Math.min(...ddVals) * 1.12;
+      const dataMax = Math.max(...ddVals, 0) + Math.abs(dataMin) * 0.06;
+      const dataRange = dataMax - dataMin || 1;
+      const toX = i => PAD_L + (i / (ddPoints.length-1||1)) * CW;
+      const toY = v => PAD_T + CH - ((v - dataMin) / dataRange) * CH;
+
+      // Catmull-Rom smooth path
+      function catmullPath(pts) {
+        if (pts.length < 2) return '';
+        const t = 0.35;
+        let d = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`;
+        for (let i = 0; i < pts.length-1; i++) {
+          const p0=pts[Math.max(0,i-1)], p1=pts[i], p2=pts[i+1], p3=pts[Math.min(pts.length-1,i+2)];
+          const cp1x=p1.x+(p2.x-p0.x)*t, cp1y=p1.y+(p2.y-p0.y)*t;
+          const cp2x=p2.x-(p3.x-p1.x)*t, cp2y=p2.y-(p3.y-p1.y)*t;
+          d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+        }
+        return d;
+      }
+
+      const xyPts = ddPoints.map((p,i) => ({ x: toX(i), y: toY(p.dd) }));
+      const pathD = catmullPath(xyPts);
+      const zeroY = toY(0);
+      const lastX = toX(ddPoints.length-1).toFixed(2);
+      const fillD = pathD + ` L ${lastX} ${zeroY.toFixed(2)} L ${toX(0).toFixed(2)} ${zeroY.toFixed(2)} Z`;
+
+      // Y ticks
+      function niceStep(range, n) {
+        const r=range/n, mag=Math.pow(10,Math.floor(Math.log10(Math.abs(r)||1)));
+        return [1,2,2.5,5,10].map(m=>m*mag).find(c=>c>=r)||mag*10;
+      }
+      const step = niceStep(Math.abs(dataMin), 4);
+      const yTicks = [];
+      for (let v = Math.ceil(dataMin/step)*step; v <= dataMax+step*0.01; v+=step)
+        yTicks.push(parseFloat(v.toFixed(8)));
+
+      const fmtY = v => { const a=Math.abs(v),s=v<0?'-':''; return a>=1000?s+'$'+(a/1000).toFixed(1)+'K':s+'$'+a.toFixed(0); };
+
+      const gridLines = yTicks.map(v => {
+        const y=toY(v); if(y<PAD_T-2||y>PAD_T+CH+2) return '';
+        const isZero = Math.abs(v)<step*0.01;
+        return `<line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${(PAD_L+CW).toFixed(1)}" y2="${y.toFixed(1)}"
+          stroke="${isZero?'rgba(255,255,255,0.1)':'rgba(255,255,255,0.04)'}" stroke-width="1"/>
+          <text x="${(PAD_L-10).toFixed(1)}" y="${y.toFixed(1)}" dy="0.35em" text-anchor="end"
+            fill="${isZero?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.18)'}"
+            font-size="10" font-family="ui-monospace,monospace">${fmtY(v)}</text>`;
+      }).join('');
+
+      // Min DD label
+      const minIdx = ddVals.indexOf(Math.min(...ddVals));
+      const minX = toX(minIdx), minY = toY(ddVals[minIdx]);
+      const minLabel = `-$${Math.abs(ddVals[minIdx]).toFixed(0)}`;
+
+      // Hover slices
+      const hoverRects = ddPoints.slice(1).map((p,i) => {
+        const x=toX(i+1), prevX=toX(i);
+        const sliceW=Math.max(8,x-prevX);
+        const tip = `${p.date||''} · DD: -$${Math.abs(p.dd).toFixed(2)}`;
+        return `<rect x="${prevX.toFixed(1)}" y="${PAD_T}" width="${sliceW.toFixed(1)}" height="${CH}"
+          fill="transparent" style="cursor:crosshair"
+          onmouseenter="showDDTooltip(event,'${tip}',${x.toFixed(1)},${toY(p.dd).toFixed(1)},'${uid}')"
+          onmouseleave="hideDDTooltip('${uid}')"/>`;
+      }).join('');
+
+      wrap.innerHTML = `
+        <svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible">
+          <defs>
+            <linearGradient id="${uid}-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ef4444" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="#ef4444" stop-opacity="0.30"/>
+            </linearGradient>
+            <filter id="${uid}-glow" x="-20%" y="-50%" width="140%" height="200%">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <clipPath id="${uid}-clip">
+              <rect x="${PAD_L}" y="${PAD_T-2}" width="${CW+1}" height="${CH+4}"/>
+            </clipPath>
+          </defs>
+          ${gridLines}
+          <g clip-path="url(#${uid}-clip)">
+            <path d="${fillD}" fill="url(#${uid}-fill)"/>
+            <path d="${pathD}" fill="none" stroke="#ef4444" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" opacity="0.12" filter="url(#${uid}-glow)"/>
+            <path d="${pathD}" fill="none" stroke="#ef4444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
+            <!-- Min DD dot + label -->
+            <circle cx="${minX.toFixed(1)}" cy="${minY.toFixed(1)}" r="4" fill="#ef4444" stroke="#09090b" stroke-width="2"/>
+            <text x="${minX.toFixed(1)}" y="${(minY+16).toFixed(1)}" text-anchor="middle"
+              fill="#ef4444" font-size="10" font-family="ui-monospace,monospace" font-weight="700">${minLabel}</text>
+            <!-- Zero line label -->
+            <text x="${PAD_L.toFixed(1)}" y="${(zeroY-5).toFixed(1)}"
+              fill="rgba(255,255,255,0.25)" font-size="9" font-family="ui-monospace,monospace">at peak</text>
+            <line id="${uid}-vline" x1="0" y1="${PAD_T}" x2="0" y2="${(PAD_T+CH).toFixed(1)}"
+              stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4,3" style="display:none" pointer-events="none"/>
+            <circle id="${uid}-dot" cx="0" cy="0" r="4" fill="#ef4444" stroke="#09090b" stroke-width="2" style="display:none" pointer-events="none"/>
+            ${hoverRects}
+          </g>
+        </svg>
+        <div id="${uid}-tooltip" style="display:none;position:absolute;pointer-events:none;z-index:50;
+          background:rgba(9,9,11,0.95);border:1px solid rgba(239,68,68,0.3);border-radius:10px;
+          padding:8px 13px;font-size:11px;white-space:nowrap;font-family:ui-monospace,monospace;
+          color:#e4e4e7;box-shadow:0 8px 32px rgba(0,0,0,0.8)"></div>`;
+    }
+
+    function showDDTooltip(e, label, dotX, dotY, uid) {
+      const tt = document.getElementById(uid+'-tooltip');
+      const wrap = document.getElementById('dd-chart-wrap');
+      if (!tt||!wrap) return;
+      const [datePart, ddPart] = label.split(' · ');
+      tt.innerHTML = `<div style="color:rgba(255,255,255,0.4);font-size:10px;margin-bottom:3px">${datePart}</div><div style="color:#ef4444;font-weight:800">${ddPart}</div>`;
+      tt.style.display = 'block';
+      const rect = wrap.getBoundingClientRect();
+      const er = e.target.getBoundingClientRect();
+      const tipW = tt.offsetWidth||160;
+      let left = er.left-rect.left+er.width/2-tipW/2;
+      if (left+tipW>rect.width-8) left=rect.width-tipW-8;
+      if (left<0) left=4;
+      tt.style.left = left+'px';
+      tt.style.top = (er.top-rect.top-60)+'px';
+      const dot=document.getElementById(uid+'-dot'),vline=document.getElementById(uid+'-vline');
+      if(dot){dot.setAttribute('cx',dotX);dot.setAttribute('cy',dotY);dot.style.display='';}
+      if(vline){vline.setAttribute('x1',dotX);vline.setAttribute('x2',dotX);vline.style.display='';}
+    }
+    function hideDDTooltip(uid) {
+      const tt=document.getElementById(uid+'-tooltip');
+      if(tt) tt.style.display='none';
+      const dot=document.getElementById(uid+'-dot'),vline=document.getElementById(uid+'-vline');
+      if(dot) dot.style.display='none';
+      if(vline) vline.style.display='none';
     }
 
     // ── Trade Form ──
