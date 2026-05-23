@@ -92,12 +92,13 @@
                   <th class="px-5 py-3">Whop Key</th>
                   <th class="px-5 py-3">Tier</th>
                   <th class="px-5 py-3">Status</th>
+                  <th class="px-5 py-3">Renewal / Expires</th>
                   <th class="px-5 py-3">Last Login</th>
                   <th class="px-5 py-3">Joined</th>
                 </tr>
               </thead>
               <tbody id="members-table" class="divide-y divide-white/5 text-sm">
-                <tr><td colspan="8" class="px-5 py-8 text-center text-zinc-600">Loading members...</td></tr>
+                <tr><td colspan="9" class="px-5 py-8 text-center text-zinc-600">Loading members...</td></tr>
               </tbody>
             </table>
           </div>
@@ -417,7 +418,7 @@
     function renderMembers(members) {
       const tbody = document.getElementById('members-table');
       if (!members.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-8 text-center text-zinc-600">No members yet</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="px-5 py-8 text-center text-zinc-600">No members yet</td></tr>';
         return;
       }
       tbody.innerHTML = members.map(m => {
@@ -444,6 +445,14 @@
           ? new Date(m.lastLogin).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '—';
 
+        // Renewal / expiry date
+        const renewalTs = m.whopRenewalEnd || m.whopExpiresAt || null;
+        const renewalDate = renewalTs
+          ? new Date(renewalTs * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : m.whopStatus === 'completed' ? 'Never' : '—';
+        const cancelWarning = m.whopCancelAtPeriodEnd
+          ? `<span class="ml-1 text-[9px] text-yellow-500 font-bold uppercase">cancels</span>` : '';
+
         return `
         <tr class="hover:bg-white/[0.02] transition">
           <td class="px-5 py-3.5 text-white font-medium">${m.firstName || ''} ${m.lastName || ''}</td>
@@ -465,6 +474,7 @@
             </span>
           </td>
           <td class="px-5 py-3.5">${statusBadge}</td>
+          <td class="px-5 py-3.5 text-zinc-400 text-xs">${renewalDate}${cancelWarning}</td>
           <td class="px-5 py-3.5 text-zinc-500 text-xs">${lastLogin}</td>
           <td class="px-5 py-3.5 text-zinc-500 text-xs">${new Date(m.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
           <td class="px-5 py-3.5 text-right">
@@ -843,9 +853,19 @@
       btn.disabled = false; btn.textContent = 'Post Announcement';
     }
 
-    function init() {
-      // Simple admin check — localStorage flag set by admin-login.html
-      if (localStorage.getItem('fsdx_admin') !== 'true') {
+    async function init() {
+      const token = localStorage.getItem('fsdx_token');
+      if (!token) { window.location.href = 'admin-login.html'; return; }
+      try {
+        const res = await fetch(`${API}/api/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        // Must be authenticated AND be the admin email
+        if (!data.authenticated || data.email !== 'fsdxteam@gmail.com') {
+          localStorage.removeItem('fsdx_admin');
+          window.location.href = 'admin-login.html';
+          return;
+        }
+      } catch {
         window.location.href = 'admin-login.html';
         return;
       }
