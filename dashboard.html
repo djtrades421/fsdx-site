@@ -441,9 +441,9 @@
       body.innerHTML = html;
     }
 
-    async function loadCalendar(token) {
+    async function loadCalendar() {
       try {
-        const res = await fetch(`${API}/api/calendar`, { headers:{'Authorization':`Bearer ${token}`} });
+        const res = await fetch(`${API}/api/calendar`);
         if (!res.ok) throw new Error('Status ' + res.status);
         const xml = await res.text();
         calEvents = parseFF(xml);
@@ -454,10 +454,7 @@
       }
     }
 
-    // Start calendar fetch immediately — don't wait for profile
-    const _earlyToken = localStorage.getItem('fsdx_token');
-    if (_earlyToken) loadCalendar(_earlyToken);
-
+    loadCalendar();
     initDashboard();
 
   </script>
