@@ -275,7 +275,7 @@
               </button>
               <div class="flex items-start justify-between mb-5 flex-wrap gap-4">
                 <div><h2 id="bt-title" class="text-xl font-black"></h2><div id="bt-meta" class="text-zinc-500 text-xs mt-1"></div></div>
-                <div id="bt-summary" class="flex gap-6"></div>
+<div id="bt-summary" class="hidden"></div>
               </div>
               <!-- BT Filters -->
               <div class="flex flex-wrap gap-2 mb-5 pb-4 border-b border-white/5">
@@ -398,9 +398,10 @@
                   </div>
                   <div class="cal-header-stats flex gap-4 text-sm flex-wrap items-center">
                     <div><span class="text-zinc-500 text-xs mr-1.5">MONTHLY</span><span id="bt-cal-monthly" class="font-black">—</span></div>
-                    <div><span class="text-zinc-500 text-xs mr-1.5">SESSION</span><span id="bt-cal-yearly" class="font-black">—</span></div>
+                    <div><span class="text-zinc-500 text-xs mr-1.5">NET P&amp;L</span><span id="bt-cal-yearly" class="font-black">—</span></div>
                     <div><span class="text-zinc-500 text-xs mr-1.5">WIN RATE</span><span id="bt-cal-wr" class="font-black text-green-400">—</span></div>
                     <div><span class="text-zinc-500 text-xs mr-1.5">DAYS</span><span id="bt-cal-days" class="font-black text-zinc-400">—</span></div>
+                    <div><span class="text-zinc-500 text-xs mr-1.5">TRADES</span><span id="bt-cal-trades" class="font-black text-zinc-400">—</span></div>
                     <button onclick="openLogModal()" class="ml-2 px-3 py-1.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-lg transition">+ Log Trade</button>
                   </div>
                 </div>
@@ -2227,6 +2228,8 @@
       if(wrEl){wrEl.textContent=sessionWR!==null?sessionWR+'%':'—';wrEl.className='font-black '+(sessionWR>=50?'text-green-400':'text-red-400');}
       const dEl=document.getElementById('bt-cal-days');
       if(dEl)dEl.textContent=monthDaysTraded+' day'+(monthDaysTraded!==1?'s':'')+' traded';
+      const tEl=document.getElementById('bt-cal-trades');
+      if(tEl)tEl.textContent=filteredBtTrades.length+' trade'+(filteredBtTrades.length!==1?'s':'');
       const daysInMonth=new Date(btCalYear,btCalMonth+1,0).getDate();
       const weekdays=[];for(let d=1;d<=daysInMonth;d++){const dow=new Date(btCalYear,btCalMonth,d).getDay();if(dow!==0&&dow!==6)weekdays.push(d);}
       const firstDow=new Date(btCalYear,btCalMonth,weekdays[0]).getDay()-1;
