@@ -56,23 +56,7 @@
             </div>
           </div>
 
-          <!-- Date Range Filter — shown only inside a session -->
-          <div id="bt-date-filter" class="hidden flex flex-wrap gap-2 mb-4 pb-2 border-b border-white/5">
-            <select id="gf-daterange" onchange="applyBtDateFilter()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-              <option value="all">All Time</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="year">This Year</option>
-              <option value="custom">Custom Range</option>
-            </select>
-            <div id="gf-custom-range" class="hidden flex gap-2">
-              <input type="date" id="gf-from" onchange="applyBtDateFilter()" class="bg-zinc-900 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-              <span class="text-zinc-600 self-center text-xs">to</span>
-              <input type="date" id="gf-to" onchange="applyBtDateFilter()" class="bg-zinc-900 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-            </div>
-            <button onclick="clearBtDateFilter()" class="px-3 py-1.5 bg-zinc-900 border border-white/10 text-zinc-500 hover:text-white text-xs rounded-lg transition">✕ Clear</button>
-          </div>
+
 
           <!-- Global Filters (hidden on backtest page) -->
           <div class="hidden">
@@ -279,6 +263,19 @@
               </div>
               <!-- BT Filters -->
               <div class="flex flex-wrap gap-2 mb-5 pb-4 border-b border-white/5">
+                <select id="gf-daterange" onchange="applyBtDateFilter()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="year">This Year</option>
+                  <option value="custom">Custom Range</option>
+                </select>
+                <div id="gf-custom-range" class="hidden flex gap-2">
+                  <input type="date" id="gf-from" onchange="applyBtDateFilter()" class="bg-zinc-900 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none">
+                  <span class="text-zinc-600 self-center text-xs">to</span>
+                  <input type="date" id="gf-to" onchange="applyBtDateFilter()" class="bg-zinc-900 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none">
+                </div>
                 <select id="bt-f-result" onchange="applyBtFilters()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
                   <option value="">All Results</option><option value="WIN">Win</option><option value="LOSS">Loss</option><option value="BE">BE</option>
                 </select>
@@ -2000,7 +1997,6 @@
       if (userTier === 'trial' && btSessions.indexOf(s) >= 3) return;
       document.getElementById('bt-sessions-view').classList.add('hidden');
       document.getElementById('bt-detail').classList.remove('hidden');
-      document.getElementById('bt-date-filter').classList.remove('hidden');
       document.getElementById('bt-title').textContent = s.name;
       document.getElementById('bt-meta').textContent = [s.ticker,s.strategy,s.startDate].filter(Boolean).join(' · ');
       try {
@@ -2014,7 +2010,7 @@
       } catch(err) { console.error(err); }
     }
 
-    function closeBt() { document.getElementById('bt-detail').classList.add('hidden'); document.getElementById('bt-sessions-view').classList.remove('hidden'); document.getElementById('bt-date-filter').classList.add('hidden'); clearBtDateFilter(); }
+    function closeBt() { document.getElementById('bt-detail').classList.add('hidden'); document.getElementById('bt-sessions-view').classList.remove('hidden'); clearBtDateFilter(); }
 
     function btSub(tab) {
       ['trades','stats','calendar'].forEach(t=>{
