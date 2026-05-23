@@ -188,7 +188,7 @@
                 <div class="flex gap-1">
                   <button id="imp-H" onclick="toggleImpact('High')" class="px-2 py-1 rounded text-[10px] font-black border border-red-500/40 bg-red-500/10 text-red-400 transition">H</button>
                   <button id="imp-M" onclick="toggleImpact('Medium')" class="px-2 py-1 rounded text-[10px] font-black border border-yellow-500/40 bg-yellow-500/10 text-yellow-400 transition">M</button>
-                  <button id="imp-L" onclick="toggleImpact('Low')" class="px-2 py-1 rounded text-[10px] font-black border border-white/10 bg-zinc-900 text-zinc-500 transition">L</button>
+                  <button id="imp-L" onclick="toggleImpact('Low')" class="px-2 py-1 rounded text-[10px] font-black border border-white/20 bg-zinc-800 text-zinc-400 transition">L</button>
                 </div>
                 <a href="https://www.forexfactory.com/calendar" target="_blank" class="px-2 py-1.5 bg-zinc-900 border border-white/10 hover:border-green-500/30 rounded-lg text-[10px] font-black text-zinc-400 hover:text-green-400 transition">FF ↗</a>
               </div>
@@ -338,12 +338,11 @@
       document.getElementById('access-grid').innerHTML = renderAccessGrid(tier);
       if (whopKey) loadJournalStats(whopKey);
       loadAnnouncement(token);
-      loadCalendar(token);
     }
 
     // ── Economic Calendar ──
     let calEvents = [];
-    let calImpact = new Set(['High', 'Medium']);
+    let calImpact = new Set(['High', 'Medium', 'Low']);
 
     function toggleImpact(level) {
       if (calImpact.has(level)) calImpact.delete(level); else calImpact.add(level);
@@ -455,6 +454,10 @@
         if (body) body.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs">Could not load calendar.</div>';
       }
     }
+
+    // Start calendar fetch immediately — don't wait for profile
+    const _earlyToken = localStorage.getItem('fsdx_token');
+    if (_earlyToken) loadCalendar(_earlyToken);
 
     initDashboard();
 
