@@ -404,8 +404,19 @@
       activeBtn.classList.remove('text-zinc-500','border-transparent');
     }
 
-    function handleLogout() {
+    async function handleLogout() {
+      const token = localStorage.getItem('fsdx_token');
+      if (token) {
+        try {
+          await fetch(`${API}/api/auth/logout`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        } catch {}
+      }
+      localStorage.removeItem('fsdx_token');
       localStorage.removeItem('fsdx_admin');
+      localStorage.removeItem('fsdx_name');
       window.location.href = 'admin-login.html';
     }
 
