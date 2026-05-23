@@ -105,19 +105,19 @@
 
     const dirColor = d => d === 'LONG' ? 'text-green-400' : d === 'SHORT' ? 'text-red-400' : 'text-zinc-400';
 
-    function renderSetup(s) {
+    function renderSetup(s, idx) {
+      const parts = [];
+      if (s.grade) parts.push(`<span class="px-2 py-0.5 rounded text-[10px] font-black border ${gradeColor(s.grade)}">${s.grade}</span>`);
+      if (s.direction) parts.push(`<span class="text-xs font-black ${dirColor(s.direction)}">${s.direction}</span>`);
+      if (s.result) parts.push(`<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${resultBg(s.result)} ${resultColor(s.result)}">${s.result}</span>`);
+      if (s.rr) parts.push(`<span class="text-xs text-zinc-500">RR <span class="text-white font-bold">${s.rr}</span></span>`);
       return `
-        <div class="flex flex-wrap items-start gap-3 py-3 border-b border-white/5 last:border-0">
-          <!-- Grade -->
-          ${s.grade ? `<span class="px-2 py-0.5 rounded text-[10px] font-black border ${gradeColor(s.grade)} shrink-0">${s.grade}</span>` : ''}
-          <!-- Direction -->
-          ${s.direction ? `<span class="text-xs font-black ${dirColor(s.direction)} shrink-0">${s.direction}</span>` : ''}
-          <!-- Result -->
-          ${s.result ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${resultBg(s.result)} ${resultColor(s.result)} shrink-0">${s.result}</span>` : ''}
-          <!-- RR -->
-          ${s.rr ? `<span class="text-xs text-zinc-500 shrink-0">RR <span class="text-white font-bold">${s.rr}</span></span>` : ''}
-          <!-- Notes -->
-          ${s.notes ? `<span class="text-xs text-zinc-500 flex-1">${s.notes}</span>` : ''}
+        <div class="py-2.5 border-b border-white/5 last:border-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <span class="text-[10px] text-zinc-600 font-bold uppercase">Setup ${idx + 1}</span>
+            ${parts.join('')}
+          </div>
+          ${s.notes ? `<p class="text-xs text-zinc-500 mt-1 leading-relaxed">${s.notes}</p>` : ''}
         </div>`;
     }
 
@@ -144,8 +144,8 @@
         // Legacy single-setup support
         const hasLegacySetup = !setups.length && (r.grade || r.result);
         const setupsHtml = setups.length
-          ? setups.map(renderSetup).join('')
-          : hasLegacySetup ? renderSetup({ grade: r.grade, direction: '', result: r.result, rr: '', notes: '' })
+          ? setups.map((s, i) => renderSetup(s, i)).join('')
+          : hasLegacySetup ? renderSetup({ grade: r.grade, direction: '', result: r.result, rr: '', notes: '' }, 0)
           : '';
 
         return `
