@@ -56,8 +56,8 @@
             </div>
           </div>
 
-          <!-- Date Range Filter — same style as journal -->
-          <div class="flex flex-wrap gap-2 mb-4 pb-2 border-b border-white/5">
+          <!-- Date Range Filter — shown only inside a session -->
+          <div id="bt-date-filter" class="hidden flex flex-wrap gap-2 mb-4 pb-2 border-b border-white/5">
             <select id="gf-daterange" onchange="applyBtDateFilter()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
               <option value="all">All Time</option>
               <option value="today">Today</option>
@@ -2000,6 +2000,7 @@
       if (userTier === 'trial' && btSessions.indexOf(s) >= 3) return;
       document.getElementById('bt-sessions-view').classList.add('hidden');
       document.getElementById('bt-detail').classList.remove('hidden');
+      document.getElementById('bt-date-filter').classList.remove('hidden');
       document.getElementById('bt-title').textContent = s.name;
       document.getElementById('bt-meta').textContent = [s.ticker,s.strategy,s.startDate].filter(Boolean).join(' · ');
       try {
@@ -2013,7 +2014,7 @@
       } catch(err) { console.error(err); }
     }
 
-    function closeBt() { document.getElementById('bt-detail').classList.add('hidden'); document.getElementById('bt-sessions-view').classList.remove('hidden'); }
+    function closeBt() { document.getElementById('bt-detail').classList.add('hidden'); document.getElementById('bt-sessions-view').classList.remove('hidden'); document.getElementById('bt-date-filter').classList.add('hidden'); clearBtDateFilter(); }
 
     function btSub(tab) {
       ['trades','stats','calendar'].forEach(t=>{
