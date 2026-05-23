@@ -206,7 +206,6 @@
 
   <script>
     const API = 'https://nexus-validator.dfuentes4211.workers.dev';
-    const JOURNAL_URL = 'https://nexus-validator.dfuentes4211.workers.dev/api/nexus-journal';
     let allMembers = [];
     let allRecaps = [];
 
@@ -303,13 +302,7 @@
     }
 
     async function loadData() {
-      // Get whop key for save-all operations
       const token = localStorage.getItem('fsdx_token') || '';
-      try {
-        const profileRes = await fetch(`${API}/api/auth/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
-        const profileData = await profileRes.json();
-        if (profileData.user?.whopKey) localStorage.setItem('fsdx_whop_key', profileData.user.whopKey);
-      } catch(e) {}
       // Load recaps from localStorage
       allRecaps = JSON.parse(localStorage.getItem('fsdx_recaps') || '[]');
 
@@ -385,30 +378,6 @@
       document.getElementById('recap-date').value = new Date().toISOString().slice(0, 10);
     }
 
-    // Save entire recaps array to KV — used for both edit and delete to avoid duplicate-insert bug
-    async function saveAllRecaps() {
-      const token = localStorage.getItem('fsdx_token') || '';
-      // Use admin whop key stored in localStorage, or fall back to a fixed admin key
-      const adminKey = localStorage.getItem('fsdx_whop_key') || 'admin';
-      try {
-        await fetch(JOURNAL_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'save-all', key: 'recaps:' + adminKey, payload: { trades: allRecaps } })
-        });
-      } catch(err) {
-        console.log('save-all failed, trying admin endpoint');
-        // Fallback: try admin endpoint
-        try {
-          await fetch(`${API}/api/admin/recaps-saveall`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ recaps: allRecaps })
-          });
-        } catch(e) {}
-      }
-    }
-
     async function postRecap() {
       const date = document.getElementById('recap-date').value;
       const title = document.getElementById('recap-title').value.trim();
@@ -427,13 +396,26 @@
       const token = localStorage.getItem('fsdx_token') || '';
 
       if (editingRecapId) {
-        // UPDATE existing recap — save whole array to avoid duplicate-insert bug
+        // UPDATE: delete old entry from Worker, post new one with chartUrl
+        try {
+          await fetch(`${API}/api/admin/recap`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ id: editingRecapId })
+          });
+        } catch(err) {}
+        // Post updated recap as new entry
+        try {
+          await fetch(`${API}/api/admin/recap`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ date, title, summary, grade, result, notes, tags, chartUrl })
+          });
+        } catch(err) {}
+        // Update local array
         const idx = allRecaps.findIndex(r => r.id === editingRecapId);
-        if (idx >= 0) {
-          allRecaps[idx] = { ...allRecaps[idx], date, title, summary, grade, result, notes, tags, chartUrl };
-        }
+        if (idx >= 0) allRecaps[idx] = { ...allRecaps[idx], date, title, summary, grade, result, notes, tags, chartUrl };
         localStorage.setItem('fsdx_recaps', JSON.stringify(allRecaps));
-        await saveAllRecaps();
         showAdminMsg('recap-msg', 'Recap updated!', 'success');
         cancelEditRecap();
       } else {
@@ -495,8 +477,6 @@
       localStorage.setItem('fsdx_recaps', JSON.stringify(allRecaps));
       renderRecaps(allRecaps);
       document.getElementById('stat-recaps').textContent = allRecaps.length;
-      await saveAllRecaps();
-      // Also try original Worker endpoint
       try {
         const token = localStorage.getItem('fsdx_token') || '';
         await fetch(`${API}/api/admin/recap`, {
