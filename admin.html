@@ -268,20 +268,35 @@
       renderMembers(filtered);
     }
 
+    function renderAdminSetups(setups) {
+      if (!setups || !setups.length) return '';
+      return setups.map(s => {
+        const parts = [];
+        if (s.grade) parts.push(`<span class="px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px] font-bold border border-green-500/20">${s.grade}</span>`);
+        if (s.direction) parts.push(`<span class="text-[10px] font-bold ${s.direction==='LONG'?'text-green-400':'text-red-400'}">${s.direction}</span>`);
+        if (s.result) parts.push(`<span class="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px] border border-white/10">${s.result}</span>`);
+        if (s.rr) parts.push(`<span class="text-[10px] text-zinc-500">RR <span class="text-white font-bold">${s.rr}</span></span>`);
+        if (s.notes) parts.push(`<span class="text-[10px] text-zinc-500 italic">${s.notes}</span>`);
+        return `<div class="flex flex-wrap items-center gap-2 py-1 border-b border-white/5 last:border-0">${parts.join('')}</div>`;
+      }).join('');
+    }
+
     function renderRecaps(recaps) {
       const container = document.getElementById('recaps-list');
       if (!recaps.length) { container.innerHTML = '<p class="text-zinc-600 text-sm">No recaps posted yet.</p>'; return; }
-      container.innerHTML = recaps.map(r => `
+      container.innerHTML = recaps.map(r => {
+        const setups = Array.isArray(r.setups) ? r.setups : [];
+        const setupsHtml = setups.length ? renderAdminSetups(setups) : (r.grade || r.result) ? renderAdminSetups([{grade:r.grade,direction:'',result:r.result,rr:'',notes:''}]) : '';
+        return `
         <div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <div class="flex flex-wrap items-center gap-2 mb-1">
                 <span class="text-xs text-zinc-500">${new Date(r.date+'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                ${r.grade ? `<span class="px-2 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px] font-bold border border-green-500/20">${r.grade}</span>` : ''}
-                ${r.result ? `<span class="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px] border border-white/10">${r.result}</span>` : ''}
               </div>
-              <div class="text-sm font-bold text-white">${r.title}</div>
-              <div class="text-xs text-zinc-500 mt-1">${r.summary}</div>
+              <div class="text-sm font-bold text-white mb-1">${r.title}</div>
+              ${setupsHtml ? `<div class="mb-2">${setupsHtml}</div>` : ''}
+              <div class="text-xs text-zinc-500">${r.summary}</div>
               ${r.notes ? `<div class="text-xs text-zinc-600 mt-1 italic">${r.notes}</div>` : ''}
               ${r.chartUrl ? `<a href="${r.chartUrl}" target="_blank" class="inline-block mt-2 text-xs text-green-400 hover:text-green-300 transition">View Chart ↗</a>` : ''}
             </div>
@@ -298,8 +313,8 @@
           <div class="mt-3 rounded-xl overflow-hidden border border-white/10">
             <img src="${r.chartUrl}" alt="Session chart" class="w-full max-h-48 object-contain bg-zinc-950" onerror="this.style.display='none'"/>
           </div>` : ''}
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
 
     async function loadData() {
