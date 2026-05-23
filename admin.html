@@ -971,10 +971,17 @@
           const color = colors[h.prefix] || '#71717a';
           const label = h.prefix.replace(':', '');
           const rest = h.key.slice(h.prefix.length);
-          return `<div class="flex items-center gap-3 px-4 py-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border" style="color:${color};border-color:${color}33;background:${color}11">${label}</span>
+          const escapedKey = h.key.replace(/'/g, "\\'");
+          return `<div class="flex items-center gap-3 px-4 py-3" id="kvrow-${btoa(h.key).replace(/=/g,'')}">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border flex-shrink-0" style="color:${color};border-color:${color}33;background:${color}11">${label}</span>
             <span class="text-zinc-400 flex-1 truncate">${rest}</span>
-            ${h.value ? `<span class="text-zinc-600 text-[10px]">→ ${h.value}</span>` : ''}
+            ${h.value ? `<span class="text-zinc-600 text-[10px] flex-shrink-0">→ ${h.value}</span>` : ''}
+            <button onclick="deleteKvKey('${escapedKey}')" title="Delete this KV entry"
+              class="flex-shrink-0 text-zinc-700 hover:text-red-400 transition ml-2">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+              </svg>
+            </button>
           </div>`;
         }).join('');
 
@@ -982,6 +989,33 @@
         alert('Connection error.');
       } finally {
         btn.disabled = false; btn.textContent = 'Search KV';
+      }
+    }
+
+    async function deleteKvKey(key) {
+      if (!confirm(`Delete KV entry:\n"${key}"\n\nThis cannot be undone.`)) return;
+      try {
+        const token = localStorage.getItem('fsdx_token');
+        const res = await fetch(`${API}/api/admin/kv-lookup`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ key })
+        });
+        const data = await res.json();
+        if (data.success) {
+          // Remove row from UI instantly
+          const rowId = `kvrow-${btoa(key).replace(/=/g,'')}`;
+          const row = document.getElementById(rowId);
+          if (row) row.remove();
+          // Update summary count
+          const remaining = document.querySelectorAll('#kv-search-hits > div').length;
+          document.getElementById('kv-search-summary').textContent =
+            remaining === 0 ? 'All entries deleted.' : `${remaining} KV entr${remaining === 1 ? 'y' : 'ies'} remaining`;
+        } else {
+          alert(data.error || 'Delete failed.');
+        }
+      } catch {
+        alert('Connection error.');
       }
     }
 
