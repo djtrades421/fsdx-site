@@ -451,11 +451,12 @@
         calEvents = parseFF(xml);
         renderCalendar();
       } catch(e) {
-        console.error('Calendar error:', e);
         const body = document.getElementById('cal-body');
         if (body) body.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs">Could not load calendar.</div>';
       }
     }
+
+    initDashboard();
 
   </script>
   <script src="nav-loader.js"></script>
