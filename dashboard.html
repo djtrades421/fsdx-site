@@ -70,9 +70,9 @@
 
         <!-- KPI CARDS + CHART -->
         <div id="stats-content" class="space-y-4">
-          <!-- Top 4 KPI cards -->
-          <div id="stats-top" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Status card always shown -->
+
+          <!-- Status card row — same card size, own row so more can be added later -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div id="status-card" class="border border-green-500/20 bg-green-500/5 rounded-2xl p-5 cursor-pointer hover:border-green-500/40 transition col-span-1" onclick="toggleAccess()">
               <div class="flex items-center justify-between mb-1">
                 <div id="status-label" class="text-[10px] text-green-400 uppercase tracking-wider">Your Status</div>
@@ -83,10 +83,9 @@
             </div>
           </div>
 
-          <!-- Collapsible Access Details — expands between status row and chart -->
+          <!-- Collapsible Access Details — expands pushing KPIs down -->
           <div id="access-details" class="border border-white/5 bg-zinc-950/60 rounded-2xl overflow-hidden">
             <div class="p-5">
-              <!-- Status + dates row -->
               <div class="flex flex-wrap items-center gap-3 mb-4 pb-4 border-b border-white/5">
                 <div id="expand-status-badge" class="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider border"></div>
                 <div class="flex flex-col">
@@ -98,6 +97,9 @@
               <div id="access-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
             </div>
           </div>
+
+          <!-- KPI cards -->
+          <div id="stats-top" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
 
           <!-- Cumulative P&L chart -->
           <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
@@ -490,13 +492,10 @@
         const statsTop = document.getElementById('stats-top');
 
         if (!trades.length) {
-          // Keep status card, add empty placeholders
-          const statusCard = statsTop.querySelector('#status-card').outerHTML;
           statsTop.innerHTML =
             statCard('Total Trades','—','#71717a','No trades yet') +
             statCard('Win Rate','—','#71717a') +
-            statCard('Net P&L','—','#71717a') +
-            statusCard;
+            statCard('Net P&L','—','#71717a');
           document.getElementById('chart-final-pnl').textContent = '—';
           return;
         }
@@ -512,14 +511,11 @@
         const pf = grossLoss === 0 ? (grossWin > 0 ? '∞' : '—') : (grossWin/grossLoss).toFixed(2);
         const pfColor = pf==='∞'?'#22c55e':pf==='—'?'#71717a':parseFloat(pf)>=1?'#22c55e':'#ef4444';
 
-        // Get the status card HTML before replacing
-        const statusCard = statsTop.querySelector('#status-card').outerHTML;
         statsTop.innerHTML =
           statCard('Total Trades', trades.length, '#ffffff', `${wins.length}W · ${losses.length}L${bes.length?' · '+bes.length+'BE':''}`) +
           renderWinRateCard(wr, decided, wins.length, losses.length, bes.length) +
           renderNetPnlCard(netPnl) +
-          statCard('Profit Factor', pf, pfColor) +
-          statusCard;
+          statCard('Profit Factor', pf, pfColor);
 
         drawEquityCurve(trades);
       } catch(e) {
