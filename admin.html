@@ -414,7 +414,7 @@
         result: div.querySelector('.setup-result')?.value || '',
         rr: div.querySelector('.setup-rr')?.value || '',
         notes: div.querySelector('.setup-notes')?.value || ''
-      })).filter(s => s.grade || s.result || s.notes);
+      })).filter(s => s.grade || s.result || s.notes || s.direction || s.rr);
     }
 
     function clearSetups() {
@@ -476,33 +476,24 @@
       const token = localStorage.getItem('fsdx_token') || '';
 
       if (editingRecapId) {
-        // UPDATE: delete old entry from Worker, post new one with chartUrl
-        try {
-          await fetch(`${API}/api/admin/recap`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ id: editingRecapId })
-          });
-        } catch(err) {}
-        // Post updated recap as new entry
+        // UPDATE: send id so Worker updates in place
+        const idx = allRecaps.findIndex(r => r.id === editingRecapId);
+        if (idx >= 0) allRecaps[idx] = { ...allRecaps[idx], date, title, summary, grade, result, notes, tags, chartUrl, setups };
+        localStorage.setItem('fsdx_recaps', JSON.stringify(allRecaps));
         try {
           await fetch(`${API}/api/admin/recap`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ date, title, summary, grade, result, notes, tags, chartUrl })
+            body: JSON.stringify({ id: editingRecapId, date, title, summary, grade, result, notes, tags, chartUrl, setups })
           });
         } catch(err) {}
-        // Update local array
-        const idx = allRecaps.findIndex(r => r.id === editingRecapId);
-        if (idx >= 0) allRecaps[idx] = { ...allRecaps[idx], date, title, summary, grade, result, notes, tags, chartUrl, setups };
-        localStorage.setItem('fsdx_recaps', JSON.stringify(allRecaps));
         showAdminMsg('recap-msg', 'Recap updated!', 'success');
         cancelEditRecap();
       } else {
         // CREATE new recap
         const recap = {
           id: Date.now().toString(),
-          date, title, summary, grade, result, notes, tags, chartUrl,
+          date, title, summary, grade, result, notes, tags, chartUrl, setups,
           createdAt: new Date().toISOString()
         };
         allRecaps.unshift(recap);
