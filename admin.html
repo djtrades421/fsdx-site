@@ -71,6 +71,7 @@
         <button onclick="switchTab('members')" id="tab-members" class="tab-btn active px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-green-500 text-green-400 transition mr-2">Members</button>
         <button onclick="switchTab('recaps')" id="tab-recaps" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition mr-2">Session Recaps</button>
         <button onclick="switchTab('announce')" id="tab-announce" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition">Announcement</button>
+        <button onclick="switchTab('migrate')" id="tab-migrate" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">Key Migration</button>
       </div>
 
       <!-- MEMBERS TAB -->
@@ -336,6 +337,28 @@
         </div>
       </div>
 
+
+      <!-- KEY MIGRATION -->
+      <div id="panel-migrate" class="tab-panel space-y-6">
+        <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
+          <h2 class="text-base font-black text-white mb-1">Transfer Member Data</h2>
+          <p class="text-xs text-zinc-500 mb-6">Migrates all KV data (journal, backtest sessions, settings) from one Whop key to another. Use when a member has duplicate accounts.</p>
+          <div id="migrate-msg" class="hidden rounded-xl px-4 py-3 text-xs mb-5 border"></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+            <div>
+              <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Old Whop Key <span class="text-red-500">*</span></label>
+              <input id="migrate-old" type="text" placeholder="e.g. user_abc123old" class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 placeholder-zinc-700">
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">New Whop Key <span class="text-red-500">*</span></label>
+              <input id="migrate-new" type="text" placeholder="e.g. user_xyz456new" class="w-full bg-black border border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-green-500/50 placeholder-zinc-700">
+            </div>
+          </div>
+          <button onclick="runMigration()" id="migrate-btn" class="px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">Run Migration</button>
+          <div id="migrate-log" class="hidden mt-5 border border-white/10 bg-black rounded-xl p-4 space-y-1.5 text-xs font-mono max-h-64 overflow-y-auto"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -345,7 +368,7 @@
     let allRecaps = [];
 
     function switchTab(tab) {
-      ['members','recaps','announce'].forEach(t => {
+      ['members','recaps','announce','migrate'].forEach(t => {
         document.getElementById('panel-' + t).classList.remove('active');
         const btn = document.getElementById('tab-' + t);
         btn.classList.remove('active','text-green-400','border-green-500');
@@ -778,6 +801,100 @@
     });
 
     init();
+
+    function migrateLog(msg, color='#71717a') {
+      const log = document.getElementById('migrate-log');
+      log.classList.remove('hidden');
+      const line = document.createElement('div');
+      line.style.color = color;
+      line.textContent = msg;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function runMigration() {
+      const oldKey = document.getElementById('migrate-old').value.trim();
+      const newKey = document.getElementById('migrate-new').value.trim();
+      const msg = document.getElementById('migrate-msg');
+      const log = document.getElementById('migrate-log');
+      const btn = document.getElementById('migrate-btn');
+
+      if (!oldKey || !newKey) { showMigrateMsg('Both keys are required.', 'error'); return; }
+      if (oldKey === newKey) { showMigrateMsg('Old and new keys are the same.', 'error'); return; }
+      if (!confirm(`Migrate ALL data from:\n${oldKey}\n→ ${newKey}\n\nThis will overwrite any existing data under the new key. Continue?`)) return;
+
+      btn.disabled = true; btn.textContent = 'Migrating...';
+      log.innerHTML = ''; log.classList.remove('hidden');
+      migrateLog('Starting migration...', '#22c55e');
+
+      const JOURNAL_URL = API + '/api/nexus-journal';
+      let migrated = 0, skipped = 0;
+
+      async function copyKey(fromKey, toKey, label) {
+        try {
+          const res = await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ action:'get-trades', key: fromKey }) });
+          const data = await res.json();
+          const trades = Array.isArray(data.trades) ? data.trades : [];
+          if (!trades.length) { migrateLog(`  ⊘ ${label} — no data, skipping`, '#52525b'); skipped++; return null; }
+          await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ action:'save-all', key: toKey, payload: { trades } }) });
+          migrateLog(`  ✓ ${label} — ${trades.length} record${trades.length!==1?'s':''} migrated`, '#22c55e');
+          migrated++;
+          return trades;
+        } catch(e) {
+          migrateLog(`  ✗ ${label} — error: ${e.message}`, '#ef4444');
+          return null;
+        }
+      }
+
+      async function copySettings(fromKey, toKey, label) {
+        try {
+          const res = await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ action:'get-settings', key: fromKey }) });
+          const data = await res.json();
+          if (!data.accounts?.length && !data.defaults) { migrateLog(`  ⊘ ${label} — no data, skipping`, '#52525b'); skipped++; return; }
+          await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ action:'save-settings', key: toKey, payload: { accounts: data.accounts||[], defaults: data.defaults||{} } }) });
+          migrateLog(`  ✓ ${label} — migrated`, '#22c55e');
+          migrated++;
+        } catch(e) {
+          migrateLog(`  ✗ ${label} — error: ${e.message}`, '#ef4444');
+        }
+      }
+
+      // 1. Journal trades
+      migrateLog('— Journal trades');
+      await copyKey(oldKey, newKey, 'journal:' + oldKey);
+
+      // 2. Journal settings
+      migrateLog('— Journal settings');
+      await copySettings(oldKey, newKey, 'journal_settings:' + oldKey);
+
+      // 3. Backtest sessions
+      migrateLog('— Backtest sessions');
+      const sessions = await copyKey('backtest_sessions:' + oldKey, 'backtest_sessions:' + newKey, 'backtest_sessions');
+
+      // 4. Each backtest session's trades
+      if (sessions?.length) {
+        migrateLog(`— Backtest session trades (${sessions.length} sessions)`);
+        for (const s of sessions) {
+          await copyKey('backtest:' + oldKey + ':' + s.id, 'backtest:' + newKey + ':' + s.id, 'backtest:' + s.id + ' (' + (s.name||'unnamed') + ')');
+        }
+      }
+
+      migrateLog('');
+      migrateLog(`Migration complete — ${migrated} key${migrated!==1?'s':''} migrated, ${skipped} skipped.`, '#22c55e');
+      showMigrateMsg(`Done! ${migrated} key${migrated!==1?'s':''} migrated successfully.`, 'success');
+      btn.disabled = false; btn.textContent = 'Run Migration';
+    }
+
+    function showMigrateMsg(text, type) {
+      const el = document.getElementById('migrate-msg');
+      el.textContent = text;
+      el.className = 'rounded-xl px-4 py-3 text-xs mb-5 border ' + (type==='error'?'bg-red-950/40 border-red-500/30 text-red-400':'bg-green-500/10 border-green-500/30 text-green-400');
+      el.classList.remove('hidden');
+    }
   </script>
 </body>
 </html>
