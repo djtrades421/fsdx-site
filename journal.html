@@ -1214,7 +1214,7 @@
       const PAD_L=62, PAD_R=20, PAD_T=14, PAD_B=34, CW=W-PAD_L-PAD_R, CH=H-PAD_T-PAD_B;
       const equities = points.map(p=>p.equity);
       const rawMin=Math.min(...equities), rawMax=Math.max(...equities), rng=rawMax-rawMin||1;
-      const dataMin=rawMin-rng*0.08, dataMax=rawMax+rng*0.10, dataRange=dataMax-dataMin;
+      const dataMin=rawMin-rng*0.15, dataMax=rawMax+rng*0.15, dataRange=dataMax-dataMin;
       const toX = i => PAD_L+(i/(points.length-1||1))*CW;
       const toY = v => PAD_T+CH-((v-dataMin)/dataRange)*CH;
 
