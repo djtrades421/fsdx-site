@@ -121,7 +121,7 @@
               </div>
               <div class="cal-header-stats flex gap-4 text-sm flex-wrap items-center">
                 <div><span class="text-zinc-500 text-xs mr-1.5">MONTHLY</span><span id="cal-monthly" class="font-black">—</span></div>
-                <div><span class="text-zinc-500 text-xs mr-1.5">YEARLY</span><span id="cal-yearly" class="font-black">—</span></div>
+                <div><span class="text-zinc-500 text-xs mr-1.5">NET P&amp;L</span><span id="cal-yearly" class="font-black">—</span></div>
                 <div><span class="text-zinc-500 text-xs mr-1.5">WIN RATE</span><span id="cal-wr" class="font-black text-green-400">—</span></div>
                 <div><span class="text-zinc-500 text-xs mr-1.5">DAYS</span><span id="cal-days-traded" class="font-black text-zinc-400">—</span></div>
                 <div><span class="text-zinc-500 text-xs mr-1.5">TRADES</span><span id="cal-trades" class="font-black text-zinc-400">—</span></div>
@@ -776,11 +776,11 @@
         byDate[t.date].pnl += parseFloat(t.netPnl)||0;
         byDate[t.date].count++;
       });
-      let monthPnl = 0, yearPnl = 0, wins = 0, decided = 0;
+      let monthPnl = 0, netPnl = 0, wins = 0, decided = 0;
       filteredTrades.forEach(t => {
         if (!t.date) return;
         const d = new Date(t.date + 'T00:00:00');
-        if (d.getFullYear() === calYear) yearPnl += parseFloat(t.netPnl)||0;
+        netPnl += parseFloat(t.netPnl)||0;
         if (d.getFullYear() === calYear && d.getMonth() === calMonth) monthPnl += parseFloat(t.netPnl)||0;
         if (t.result === 'WIN') wins++;
         if (t.result === 'WIN' || t.result === 'LOSS') decided++;
@@ -795,8 +795,8 @@
       mEl.textContent = fmtFull(monthPnl);
       mEl.className = 'font-black ' + (monthPnl>=0?'text-green-400':'text-red-400');
       const yEl = document.getElementById('cal-yearly');
-      yEl.textContent = fmtFull(yearPnl);
-      yEl.className = 'font-black ' + (yearPnl>=0?'text-green-400':'text-red-400');
+      yEl.textContent = fmtFull(netPnl);
+      yEl.className = 'font-black ' + (netPnl>=0?'text-green-400':'text-red-400');
       document.getElementById('cal-wr').textContent = wr !== null ? wr+'%' : '—';
       const daysEl = document.getElementById('cal-days-traded');
       if (daysEl) daysEl.textContent = monthDaysTraded + ' day' + (monthDaysTraded!==1?'s':'') + ' traded';
