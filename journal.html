@@ -1822,7 +1822,7 @@
           if (data.success) allTrades.unshift(data.trade||trade);
         }
         if (data.success) { filteredTrades=[...allTrades]; applyGlobalFilters(); closeLogModal(); renderCalendar(); }
-        else { document.getElementById('log-msg').textContent=data.error||'Failed to save.'; document.getElementById('log-msg').className='rounded-xl px-4 py-3 text-xs mb-4 border bg-red-950/40 border-red-500/30 text-red-400'; }
+        else { const el=document.getElementById('log-msg'); el.textContent=data.error||'Failed to save.'; el.className='rounded-xl px-4 py-3 text-xs mb-4 border bg-red-950/40 border-red-500/30 text-red-400'; el.classList.remove('hidden'); }
       } catch(err) { console.error(err); }
       btn.disabled=false; btn.textContent='Save Trade';
     }
