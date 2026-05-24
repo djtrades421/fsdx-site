@@ -2151,8 +2151,11 @@
       ab.classList.remove('text-zinc-500','border-transparent');
       if(tab==='stats') renderBtStats();
       if(tab==='trades') renderBtTrades();
-      // Calendar: don't re-render — just show existing DOM like journal does
-      // Only re-renders on month nav, filter changes, or initial session open
+      // Calendar: only re-render if grid is empty (first open), otherwise keep existing DOM like journal
+      if(tab==='calendar') {
+        const grid = document.getElementById('bt-cal-grid');
+        if (!grid || !grid.children.length) renderBtCal();
+      }
     }
 
     function renderBtTrades() {
