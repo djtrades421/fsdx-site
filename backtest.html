@@ -2386,31 +2386,32 @@
     function renderBtCal() {
       const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
       document.getElementById('bt-cal-title').textContent=months[btCalMonth]+' '+btCalYear;
-      // Calendar grid always shows ALL trades — filtering only affects header stats
+      // Build byDate from filteredBtTrades — same as journal pattern
       const byDate={};
-      btTrades.forEach(t=>{if(!t.date)return;if(!byDate[t.date])byDate[t.date]={pnl:0,count:0};byDate[t.date].pnl+=parseFloat(t.netPnl)||0;byDate[t.date].count++;});
-      const monthKeys=Object.keys(byDate).filter(ds=>{const d=new Date(ds+'T00:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
-      const monthDaysTraded=monthKeys.length;
-      const monthTrades=btTrades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T00:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
-      const mPnl=monthTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-      const mW=monthTrades.filter(t=>t.result==='WIN').length, mD=mW+monthTrades.filter(t=>t.result==='LOSS').length;
-      const mWR=mD?Math.round(mW/mD*100):null;
-      // Session totals for header — always use full btTrades not filtered
-      const sessionPnl=btTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
-      const sessionW=btTrades.filter(t=>t.result==='WIN').length;
-      const sessionD=sessionW+btTrades.filter(t=>t.result==='LOSS').length;
-      const sessionWR=sessionD?Math.round(sessionW/sessionD*100):null;
-      const yEl=document.getElementById('bt-cal-yearly');
-      if(yEl){yEl.textContent=fmtFull(sessionPnl);yEl.className='font-black '+(sessionPnl>=0?'text-green-400':'text-red-400');}
-      // Use session win rate not monthly
+      filteredBtTrades.forEach(t=>{if(!t.date)return;if(!byDate[t.date])byDate[t.date]={pnl:0,count:0};byDate[t.date].pnl+=parseFloat(t.netPnl)||0;byDate[t.date].count++;});
+      // Header stats — all from filteredBtTrades, same as journal
+      let monthPnl=0, yearPnl=0, wins=0, decided=0;
+      filteredBtTrades.forEach(t=>{
+        if(!t.date)return;
+        const d=new Date(t.date+'T00:00:00');
+        if(d.getFullYear()===btCalYear) yearPnl+=parseFloat(t.netPnl)||0;
+        if(d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth) monthPnl+=parseFloat(t.netPnl)||0;
+        if(t.result==='WIN') wins++;
+        if(t.result==='WIN'||t.result==='LOSS') decided++;
+      });
+      const monthDayKeys=Object.keys(byDate).filter(ds=>{const d=new Date(ds+'T00:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
+      const monthDaysTraded=monthDayKeys.length;
+      const wr=decided?Math.round(wins/decided*100):null;
       const mEl=document.getElementById('bt-cal-monthly');
-      if(mEl){mEl.textContent=fmtFull(mPnl);mEl.className='font-black '+(mPnl>=0?'text-green-400':'text-red-400');}
+      if(mEl){mEl.textContent=fmtFull(monthPnl);mEl.className='font-black '+(monthPnl>=0?'text-green-400':'text-red-400');}
+      const yEl=document.getElementById('bt-cal-yearly');
+      if(yEl){yEl.textContent=fmtFull(yearPnl);yEl.className='font-black '+(yearPnl>=0?'text-green-400':'text-red-400');}
       const wrEl=document.getElementById('bt-cal-wr');
-      if(wrEl){wrEl.textContent=sessionWR!==null?sessionWR+'%':'—';wrEl.className='font-black '+(sessionWR>=50?'text-green-400':'text-red-400');}
+      if(wrEl){wrEl.textContent=wr!==null?wr+'%':'—';wrEl.className='font-black '+(wr>=50?'text-green-400':'text-red-400');}
       const dEl=document.getElementById('bt-cal-days');
       if(dEl)dEl.textContent=monthDaysTraded+' day'+(monthDaysTraded!==1?'s':'')+' traded';
       const tEl=document.getElementById('bt-cal-trades');
-      if(tEl)tEl.textContent=btTrades.length+' trade'+(btTrades.length!==1?'s':'');
+      if(tEl)tEl.textContent=filteredBtTrades.length+' trade'+(filteredBtTrades.length!==1?'s':'');
       const daysInMonth=new Date(btCalYear,btCalMonth+1,0).getDate();
       const weekdays=[];for(let d=1;d<=daysInMonth;d++){const dow=new Date(btCalYear,btCalMonth,d).getDay();if(dow!==0&&dow!==6)weekdays.push(d);}
       const firstDow=new Date(btCalYear,btCalMonth,weekdays[0]).getDay()-1;
@@ -2654,7 +2655,9 @@
     }
 
     function updateBtFilterBadge() {
-      const active = ['bt-f-result','bt-f-grade','bt-f-direction'].filter(id => document.getElementById(id)?.value !== '').length;
+      const dropdownActive = ['bt-f-result','bt-f-grade','bt-f-direction'].filter(id => document.getElementById(id)?.value !== '').length;
+      const dateActive = (document.getElementById('gf-daterange')?.value || 'all') !== 'all' ? 1 : 0;
+      const active = dropdownActive + dateActive;
       const badge = document.getElementById('bt-filter-badge');
       if (badge) { badge.textContent = active>0 ? active+' filter'+(active>1?'s':'')+' active' : ''; badge.classList.toggle('hidden', active===0); }
     }
