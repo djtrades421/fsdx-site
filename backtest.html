@@ -2089,6 +2089,8 @@
 
     function closeBt() { document.getElementById('bt-detail').classList.add('hidden'); document.getElementById('bt-sessions-view').classList.remove('hidden'); clearBtDateFilter(); }
 
+    let _btFromDayClick = false;
+
     function btSub(tab) {
       ['trades','stats','calendar'].forEach(t=>{
         document.getElementById('bt-panel-'+t).classList.add('hidden');
@@ -2101,7 +2103,9 @@
       ab.classList.add('active','text-green-400','border-green-500');
       ab.classList.remove('text-zinc-500','border-transparent');
       if(tab==='stats') renderBtStats();
-      if(tab==='calendar') renderBtCal();
+      if(tab==='trades') renderBtTrades();
+      // Calendar: don't re-render — just show existing DOM like journal does
+      // Only re-renders on month nav, filter changes, or initial session open
     }
 
     function renderBtTrades() {
@@ -2334,11 +2338,12 @@
     function renderBtCal() {
       const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
       document.getElementById('bt-cal-title').textContent=months[btCalMonth]+' '+btCalYear;
+      // Calendar grid always shows ALL trades — filtering only affects header stats
       const byDate={};
-      filteredBtTrades.forEach(t=>{if(!t.date)return;if(!byDate[t.date])byDate[t.date]={pnl:0,count:0};byDate[t.date].pnl+=parseFloat(t.netPnl)||0;byDate[t.date].count++;});
+      btTrades.forEach(t=>{if(!t.date)return;if(!byDate[t.date])byDate[t.date]={pnl:0,count:0};byDate[t.date].pnl+=parseFloat(t.netPnl)||0;byDate[t.date].count++;});
       const monthKeys=Object.keys(byDate).filter(ds=>{const d=new Date(ds+'T00:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
       const monthDaysTraded=monthKeys.length;
-      const monthTrades=filteredBtTrades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T00:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
+      const monthTrades=btTrades.filter(t=>{if(!t.date)return false;const d=new Date(t.date+'T00:00:00');return d.getFullYear()===btCalYear&&d.getMonth()===btCalMonth;});
       const mPnl=monthTrades.reduce((s,t)=>s+(parseFloat(t.netPnl)||0),0);
       const mW=monthTrades.filter(t=>t.result==='WIN').length, mD=mW+monthTrades.filter(t=>t.result==='LOSS').length;
       const mWR=mD?Math.round(mW/mD*100):null;
@@ -2395,7 +2400,6 @@
       filteredBtTrades = btTrades.filter(t => t.date === ds);
       updateBtFilterBadge();
       updateBtSummary();
-      renderBtTrades();
     }
 
     function showBtDetail(id) {
