@@ -125,7 +125,18 @@
                 <div><span class="text-zinc-500 text-xs mr-1.5">WIN RATE</span><span id="cal-wr" class="font-black text-green-400">—</span></div>
                 <div><span class="text-zinc-500 text-xs mr-1.5">DAYS</span><span id="cal-days-traded" class="font-black text-zinc-400">—</span></div>
                 <div><span class="text-zinc-500 text-xs mr-1.5">TRADES</span><span id="cal-trades" class="font-black text-zinc-400">—</span></div>
-                <button onclick="openLogModal()" class="ml-2 px-3 py-1.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-lg transition">+ Log Trade</button>
+                <div class="flex items-center gap-2 ml-2">
+                  <button onclick="exportCSV()" class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white text-xs font-bold rounded-lg transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                    ↓ CSV
+                  </button>
+                  <button onclick="document.getElementById('csv-import-input').click()" class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white text-xs font-bold rounded-lg transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 7.5m0 0L7.5 12M12 7.5V21"/></svg>
+                    ↑ Import
+                  </button>
+                  <input type="file" id="csv-import-input" accept=".csv" class="hidden">
+                  <button onclick="openLogModal()" class="px-3 py-1.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-lg transition">+ Log Trade</button>
+                </div>
               </div>
             </div>
             <div class="border border-white/10 rounded-2xl overflow-hidden">
@@ -147,18 +158,6 @@
 
           <!-- HISTORY -->
           <div id="panel-history" class="sub-panel">
-            <!-- Toolbar -->
-            <div class="flex gap-2 mb-4">
-              <button onclick="exportCSV()" class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white text-xs font-bold rounded-lg transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-                ↓ CSV
-              </button>
-              <button onclick="document.getElementById('csv-import-input').click()" class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white text-xs font-bold rounded-lg transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 7.5m0 0L7.5 12m4.5-4.5V21"/></svg>
-                ↑ Import
-              </button>
-              <input type="file" id="csv-import-input" accept=".csv" class="hidden">
-            </div>
             <div id="hist-empty" class="hidden text-center py-16">
               <div class="text-4xl mb-3">📋</div>
               <h3 class="text-lg font-black mb-2">No trades yet</h3>
@@ -1901,7 +1900,10 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = 'fsdx_journal_' + new Date().toISOString().slice(0,10) + '.csv';
-      a.click(); URL.revokeObjectURL(url);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     // ── CSV Import ──
