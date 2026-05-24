@@ -470,8 +470,8 @@
       a.href = url;
       const ticker = convertedTrades[0]?.ticker || 'backtest';
       const dates = convertedTrades.map(t => t.date).sort();
-      const mode = detectedMode === 'fsdx' ? 'fsdx' : 'tv';
-      a.download = `nexus_${mode}_${ticker}_${dates[0]}_to_${dates[dates.length-1]}.csv`;
+      const mode = detectedMode === 'fsdx' ? 'backtest_fsdx' : 'backtest_tv';
+      a.download = `${mode}_${ticker}_${dates[0]}_to_${dates[dates.length-1]}.csv`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
