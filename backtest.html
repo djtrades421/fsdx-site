@@ -1975,21 +1975,68 @@
       const btn = document.getElementById('save-btn');
       btn.disabled = true; btn.textContent = 'Saving...';
       try {
-        let res, data;
+        trade.id = editingId || (Date.now().toString() + Math.random().toString(36).slice(2));
+
         if (editingId) {
-          trade.id = editingId;
-          res = await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'update-trade',key:whopKey,payload:{trade}}) });
-          data = await res.json();
-          if (data.success) { const i=allTrades.findIndex(t=>t.id===editingId); if(i!==-1) allTrades[i]=trade; }
+          // Editing existing BT trade
+          const idx = btTrades.findIndex(t => t.id === editingId);
+          if (idx !== -1) btTrades[idx] = trade;
         } else {
-          res = await fetch(JOURNAL_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'save-trade',key:whopKey,payload:{trade}}) });
-          data = await res.json();
-          if (data.success) allTrades.unshift(data.trade||trade);
+          // New BT trade — add to session
+          btTrades.unshift(trade);
         }
-        if (data.success) { filteredTrades=[...allTrades]; applyGlobalFilters(); closeLogModal(); renderCalendar(); }
-        else { document.getElementById('log-msg').textContent=data.error||'Failed to save.'; document.getElementById('log-msg').className='rounded-xl px-4 py-3 text-xs mb-4 border bg-red-950/40 border-red-500/30 text-red-400'; }
-      } catch(err) { console.error(err); }
-      btn.disabled=false; btn.textContent='Save Trade';
+
+        // Save all trades to the current backtest session
+        const res = await fetch(JOURNAL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save-all', key: 'backtest:' + whopKey + ':' + currentBtSessionId, payload: { trades: btTrades } })
+        });
+        const data = await res.json();
+
+        if (data.success !== false) {
+          // Update session summary stats
+          filteredBtTrades = [...btTrades];
+          const sessionIdx = btSessions.findIndex(s => s.id === currentBtSessionId);
+          if (sessionIdx !== -1) {
+            const wins = btTrades.filter(t => t.result === 'WIN').length;
+            const decided = wins + btTrades.filter(t => t.result === 'LOSS').length;
+            btSessions[sessionIdx].tradeCount = btTrades.length;
+            btSessions[sessionIdx].winRate = decided ? Math.round(wins/decided*100) : 0;
+            btSessions[sessionIdx].netPnl = btTrades.reduce((s,t) => s+(parseFloat(t.netPnl)||0), 0);
+            await fetch(JOURNAL_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'save-all', key: 'backtest_sessions:' + whopKey, payload: { trades: btSessions } })
+            });
+          }
+          updateBtSummary();
+          updateBtFilterBadge();
+          closeLogModal();
+          // Re-render current BT tab
+          const activeSub = [...document.querySelectorAll('[id^="btsub-"]')].find(b => b.classList.contains('active'))?.id?.replace('btsub-','') || 'trades';
+          if (activeSub === 'trades') renderBtTrades();
+          else if (activeSub === 'stats') renderBtStats();
+          else renderBtCal();
+        } else {
+          document.getElementById('log-msg').textContent = data.error || 'Failed to save.';
+          document.getElementById('log-msg').className = 'rounded-xl px-4 py-3 text-xs mb-4 border bg-red-950/40 border-red-500/30 text-red-400';
+          document.getElementById('log-msg').classList.remove('hidden');
+          // Revert
+          if (editingId) {
+            const idx = btTrades.findIndex(t => t.id === editingId);
+            if (idx !== -1) btTrades[idx] = trade; // already updated above, leave
+          } else {
+            btTrades.shift(); // remove the trade we just added
+          }
+        }
+      } catch(err) {
+        console.error(err);
+        document.getElementById('log-msg').textContent = 'Connection error. Please try again.';
+        document.getElementById('log-msg').className = 'rounded-xl px-4 py-3 text-xs mb-4 border bg-red-950/40 border-red-500/30 text-red-400';
+        document.getElementById('log-msg').classList.remove('hidden');
+      }
+      btn.disabled = false; btn.textContent = 'Save Trade';
     }
 
     // ── Detail ──
