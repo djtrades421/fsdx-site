@@ -381,19 +381,34 @@
     function downloadCSV() {
       if (!convertedTrades.length) return;
 
-      // Output fields that Nexus expects
-      const fields = ['id','date','entryTime','exitTime','ticker','direction','grade','result','netPnl',
-        'contracts','entryPrice','exitPrice','strategy','notes','exitSignal','score','hold','pnlMode','source'];
+      // Headers must match exactly what parseJournalCSV reads on import
+      const headers = ['Date','Entry Time','Exit Time','Ticker','Direction','Grade','Result','Net P&L',
+        'Contracts','TP1 P&L','TP2 P&L','Entry Price','SL Price','TP1 Price','TP2 Price',
+        'Strategy','Notes','Chart URL','Tags'];
 
-      const header = fields.join(',');
-      const rows = convertedTrades.map(t =>
-        fields.map(f => {
-          const val = t[f] || '';
-          return val.toString().includes(',') ? `"${val}"` : val;
-        }).join(',')
-      );
+      const rows = convertedTrades.map(t => [
+        t.date||'',
+        t.entryTime||'',
+        t.exitTime||'',
+        t.ticker||'MNQ',
+        t.direction||'',
+        t.grade||'',
+        t.result||'',
+        t.netPnl||'',
+        t.contracts||'',
+        t.tp1Pnl||'',
+        t.tp2Pnl||'',
+        t.entryPrice||'',
+        '',
+        t.tp1Price||'',
+        t.tp2Price||'',
+        t.strategy||'',
+        t.notes||'',
+        '',
+        ''
+      ].map(v => '"' + String(v||'').replace(/"/g,'""') + '"').join(','));
 
-      const csv = [header, ...rows].join('\n');
+      const csv = [headers.join(','), ...rows].join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -401,7 +416,9 @@
       const ticker = convertedTrades[0]?.ticker || 'backtest';
       const dates = convertedTrades.map(t => t.date).sort();
       a.download = `fsdx_nexus_${ticker}_${dates[0]}_to_${dates[dates.length-1]}.csv`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
 
