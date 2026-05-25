@@ -789,7 +789,7 @@
 
       document.getElementById('result-stats').innerHTML =
         stat('Trades', trades.length, '#ffffff') +
-        stat('Win Rate', wr + '%', wr >= 50 ? '#22c55e' : '#ef4444', 'TV: ' + (Math.round(wins/total*10000)/100).toFixed(2) + '% (incl. BE)') +
+        stat('Win Rate', wr + '%', wr >= 50 ? '#22c55e' : '#ef4444', 'TV: ' + (Math.round(wins/(wins+losses+bes)*10000)/100).toFixed(2) + '% (incl. BE)') +
         stat('Net P&L', (netPnl >= 0 ? '+' : '') + '$' + netPnl.toFixed(2), netPnl >= 0 ? '#22c55e' : '#ef4444') +
         stat('W / L / BE', `${wins} / ${losses} / ${bes}`, '#71717a');
 
