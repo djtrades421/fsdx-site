@@ -610,6 +610,8 @@
                 grade: '',
                 result: getResult(pnl),
                 netPnl: pnl.toFixed(2),
+                tp1Pnl: pnl.toFixed(2), tp1Contracts: Math.min(qty, entry.qty),
+                tp2Pnl: 0, tp2Contracts: 0,
                 contracts: Math.min(qty, entry.qty).toString(),
                 entryPrice: entry.price.toString(),
                 exitPrice: price.toString(),
@@ -658,6 +660,8 @@
                 date: tradeDate, entryTime: entry.time, exitTime: time,
                 ticker: rawContract || ticker, direction: 'SHORT', grade: '',
                 result: getResult(pnl), netPnl: pnl.toFixed(2),
+                tp1Pnl: pnl.toFixed(2), tp1Contracts: Math.min(qty, entry.qty),
+                tp2Pnl: 0, tp2Contracts: 0,
                 contracts: Math.min(qty, entry.qty).toString(),
                 entryPrice: entry.price.toString(), exitPrice: price.toString(),
                 strategy: 'Live Trade', notes: `Tradovate · ${contract}`, source: 'tradovate'
@@ -711,7 +715,10 @@
               id: Date.now().toString() + Math.random().toString(36).slice(2),
               date, entryTime: formatTime(t.entry['Date and time']), exitTime: formatTime(t.exit['Date and time']),
               ticker, direction: extractDirectionFromSignal(signal), grade: extractGrade(signal),
-              result: getResult(pnl), netPnl: pnl.toFixed(2), contracts: extractContracts(signal).toString(),
+              result: getResult(pnl), netPnl: pnl.toFixed(2),
+              tp1Pnl: pnl.toFixed(2), tp1Contracts: extractContracts(signal),
+              tp2Pnl: 0, tp2Contracts: 0,
+              contracts: extractContracts(signal).toString(),
               entryPrice, exitPrice, strategy: 'FSD-X ORB PRO', notes: signal, source: 'fsdx_converter'
             });
           } else {
@@ -720,7 +727,10 @@
               id: Date.now().toString() + Math.random().toString(36).slice(2),
               date, entryTime: formatTime(t.entry['Date and time']), exitTime: formatTime(t.exit['Date and time']),
               ticker, direction: extractDirectionFromType(t.entry['Type'] || ''), grade: '',
-              result: getResult(pnl), netPnl: pnl.toFixed(2), contracts: contractsRaw.toString(),
+              result: getResult(pnl), netPnl: pnl.toFixed(2),
+              tp1Pnl: pnl.toFixed(2), tp1Contracts: contractsRaw,
+              tp2Pnl: 0, tp2Contracts: 0,
+              contracts: contractsRaw.toString(),
               entryPrice, exitPrice, strategy: signal || 'TradingView Strategy',
               notes: [signal, t.exit['Signal'] || ''].filter(Boolean).join(' → '), source: 'tv_converter'
             });
