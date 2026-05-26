@@ -73,6 +73,9 @@
         <button onclick="switchTab('announce')" id="tab-announce" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition">Announcement</button>
         <button onclick="switchTab('updates')" id="tab-updates" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">Updates</button>
         <button onclick="switchTab('migrate')" id="tab-migrate" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">Key Migration</button>
+        <button onclick="switchTab('roster')" id="tab-roster" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">Roster</button>
+        <button onclick="switchTab('payments')" id="tab-payments" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">Payments</button>
+        <button onclick="switchTab('flags')" id="tab-flags" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">🚩 Flags</button>
       </div>
 
       <!-- MEMBERS TAB -->
@@ -428,13 +431,165 @@
     </div>
   </div>
 
+      <!-- ROSTER TAB -->
+      <div id="panel-roster" class="tab-panel">
+        <!-- Import bar -->
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <div>
+            <h2 class="text-sm font-black text-white">Member Roster</h2>
+            <p class="text-xs text-zinc-600 mt-0.5">Whop exports + Legacy/Discord CSV — smart import detects changes</p>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <input type="file" id="roster-import-input" accept=".csv" class="hidden" onchange="handleRosterImport(this.files[0])">
+            <button onclick="document.getElementById('roster-import-input').click()" class="flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">
+              ↑ Import CSV
+            </button>
+            <button onclick="exportRosterCSV()" class="flex items-center gap-1.5 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 font-bold text-xs rounded-xl transition">
+              ↓ Export
+            </button>
+            <button onclick="clearRosterData()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-500 font-bold text-xs rounded-xl transition">
+              Clear Data
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5" id="roster-stats"></div>
+
+        <!-- Filters -->
+        <div class="flex gap-2 mb-4 flex-wrap">
+          <select id="rf-status" onchange="renderRoster()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="trialing">Trialing</option>
+            <option value="canceling">Cancelling</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="legacy">Legacy</option>
+            <option value="lifetime">Lifetime</option>
+            <option value="yearly">Yearly</option>
+          </select>
+          <select id="rf-source" onchange="renderRoster()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
+            <option value="">All Sources</option>
+            <option value="Whop">Whop</option>
+            <option value="LaunchPass">LaunchPass</option>
+            <option value="Early Acess">Legacy/Early Access</option>
+          </select>
+          <input type="text" id="rf-search" oninput="renderRoster()" placeholder="Search name, email, Discord, TV..." class="bg-zinc-900 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none placeholder-zinc-600 w-52">
+          <button onclick="document.getElementById('rf-status').value='';document.getElementById('rf-source').value='';document.getElementById('rf-search').value='';renderRoster()" class="text-xs text-zinc-500 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition">✕ Clear</button>
+        </div>
+
+        <!-- Import diff modal -->
+        <div id="roster-diff-panel" class="hidden mb-5 border border-yellow-500/20 bg-yellow-500/5 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-sm font-black text-white">Import Preview</div>
+            <div class="text-xs text-zinc-500" id="diff-summary"></div>
+          </div>
+          <div id="diff-list" class="space-y-2 max-h-64 overflow-y-auto mb-4"></div>
+          <div class="flex gap-3">
+            <button onclick="confirmImport()" class="px-5 py-2.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">Confirm Import</button>
+            <button onclick="cancelImport()" class="px-4 py-2.5 border border-white/10 text-zinc-400 text-xs font-bold rounded-xl transition">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="border border-white/10 rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left min-w-[900px]">
+              <thead><tr class="bg-zinc-950 border-b border-white/10 text-[10px] text-zinc-500 uppercase tracking-wider">
+                <th class="px-4 py-3">Name / Discord</th>
+                <th class="px-4 py-3">Email</th>
+                <th class="px-4 py-3">TV Username</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Access Type</th>
+                <th class="px-4 py-3">Source</th>
+                <th class="px-4 py-3">Joined</th>
+                <th class="px-4 py-3">Renewal / TV Renew</th>
+                <th class="px-4 py-3">Site</th>
+                <th class="px-4 py-3">Flags</th>
+                <th class="px-4 py-3">Notes</th>
+              </tr></thead>
+              <tbody id="roster-table" class="divide-y divide-white/5 text-xs"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENTS TAB -->
+      <div id="panel-payments" class="tab-panel">
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <div>
+            <h2 class="text-sm font-black text-white">Payments</h2>
+            <p class="text-xs text-zinc-600 mt-0.5">From Whop payments export</p>
+          </div>
+          <div class="flex gap-2">
+            <input type="file" id="payments-import-input" accept=".csv" class="hidden" onchange="handlePaymentsImport(this.files[0])">
+            <button onclick="document.getElementById('payments-import-input').click()" class="px-4 py-2 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">↑ Import Payments CSV</button>
+          </div>
+        </div>
+
+        <!-- Payment stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5" id="payment-stats"></div>
+
+        <!-- Upcoming renewals -->
+        <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 mb-5">
+          <div class="text-xs font-black text-white uppercase tracking-wider mb-3">⏰ Renewals in Next 14 Days</div>
+          <div id="upcoming-renewals" class="text-xs text-zinc-600">Import memberships CSV to see upcoming renewals.</div>
+        </div>
+
+        <!-- Failed payments -->
+        <div class="border border-red-500/10 bg-zinc-950/40 rounded-2xl p-5 mb-5">
+          <div class="text-xs font-black text-red-400 uppercase tracking-wider mb-3">⚠️ Failed Payments</div>
+          <div id="failed-payments" class="text-xs text-zinc-600">No failed payments found.</div>
+        </div>
+
+        <!-- Full payments table -->
+        <div class="border border-white/10 rounded-2xl overflow-hidden">
+          <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+            <div class="text-xs font-black text-white uppercase tracking-wider">Payment History</div>
+            <select id="pf-status" onchange="renderPayments()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
+              <option value="">All</option><option value="paid">Paid</option><option value="failed">Failed</option><option value="open">Open</option>
+            </select>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left min-w-[700px]">
+              <thead><tr class="bg-zinc-950 border-b border-white/10 text-[10px] text-zinc-500 uppercase tracking-wider">
+                <th class="px-4 py-3">Date</th>
+                <th class="px-4 py-3">Name / Email</th>
+                <th class="px-4 py-3">Discord</th>
+                <th class="px-4 py-3">Amount</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Type</th>
+                <th class="px-4 py-3">Failure Reason</th>
+              </tr></thead>
+              <tbody id="payments-table" class="divide-y divide-white/5 text-xs"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLAGS TAB -->
+      <div id="panel-flags" class="tab-panel">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-sm font-black text-white">🚩 Flags & Suspicious Activity</h2>
+            <p class="text-xs text-zinc-600 mt-0.5">Trial abuse detection and duplicate account alerts</p>
+          </div>
+          <button onclick="runFlagDetection();renderFlags()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 font-bold text-xs rounded-xl transition">↻ Re-scan</button>
+        </div>
+        <div id="flags-content" class="space-y-6">
+          <div class="text-center py-12 text-zinc-600 text-sm">Import roster data to run flag detection.</div>
+        </div>
+      </div>
+
+  </div>
+
   <script>
     const API = 'https://nexus-validator.dfuentes4211.workers.dev';
     let allMembers = [];
     let allRecaps = [];
 
     function switchTab(tab) {
-      ['members','recaps','announce','updates','migrate'].forEach(t => {
+      ['members','recaps','announce','updates','migrate','roster','payments','flags'].forEach(t => {
         document.getElementById('panel-' + t).classList.remove('active');
         const btn = document.getElementById('tab-' + t);
         btn.classList.remove('active','text-green-400','border-green-500');
@@ -443,6 +598,9 @@
       document.getElementById('panel-' + tab).classList.add('active');
       if (tab === 'announce') loadCurrentAnnouncement();
       if (tab === 'updates') loadAdminUpdates();
+      if (tab === 'roster') renderRoster();
+      if (tab === 'payments') renderPayments();
+      if (tab === 'flags') renderFlags();
       const activeBtn = document.getElementById('tab-' + tab);
       activeBtn.classList.add('active','text-green-400','border-green-500');
       activeBtn.classList.remove('text-zinc-500','border-transparent');
@@ -927,6 +1085,13 @@
       document.getElementById('loading-screen').classList.add('hidden');
       document.getElementById('admin-content').classList.remove('hidden');
       loadData();
+      // Load roster data
+      try {
+        const profileRes = await fetch(`${API}/api/auth/profile`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('fsdx_token')}` } });
+        const profileData = await profileRes.json();
+        const adminKey = profileData.user?.whopKey || 'FSDX-OWNER';
+        await loadRosterOnInit(adminKey);
+      } catch(e) { window._adminKey = 'FSDX-OWNER'; await loadRosterFromKV(); }
     }
 
     // ── Updates ──
@@ -1299,6 +1464,730 @@
       el.className = 'rounded-lg px-3 py-2 text-xs border ' + (type==='error'?'bg-red-950/40 border-red-500/30 text-red-400':'bg-green-500/10 border-green-500/30 text-green-400');
       el.classList.remove('hidden');
     }
+
+    // ═══════════════════════════════════════════
+    // ROSTER SYSTEM
+    // ═══════════════════════════════════════════
+    const JOURNAL_URL_ADMIN = 'https://nexus-validator.dfuentes4211.workers.dev/api/nexus-journal';
+    let rosterData = [];        // all roster records
+    let paymentsData = [];      // all payment records
+    let flagsData = [];         // detected flags
+    let pendingImport = null;   // staged import before confirm
+    let siteUsers = new Set();  // emails that have site accounts
+
+    // ── KV storage keys ──
+    const rosterKey = () => 'roster_data:' + (window._adminKey || '');
+    const paymentsKey = () => 'roster_payments:' + (window._adminKey || '');
+    const flagsKey = () => 'roster_flags:' + (window._adminKey || '');
+
+    async function loadRosterFromKV() {
+      try {
+        const [rr, pr, fr] = await Promise.all([
+          fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'get-trades', key: rosterKey() }) }),
+          fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'get-trades', key: paymentsKey() }) }),
+          fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'get-trades', key: flagsKey() }) }),
+        ]);
+        const [rd, pd, fdx] = await Promise.all([rr.json(), pr.json(), fr.json()]);
+        rosterData = Array.isArray(rd.trades) ? rd.trades : [];
+        paymentsData = Array.isArray(pd.trades) ? pd.trades : [];
+        flagsData = Array.isArray(fdx.trades) ? fdx.trades : [];
+      } catch(e) { console.error('Roster load error:', e); }
+    }
+
+    async function saveRosterToKV() {
+      await fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'save-all', key: rosterKey(), payload: { trades: rosterData } }) });
+    }
+    async function savePaymentsToKV() {
+      await fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'save-all', key: paymentsKey(), payload: { trades: paymentsData } }) });
+    }
+    async function saveFlagsToKV() {
+      await fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'save-all', key: flagsKey(), payload: { trades: flagsData } }) });
+    }
+
+    // ── CSV Parser ──
+    function parseAdminCSV(text) {
+      text = text.replace(/^\uFEFF/, '');
+      const lines = [];
+      let cur = '', inQ = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === '"') { inQ = !inQ; }
+        else if ((ch === '\n' || ch === '\r') && !inQ) {
+          if (cur.trim()) lines.push(cur.trim());
+          cur = '';
+          if (ch === '\r' && text[i+1] === '\n') i++;
+        } else cur += ch;
+      }
+      if (cur.trim()) lines.push(cur.trim());
+      if (lines.length < 2) return [];
+      const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+      return lines.slice(1).map(line => {
+        const vals = []; let c = '', q = false;
+        for (let i = 0; i < line.length; i++) {
+          if (line[i] === '"') q = !q;
+          else if (line[i] === ',' && !q) { vals.push(c.replace(/^"|"$/g,'').trim()); c = ''; }
+          else c += line[i];
+        }
+        vals.push(c.replace(/^"|"$/g,'').trim());
+        const obj = {}; headers.forEach((h,i) => obj[h] = vals[i] || '');
+        return obj;
+      }).filter(r => Object.values(r).some(v => v !== ''));
+    }
+
+    // ── Format detection ──
+    function detectImportFormat(headers) {
+      const h = headers.join(',').toLowerCase();
+      if (h.includes('member id') && h.includes('renewal date')) return 'whop_members';
+      if (h.includes('paid at') && h.includes('billing reason')) return 'whop_payments';
+      if (h.includes('access type') && h.includes('discord name') && !h.includes('member id')) return 'discord_csv';
+      return 'unknown';
+    }
+
+    // ── Parse Whop memberships ──
+    function parseWhopMembers(rows) {
+      return rows.map(r => {
+        const left = r['Left date'] || '';
+        const churned = r['Churned date'] || '';
+        const canceling = r['Canceling date'] || '';
+        const renewal = r['Renewal date'] || '';
+        const trialEnd = r['Trial end date'] || '';
+        const expiring = r['Expiring date'] || '';
+        const planId = r['Plan IDs'] || '';
+
+        let status = 'active';
+        if (left || churned) status = 'cancelled';
+        else if (canceling) status = 'canceling';
+        else if (trialEnd) status = 'trialing';
+        else if (expiring) status = 'expiring';
+        else if (!renewal) status = 'inactive';
+
+        // Determine access type from plan
+        let accessType = 'VIP';
+        if (planId.includes('plan_yO1Ma62pSUYFu')) accessType = 'Lifetime';
+        else if (planId.includes('plan_WDBtpCQLgdO6K')) accessType = 'Yearly';
+        else if (planId.includes('plan_C6yQOo7Z6tRap')) accessType = 'VIP';
+
+        const joinedRaw = r['Joined date'] || '';
+        const renewalRaw = renewal || expiring || trialEnd || '';
+
+        return {
+          id: r['Member ID'] || (Date.now() + Math.random()).toString(36),
+          name: r['Name'] || '',
+          whopUsername: r['Username'] || '',
+          email: r['Email'] || '',
+          discordName: r['Discord username'] || '',
+          discordId: r['Discord ID'] || '',
+          tvUsername: '',
+          status,
+          accessType,
+          source: 'Whop',
+          joined: joinedRaw ? joinedRaw.split(' ')[0] : '',
+          renewal: renewalRaw ? renewalRaw.split(' ')[0] : '',
+          tvRenew: renewalRaw ? renewalRaw.split(' ')[0] : '',
+          tvRemoval: left || churned ? 'Removed' : canceling ? 'Pending' : 'No',
+          spend: r['Platform spend (USD)'] || '0',
+          country: r['Country'] || '',
+          notes: '',
+          source_detail: 'whop_export',
+        };
+      });
+    }
+
+    // ── Parse Discord CSV ──
+    function parseDiscordCSV(rows) {
+      return rows.map(r => {
+        const accessType = (r['Access Type'] || '').trim();
+        let status = 'active';
+        if (accessType === 'Legacy') status = 'legacy';
+        else if (accessType === 'Lifetime') status = 'lifetime';
+        else if (accessType === 'Yearly') status = 'yearly';
+
+        const activeVal = (r['Active'] || '').trim();
+        if (activeVal === 'Cancelled') status = 'cancelled';
+        else if (activeVal === 'Trialing') status = 'trialing';
+        else if (activeVal === 'Cancelling' || activeVal === 'Canceling') status = 'canceling';
+
+        return {
+          id: (Date.now() + Math.random()).toString(36),
+          name: r['Whop UN'] || r['Discord Name'] || '',
+          whopUsername: r['Whop UN'] || '',
+          email: r['Email'] || '',
+          discordName: r['Discord Name'] || '',
+          discordId: '',
+          tvUsername: r['TV Username'] || '',
+          status,
+          accessType,
+          source: r['Source'] || 'Unknown',
+          joined: r['Access Start'] || '',
+          renewal: r['TV Renew Date'] || '',
+          tvRenew: r['TV Renew Date'] || '',
+          tvRemoval: r['TV Removal?'] || r['TV Removal Needed?'] || 'No',
+          spend: '',
+          country: '',
+          notes: r['Notes'] || '',
+          source_detail: 'discord_csv',
+        };
+      });
+    }
+
+    // ── Smart import diff ──
+    function diffImport(incoming, format) {
+      const newItems = [], changed = [], unchanged = [];
+      const emailMap = {};
+      const discordMap = {};
+      const tvMap = {};
+      rosterData.forEach(r => {
+        if (r.email) emailMap[r.email.toLowerCase()] = r;
+        if (r.discordName) discordMap[r.discordName.toLowerCase()] = r;
+        if (r.tvUsername) tvMap[r.tvUsername.toLowerCase()] = r;
+      });
+
+      incoming.forEach(item => {
+        const emailKey = item.email?.toLowerCase();
+        const discordKey = item.discordName?.toLowerCase();
+        const tvKey = item.tvUsername?.toLowerCase();
+        const existing = (emailKey && emailMap[emailKey]) ||
+                         (discordKey && discordMap[discordKey]) ||
+                         (tvKey && tvMap[tvKey]);
+        if (!existing) {
+          newItems.push({ type: 'new', item });
+        } else {
+          // Check if anything meaningful changed
+          const changed_fields = [];
+          if (item.status !== existing.status) changed_fields.push('status: ' + existing.status + ' → ' + item.status);
+          if (item.renewal && item.renewal !== existing.renewal) changed_fields.push('renewal: ' + existing.renewal + ' → ' + item.renewal);
+          if (item.tvUsername && item.tvUsername !== existing.tvUsername) changed_fields.push('TV: ' + existing.tvUsername + ' → ' + item.tvUsername);
+          if (changed_fields.length > 0) {
+            changed.push({ type: 'changed', item, existing, changes: changed_fields });
+          } else {
+            unchanged.push({ type: 'unchanged', item });
+          }
+        }
+      });
+      return { newItems, changed, unchanged };
+    }
+
+    // ── Handle import ──
+    async function handleRosterImport(file) {
+      if (!file) return;
+      const text = await file.text();
+      const rows = parseAdminCSV(text);
+      if (!rows.length) { alert('No data found in file.'); return; }
+      const headers = Object.keys(rows[0]);
+      const format = detectImportFormat(headers);
+      if (format === 'unknown') { alert('Could not detect format. Supported: Whop memberships export, Discord/Legacy CSV.'); return; }
+      if (format === 'whop_payments') { alert('This looks like a payments file — use the Payments tab to import it.'); return; }
+
+      let incoming = [];
+      if (format === 'whop_members') incoming = parseWhopMembers(rows);
+      else if (format === 'discord_csv') incoming = parseDiscordCSV(rows);
+
+      const diff = diffImport(incoming, format);
+      pendingImport = { incoming, diff, format };
+      showImportDiff(diff);
+      document.getElementById('roster-import-input').value = '';
+    }
+
+    function showImportDiff(diff) {
+      const panel = document.getElementById('roster-diff-panel');
+      const summary = document.getElementById('diff-summary');
+      const list = document.getElementById('diff-list');
+      panel.classList.remove('hidden');
+
+      summary.textContent = `${diff.newItems.length} new · ${diff.changed.length} changed · ${diff.unchanged.length} unchanged`;
+
+      const rows = [
+        ...diff.newItems.map(d => `<div class="flex items-start gap-3 p-2 rounded-lg bg-green-500/5 border border-green-500/15">
+          <span class="text-[10px] font-black text-green-400 uppercase mt-0.5 shrink-0">NEW</span>
+          <div class="text-xs"><span class="text-white font-bold">${d.item.name || d.item.discordName || d.item.email}</span>
+          <span class="text-zinc-500 ml-2">${d.item.email}</span>
+          <span class="ml-2 text-zinc-600">${d.item.status} · ${d.item.accessType}</span></div>
+        </div>`),
+        ...diff.changed.map(d => `<div class="flex items-start gap-3 p-2 rounded-lg bg-yellow-500/5 border border-yellow-500/15">
+          <span class="text-[10px] font-black text-yellow-400 uppercase mt-0.5 shrink-0">CHG</span>
+          <div class="text-xs"><span class="text-white font-bold">${d.item.name || d.item.discordName || d.item.email}</span>
+          <span class="text-zinc-500 ml-2">${d.item.email}</span>
+          <div class="text-yellow-400/80 mt-0.5">${d.changes.join(' · ')}</div></div>
+        </div>`),
+      ];
+      list.innerHTML = rows.length ? rows.join('') : '<div class="text-xs text-zinc-600 py-2">No new or changed records.</div>';
+    }
+
+    async function confirmImport() {
+      if (!pendingImport) return;
+      const { incoming, diff } = pendingImport;
+
+      // Merge: update changed, add new
+      const emailMap = {}; const discordMap = {}; const tvMap = {};
+      rosterData.forEach((r, i) => {
+        if (r.email) emailMap[r.email.toLowerCase()] = i;
+        if (r.discordName) discordMap[r.discordName.toLowerCase()] = i;
+        if (r.tvUsername) tvMap[r.tvUsername.toLowerCase()] = i;
+      });
+
+      incoming.forEach(item => {
+        const emailKey = item.email?.toLowerCase();
+        const discordKey = item.discordName?.toLowerCase();
+        const tvKey = item.tvUsername?.toLowerCase();
+        const idx = (emailKey && emailMap[emailKey] !== undefined ? emailMap[emailKey] :
+                     discordKey && discordMap[discordKey] !== undefined ? discordMap[discordKey] :
+                     tvKey && tvMap[tvKey] !== undefined ? tvMap[tvKey] : -1);
+        if (idx >= 0) {
+          // Merge — preserve manual fields, update Whop fields
+          const existing = rosterData[idx];
+          rosterData[idx] = {
+            ...existing,
+            status: item.status || existing.status,
+            renewal: item.renewal || existing.renewal,
+            tvRenew: item.tvRenew || existing.tvRenew,
+            name: item.name || existing.name,
+            discordName: item.discordName || existing.discordName,
+            tvUsername: item.tvUsername || existing.tvUsername,
+            spend: item.spend || existing.spend,
+            country: item.country || existing.country,
+            tvRemoval: item.tvRemoval || existing.tvRemoval,
+          };
+        } else {
+          rosterData.push(item);
+        }
+      });
+
+      await saveRosterToKV();
+      runFlagDetection();
+      await saveFlagsToKV();
+      cancelImport();
+      renderRoster();
+      renderFlags();
+      alert('✅ Import complete — ' + diff.newItems.length + ' added, ' + diff.changed.length + ' updated.');
+    }
+
+    function cancelImport() {
+      pendingImport = null;
+      document.getElementById('roster-diff-panel').classList.add('hidden');
+    }
+
+    // ── Render roster ──
+    function renderRoster() {
+      const statusFilter = document.getElementById('rf-status')?.value || '';
+      const sourceFilter = document.getElementById('rf-source')?.value || '';
+      const search = (document.getElementById('rf-search')?.value || '').toLowerCase();
+
+      // Stats
+      const statusCounts = {};
+      rosterData.forEach(r => { statusCounts[r.status] = (statusCounts[r.status]||0)+1; });
+      const statsEl = document.getElementById('roster-stats');
+      if (statsEl) {
+        const total = rosterData.length;
+        const active = (statusCounts['active']||0) + (statusCounts['trialing']||0) + (statusCounts['canceling']||0);
+        const legacy = (statusCounts['legacy']||0) + (statusCounts['lifetime']||0) + (statusCounts['yearly']||0);
+        const cancelled = statusCounts['cancelled']||0;
+        const flags = flagsData.filter(f => !f.dismissed).length;
+        statsEl.innerHTML = [
+          ['Total', total, '#fff'],
+          ['Active', active, '#22c55e'],
+          ['Legacy / Lifetime', legacy, '#a78bfa'],
+          ['Cancelled', cancelled, '#ef4444'],
+          ['🚩 Active Flags', flags, '#f59e0b'],
+        ].map(([l,v,c]) => `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center">
+          <div class="text-[10px] text-zinc-500 mb-1">${l}</div>
+          <div class="text-xl font-black" style="color:${c}">${v}</div>
+        </div>`).join('');
+      }
+
+      let filtered = rosterData.filter(r => {
+        if (statusFilter && r.status !== statusFilter) return false;
+        if (sourceFilter && r.source !== sourceFilter) return false;
+        if (search) {
+          const haystack = [r.name, r.email, r.discordName, r.tvUsername, r.whopUsername, r.notes].join(' ').toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
+        return true;
+      });
+
+      const tbody = document.getElementById('roster-table');
+      if (!rosterData.length) {
+        tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-zinc-600">No roster data — import a CSV to get started.</td></tr>';
+        return;
+      }
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-zinc-600">No records match filters.</td></tr>';
+        return;
+      }
+
+      const statusBadge = status => {
+        const cfg = {
+          active:    'bg-green-500/10 text-green-400 border-green-500/20',
+          trialing:  'bg-blue-500/10 text-blue-400 border-blue-500/20',
+          canceling: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+          cancelled: 'bg-red-950/30 text-red-400 border-red-500/20',
+          legacy:    'bg-purple-500/10 text-purple-400 border-purple-500/20',
+          lifetime:  'bg-purple-500/10 text-purple-300 border-purple-500/20',
+          yearly:    'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+          inactive:  'bg-zinc-800 text-zinc-500 border-white/10',
+        };
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${cfg[status]||cfg.inactive}">${status}</span>`;
+      };
+
+      tbody.innerHTML = filtered.map(r => {
+        // Member flags
+        const memberFlags = flagsData.filter(f => !f.dismissed && (f.email === r.email || f.discordName === r.discordName || f.tvUsername === r.tvUsername));
+        const flagBadges = memberFlags.map(f =>
+          `<span class="px-1.5 py-0.5 rounded text-[9px] font-black border ${f.severity==='red'?'bg-red-500/10 text-red-400 border-red-500/20':'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}" title="${f.reason}">${f.severity==='red'?'🔴':'🟡'} ${f.type}</span>`
+        ).join(' ');
+
+        // Site onboarded
+        const onboarded = siteUsers.has(r.email?.toLowerCase());
+        const siteDot = r.email ? (onboarded ? '<span class="text-green-400" title="Has site account">✓</span>' : '<span class="text-zinc-600" title="No site account">—</span>') : '—';
+
+        // Renewal soon
+        const renewalStr = r.renewal || '';
+        let renewalDisplay = renewalStr ? renewalStr.slice(0,10) : '—';
+        if (renewalStr) {
+          try {
+            const rd = new Date(renewalStr);
+            const diff = (rd - new Date()) / (1000*60*60*24);
+            if (diff >= 0 && diff <= 7) renewalDisplay = `<span class="text-yellow-400 font-bold">${renewalStr.slice(0,10)} ⚡</span>`;
+          } catch(e) {}
+        }
+
+        return `<tr class="hover:bg-white/[0.02] transition">
+          <td class="px-4 py-3">
+            <div class="text-white font-bold">${r.name||'—'}</div>
+            <div class="text-zinc-500 text-[10px]">${r.discordName||''}</div>
+          </td>
+          <td class="px-4 py-3 text-zinc-400">${r.email||'—'}</td>
+          <td class="px-4 py-3 text-zinc-400">${r.tvUsername||'—'}</td>
+          <td class="px-4 py-3">${statusBadge(r.status)}</td>
+          <td class="px-4 py-3 text-zinc-500">${r.accessType||'—'}</td>
+          <td class="px-4 py-3 text-zinc-600">${r.source||'—'}</td>
+          <td class="px-4 py-3 text-zinc-500">${r.joined?r.joined.slice(0,10):'—'}</td>
+          <td class="px-4 py-3 text-zinc-400">${renewalDisplay}</td>
+          <td class="px-4 py-3 text-center">${siteDot}</td>
+          <td class="px-4 py-3">${flagBadges||'—'}</td>
+          <td class="px-4 py-3 text-zinc-600 text-[10px] max-w-[140px] truncate" title="${r.notes||''}">${r.notes||'—'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // ── Handle payments import ──
+    async function handlePaymentsImport(file) {
+      if (!file) return;
+      const text = await file.text();
+      const rows = parseAdminCSV(text);
+      if (!rows.length) { alert('No data found.'); return; }
+      const headers = Object.keys(rows[0]);
+      const format = detectImportFormat(headers);
+      if (format !== 'whop_payments') { alert('This does not look like a Whop payments export.'); return; }
+      paymentsData = rows.map(r => ({
+        id: r['ID'] || Math.random().toString(36),
+        paidAt: r['Paid at'] || r['Created at'] || '',
+        status: r['Status'] || '',
+        description: r['Description'] || '',
+        email: r['Email'] || '',
+        discordName: r['Discord username'] || '',
+        amount: parseFloat(r['Payment Amount']||'0')||0,
+        currency: r['Payment Currency'] || 'usd',
+        billingReason: r['Billing reason'] || '',
+        failureReason: r['Failure reason'] || '',
+        customerName: r['Customer name'] || '',
+        country: r['Billing address country'] || '',
+        receiptNumber: r['Receipt number'] || '',
+      }));
+      await savePaymentsToKV();
+      document.getElementById('payments-import-input').value = '';
+      renderPayments();
+      alert('✅ ' + paymentsData.length + ' payments imported.');
+    }
+
+    // ── Render payments ──
+    function renderPayments() {
+      const statusFilter = document.getElementById('pf-status')?.value || '';
+      const paid = paymentsData.filter(p => p.status === 'paid');
+      const failed = paymentsData.filter(p => p.status !== 'paid' && p.status !== 'open');
+      const open = paymentsData.filter(p => p.status === 'open');
+      const totalRev = paid.reduce((s,p) => s+p.amount, 0);
+      const newSubs = paymentsData.filter(p => p.billingReason === 'subscription_create' && p.status === 'paid').length;
+
+      // Stats
+      const statsEl = document.getElementById('payment-stats');
+      if (statsEl && paymentsData.length) {
+        statsEl.innerHTML = [
+          ['Total Revenue', '$'+totalRev.toFixed(2), '#22c55e'],
+          ['Paid', paid.length, '#fff'],
+          ['Failed / Open', (failed.length+open.length), '#ef4444'],
+          ['New Subscribers', newSubs, '#22c55e'],
+        ].map(([l,v,c]) => `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4 text-center">
+          <div class="text-[10px] text-zinc-500 mb-1">${l}</div>
+          <div class="text-xl font-black" style="color:${c}">${v}</div>
+        </div>`).join('');
+      }
+
+      // Upcoming renewals from roster
+      const upcomingEl = document.getElementById('upcoming-renewals');
+      if (upcomingEl) {
+        const now = new Date();
+        const in14 = new Date(now.getTime() + 14*24*60*60*1000);
+        const upcoming = rosterData.filter(r => {
+          if (!r.renewal || r.status === 'cancelled') return false;
+          try {
+            const rd = new Date(r.renewal);
+            return rd >= now && rd <= in14;
+          } catch(e) { return false; }
+        }).sort((a,b) => new Date(a.renewal) - new Date(b.renewal));
+
+        if (upcoming.length) {
+          upcomingEl.innerHTML = upcoming.map(r => {
+            const d = new Date(r.renewal);
+            const daysLeft = Math.ceil((d - now) / (1000*60*60*24));
+            return `<div class="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+              <div>
+                <span class="text-white font-bold">${r.name||r.discordName||r.email}</span>
+                <span class="text-zinc-500 ml-2">${r.email}</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-zinc-500">${r.renewal.slice(0,10)}</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${daysLeft<=3?'bg-red-500/10 text-red-400':'bg-yellow-500/10 text-yellow-400'}">${daysLeft}d</span>
+              </div>
+            </div>`;
+          }).join('');
+        } else {
+          upcomingEl.textContent = 'No renewals in the next 14 days.';
+        }
+      }
+
+      // Failed payments
+      const failedEl = document.getElementById('failed-payments');
+      if (failedEl) {
+        const failedPays = paymentsData.filter(p => p.status === 'open' && p.failureReason);
+        if (failedPays.length) {
+          failedEl.innerHTML = failedPays.map(p => `<div class="flex items-start justify-between py-2 border-b border-white/5 last:border-0">
+            <div>
+              <span class="text-white font-bold">${p.customerName||p.email}</span>
+              <span class="text-zinc-500 ml-2 text-[10px]">${p.email}</span>
+              <div class="text-red-400/80 text-[10px] mt-0.5">${p.failureReason}</div>
+            </div>
+            <span class="text-zinc-500 text-[10px]">$${p.amount.toFixed(2)}</span>
+          </div>`).join('');
+        } else {
+          failedEl.textContent = 'No failed payments.';
+        }
+      }
+
+      // Full table
+      const tbody = document.getElementById('payments-table');
+      let filtered = statusFilter ? paymentsData.filter(p => p.status === statusFilter) : paymentsData;
+      filtered = [...filtered].sort((a,b) => (b.paidAt||'') < (a.paidAt||'') ? -1 : 1);
+      if (!paymentsData.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-zinc-600">No payments data — import Whop payments CSV.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = filtered.map(p => {
+        const statusCfg = { paid: 'bg-green-500/10 text-green-400 border-green-500/20', open: 'bg-red-950/30 text-red-400 border-red-500/20', failed: 'bg-red-950/30 text-red-400 border-red-500/20' };
+        const sc = statusCfg[p.status] || 'bg-zinc-800 text-zinc-500 border-white/10';
+        const reasonLabel = { subscription_create: '🆕 New', subscription_cycle: '🔄 Renewal', one_time: '1️⃣ One-time' };
+        return `<tr class="hover:bg-white/[0.02] transition">
+          <td class="px-4 py-3 text-zinc-500">${p.paidAt?p.paidAt.slice(0,10):'—'}</td>
+          <td class="px-4 py-3"><div class="text-white font-bold">${p.customerName||'—'}</div><div class="text-zinc-500 text-[10px]">${p.email}</div></td>
+          <td class="px-4 py-3 text-zinc-400">${p.discordName||'—'}</td>
+          <td class="px-4 py-3 font-bold ${p.status==='paid'?'text-green-400':'text-zinc-400'}">$${p.amount.toFixed(2)}</td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${sc}">${p.status}</span></td>
+          <td class="px-4 py-3 text-zinc-500">${reasonLabel[p.billingReason]||p.billingReason||'—'}</td>
+          <td class="px-4 py-3 text-red-400/80 text-[10px] max-w-[200px] truncate" title="${p.failureReason||''}">${p.failureReason||'—'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // ── Flag Detection ──
+    function levenshtein(a, b) {
+      if (!a || !b) return Math.max((a||'').length, (b||'').length);
+      const m = a.length, n = b.length;
+      const dp = Array.from({length:m+1},(_,i) => Array.from({length:n+1},(_,j) => i===0?j:j===0?i:0));
+      for (let i=1;i<=m;i++) for(let j=1;j<=n;j++)
+        dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+      return dp[m][n];
+    }
+
+    function runFlagDetection() {
+      const newFlags = [];
+      const cancelled = rosterData.filter(r => r.status === 'cancelled');
+      const active = rosterData.filter(r => ['active','trialing','canceling'].includes(r.status));
+      const dismissed = new Set(flagsData.filter(f => f.dismissed).map(f => f.id));
+
+      // 🔴 EXACT: cancelled → active/trial same email/discord/TV
+      cancelled.forEach(c => {
+        active.forEach(a => {
+          if (c.id === a.id) return;
+          const matches = [];
+          if (c.email && a.email && c.email.toLowerCase() === a.email.toLowerCase()) matches.push('email');
+          if (c.discordName && a.discordName && c.discordName.toLowerCase() === a.discordName.toLowerCase()) matches.push('Discord');
+          if (c.tvUsername && a.tvUsername && c.tvUsername.toLowerCase() === a.tvUsername.toLowerCase()) matches.push('TV username');
+          if (matches.length > 0) {
+            const flagId = 'exact_' + c.id + '_' + a.id;
+            if (!dismissed.has(flagId)) {
+              newFlags.push({
+                id: flagId, severity: 'red', type: 'Trial Abuse',
+                reason: 'Cancelled member reappeared as active/trial — matched on: ' + matches.join(', '),
+                email: a.email, discordName: a.discordName, tvUsername: a.tvUsername,
+                record1: { name: c.name||c.discordName, email: c.email, discord: c.discordName, tv: c.tvUsername, status: c.status, joined: c.joined },
+                record2: { name: a.name||a.discordName, email: a.email, discord: a.discordName, tv: a.tvUsername, status: a.status, joined: a.joined },
+                matchedOn: matches, dismissed: false,
+              });
+            }
+          }
+        });
+      });
+
+      // 🟡 FUZZY: same TV username across any two different records
+      const tvGroups = {};
+      rosterData.forEach(r => { if (r.tvUsername) { const k = r.tvUsername.toLowerCase(); if (!tvGroups[k]) tvGroups[k]=[]; tvGroups[k].push(r); } });
+      Object.entries(tvGroups).forEach(([tv, members]) => {
+        if (members.length > 1) {
+          const flagId = 'tv_dup_' + tv;
+          if (!dismissed.has(flagId)) {
+            newFlags.push({
+              id: flagId, severity: 'yellow', type: 'Duplicate TV',
+              reason: 'TV username "' + tv + '" appears on ' + members.length + ' records',
+              tvUsername: tv,
+              members: members.map(m => ({ name: m.name||m.discordName, email: m.email, status: m.status })),
+              dismissed: false,
+            });
+          }
+        }
+      });
+
+      // 🟡 FUZZY: similar Discord names (edit distance ≤ 2) between cancelled and active
+      cancelled.forEach(c => {
+        if (!c.discordName || c.discordName === 'N/A') return;
+        active.forEach(a => {
+          if (!a.discordName || a.discordName === 'N/A') return;
+          if (c.id === a.id) return;
+          const dist = levenshtein(c.discordName.toLowerCase(), a.discordName.toLowerCase());
+          if (dist > 0 && dist <= 2) {
+            const flagId = 'fuzzy_' + c.id + '_' + a.id;
+            if (!dismissed.has(flagId)) {
+              newFlags.push({
+                id: flagId, severity: 'yellow', type: 'Similar Discord',
+                reason: 'Discord names are very similar: "' + c.discordName + '" vs "' + a.discordName + '" (distance: ' + dist + ')',
+                discordName: a.discordName,
+                record1: { name: c.name||c.discordName, email: c.email, discord: c.discordName, status: c.status },
+                record2: { name: a.name||a.discordName, email: a.email, discord: a.discordName, status: a.status },
+                dismissed: false,
+              });
+            }
+          }
+        });
+      });
+
+      // Merge with dismissed flags
+      const dismissedFlags = flagsData.filter(f => f.dismissed);
+      flagsData = [...newFlags, ...dismissedFlags];
+    }
+
+    function renderFlags() {
+      const el = document.getElementById('flags-content');
+      if (!rosterData.length) {
+        el.innerHTML = '<div class="text-center py-12 text-zinc-600 text-sm">Import roster data to run flag detection.</div>';
+        return;
+      }
+      const active = flagsData.filter(f => !f.dismissed);
+      const dismissed = flagsData.filter(f => f.dismissed);
+      if (!active.length) {
+        el.innerHTML = '<div class="text-center py-12 text-zinc-600 text-sm">✅ No flags detected — looking clean.</div>' +
+          (dismissed.length ? `<div class="text-center text-xs text-zinc-700 mt-2">${dismissed.length} dismissed flag${dismissed.length!==1?'s':''}</div>` : '');
+        return;
+      }
+
+      const red = active.filter(f => f.severity === 'red');
+      const yellow = active.filter(f => f.severity === 'yellow');
+
+      const renderFlagCard = (f) => {
+        const twoRecord = f.record1 && f.record2;
+        const multiMember = f.members;
+        return `<div class="border ${f.severity==='red'?'border-red-500/20 bg-red-500/5':'border-yellow-500/20 bg-yellow-500/5'} rounded-xl p-4">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm">${f.severity==='red'?'🔴':'🟡'}</span>
+                <span class="text-sm font-black text-white">${f.type}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full border ${f.severity==='red'?'bg-red-500/10 text-red-400 border-red-500/20':'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}">${f.severity==='red'?'HIGH':'REVIEW'}</span>
+              </div>
+              <div class="text-xs text-zinc-500 mt-1">${f.reason}</div>
+            </div>
+            <button onclick="dismissFlag('${f.id}')" class="text-[10px] text-zinc-600 hover:text-zinc-400 border border-white/10 px-2 py-1 rounded-lg transition whitespace-nowrap">Dismiss</button>
+          </div>
+          ${twoRecord ? `<div class="grid grid-cols-2 gap-3">
+            <div class="bg-zinc-900/60 rounded-lg p-3 text-xs">
+              <div class="text-zinc-600 uppercase tracking-wider text-[10px] mb-1">Record 1 — ${f.record1.status}</div>
+              <div class="text-white font-bold">${f.record1.name||'—'}</div>
+              <div class="text-zinc-500">${f.record1.email||'—'}</div>
+              <div class="text-zinc-600">Discord: ${f.record1.discord||'—'} · TV: ${f.record1.tv||'—'}</div>
+              <div class="text-zinc-600">Joined: ${f.record1.joined||'—'}</div>
+            </div>
+            <div class="bg-zinc-900/60 rounded-lg p-3 text-xs">
+              <div class="text-zinc-600 uppercase tracking-wider text-[10px] mb-1">Record 2 — ${f.record2.status}</div>
+              <div class="text-white font-bold">${f.record2.name||'—'}</div>
+              <div class="text-zinc-500">${f.record2.email||'—'}</div>
+              <div class="text-zinc-600">Discord: ${f.record2.discord||'—'} · TV: ${f.record2.tv||'—'}</div>
+              <div class="text-zinc-600">Joined: ${f.record2.joined||'—'}</div>
+            </div>
+          </div>` : ''}
+          ${multiMember ? `<div class="space-y-1 mt-2">${f.members.map(m => `<div class="flex items-center gap-3 text-xs bg-zinc-900/60 rounded-lg px-3 py-2"><span class="text-white font-bold">${m.name||'—'}</span><span class="text-zinc-500">${m.email||'—'}</span><span class="text-zinc-600">${m.status}</span></div>`).join('')}</div>` : ''}
+        </div>`;
+      };
+
+      el.innerHTML = (red.length ? `<div>
+        <div class="text-xs font-black text-red-400 uppercase tracking-wider mb-3">🔴 Trial Abuse / High Priority (${red.length})</div>
+        <div class="space-y-3">${red.map(renderFlagCard).join('')}</div>
+      </div>` : '') +
+      (yellow.length ? `<div>
+        <div class="text-xs font-black text-yellow-400 uppercase tracking-wider mb-3 mt-5">🟡 Review / Suspicious (${yellow.length})</div>
+        <div class="space-y-3">${yellow.map(renderFlagCard).join('')}</div>
+      </div>` : '') +
+      (dismissed.length ? `<div class="mt-5 text-xs text-zinc-700 text-center">${dismissed.length} dismissed flag${dismissed.length!==1?'s':''} hidden</div>` : '');
+    }
+
+    async function dismissFlag(id) {
+      const flag = flagsData.find(f => f.id === id);
+      if (flag) flag.dismissed = true;
+      await saveFlagsToKV();
+      renderFlags();
+      renderRoster();
+    }
+
+    // ── Export roster ──
+    function exportRosterCSV() {
+      if (!rosterData.length) { alert('No roster data to export.'); return; }
+      const headers = ['Name','WhopUsername','Email','Discord','TV Username','Status','Access Type','Source','Joined','Renewal','TV Removal','Spend','Country','Notes'];
+      const rows = rosterData.map(r => [r.name,r.whopUsername,r.email,r.discordName,r.tvUsername,r.status,r.accessType,r.source,r.joined,r.renewal,r.tvRemoval,r.spend,r.country,r.notes].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(','));
+      const csv = [headers.join(','),...rows].join('\n');
+      const blob = new Blob([csv],{type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url; a.download='fsdx_roster_'+new Date().toISOString().slice(0,10)+'.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    async function clearRosterData() {
+      if (!confirm('Clear all roster data? This cannot be undone.')) return;
+      rosterData = []; flagsData = [];
+      await saveRosterToKV(); await saveFlagsToKV();
+      renderRoster(); renderFlags();
+    }
+
+    // ── Init hook — load roster data after admin auth ──
+    const _origAdminInit = window._adminInitHook;
+    window._rosterLoaded = false;
+    async function loadRosterOnInit(adminKey) {
+      window._adminKey = adminKey;
+      await loadRosterFromKV();
+      runFlagDetection();
+      window._rosterLoaded = true;
+    }
+
   </script>
 
   <!-- Update Whop Key Modal -->
