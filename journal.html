@@ -2363,6 +2363,20 @@
       document.getElementById('loading-screen').classList.add('hidden');
       document.getElementById('page-content').classList.remove('hidden');
       await loadSettings();
+
+      // ── URL param support — from Account Tracker ──
+      const params = new URLSearchParams(window.location.search);
+      const urlDate = params.get('date');
+      const urlTab = params.get('tab') || (urlDate ? 'history' : 'calendar');
+      if (urlDate) {
+        document.getElementById('gf-daterange').value = 'custom';
+        const customRange = document.getElementById('gf-custom-range');
+        if (customRange) customRange.classList.remove('hidden');
+        document.getElementById('gf-from').value = urlDate;
+        document.getElementById('gf-to').value = urlDate;
+        filteredTrades = allTrades.filter(t => t.date === urlDate);
+      }
+      switchSub(urlTab);
       renderCalendar();
       renderHistory();
     }
