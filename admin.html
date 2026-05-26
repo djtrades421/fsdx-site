@@ -457,36 +457,55 @@
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5" id="roster-stats"></div>
 
         <!-- Filters -->
-        <div class="flex gap-2 mb-4 flex-wrap">
-          <select id="rf-status" onchange="renderRoster()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="trialing">Trialing</option>
-            <option value="trial_cancelled">Trial Cancelled</option>
-            <option value="past_due">Past Due</option>
-            <option value="canceling">Cancelling</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="legacy">Legacy</option>
-            <option value="lifetime">Lifetime</option>
-            <option value="yearly">Yearly</option>
-          </select>
-          <select id="rf-source" onchange="renderRoster()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-            <option value="">All Sources</option>
-            <option value="Whop">Whop</option>
-            <option value="LaunchPass">LaunchPass</option>
-            <option value="Early Acess">Legacy/Early Access</option>
-          </select>
-          <select id="rf-access" onchange="renderRoster()" class="bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-            <option value="">All Access Types</option>
-            <option value="VIP Monthly">VIP Monthly</option>
-            <option value="VIP Monthly No Trial">VIP Monthly No Trial</option>
-            <option value="VIP Annual">VIP Annual</option>
-            <option value="Lifetime">Lifetime</option>
-            <option value="VIP Legacy">VIP Legacy</option>
-            <option value="Legacy">Legacy</option>
-          </select>
+        <div class="flex gap-2 mb-4 flex-wrap items-center">
+          <!-- Status -->
+          <div class="relative" id="ms-status-wrap">
+            <button type="button" onclick="toggleMultiSelect('status')" class="flex items-center gap-1.5 bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg hover:border-white/20 transition min-w-[90px]" id="ms-status-btn">
+              <span id="ms-status-label">Status</span>
+              <svg class="w-3 h-3 ml-1 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+            <div id="ms-status-menu" class="hidden absolute top-full mt-1 left-0 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 min-w-[170px]">
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="active" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Active</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="trialing" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Trialing</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="trial_cancelled" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Trial Cancelled</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="canceling" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Cancelling</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="past_due" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Past Due</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="lifetime" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Lifetime</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="yearly" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Yearly</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="legacy" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Legacy</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="inactive" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Inactive</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-status accent-green-500" value="cancelled" onchange="updateMultiSelectLabel('status');renderRoster()"><span class="text-xs text-zinc-300">Cancelled</span></label>
+            </div>
+          </div>
+          <!-- Source -->
+          <div class="relative" id="ms-source-wrap">
+            <button type="button" onclick="toggleMultiSelect('source')" class="flex items-center gap-1.5 bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg hover:border-white/20 transition min-w-[90px]" id="ms-source-btn">
+              <span id="ms-source-label">Source</span>
+              <svg class="w-3 h-3 ml-1 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+            <div id="ms-source-menu" class="hidden absolute top-full mt-1 left-0 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 min-w-[170px]">
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-source accent-green-500" value="Whop" onchange="updateMultiSelectLabel('source');renderRoster()"><span class="text-xs text-zinc-300">Whop</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-source accent-green-500" value="LaunchPass" onchange="updateMultiSelectLabel('source');renderRoster()"><span class="text-xs text-zinc-300">LaunchPass</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-source accent-green-500" value="Early Acess" onchange="updateMultiSelectLabel('source');renderRoster()"><span class="text-xs text-zinc-300">Legacy / Early Access</span></label>
+            </div>
+          </div>
+          <!-- Access Type -->
+          <div class="relative" id="ms-access-wrap">
+            <button type="button" onclick="toggleMultiSelect('access')" class="flex items-center gap-1.5 bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg hover:border-white/20 transition min-w-[110px]" id="ms-access-btn">
+              <span id="ms-access-label">Access Type</span>
+              <svg class="w-3 h-3 ml-1 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+            <div id="ms-access-menu" class="hidden absolute top-full mt-1 left-0 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 min-w-[190px]">
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-access accent-green-500" value="VIP Monthly" onchange="updateMultiSelectLabel('access');renderRoster()"><span class="text-xs text-zinc-300">VIP Monthly</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-access accent-green-500" value="VIP Monthly No Trial" onchange="updateMultiSelectLabel('access');renderRoster()"><span class="text-xs text-zinc-300">VIP Monthly No Trial</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-access accent-green-500" value="VIP Annual" onchange="updateMultiSelectLabel('access');renderRoster()"><span class="text-xs text-zinc-300">VIP Annual</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-access accent-green-500" value="Lifetime" onchange="updateMultiSelectLabel('access');renderRoster()"><span class="text-xs text-zinc-300">Lifetime</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-access accent-green-500" value="VIP Legacy" onchange="updateMultiSelectLabel('access');renderRoster()"><span class="text-xs text-zinc-300">VIP Legacy</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="checkbox" class="rf-ms rf-ms-access accent-green-500" value="Legacy" onchange="updateMultiSelectLabel('access');renderRoster()"><span class="text-xs text-zinc-300">Legacy</span></label>
+            </div>
+          </div>
           <input type="text" id="rf-search" oninput="renderRoster()" placeholder="Search name, email, Discord, TV..." class="bg-zinc-900 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none placeholder-zinc-600 w-52">
-          <button onclick="document.getElementById('rf-status').value='';document.getElementById('rf-source').value='';document.getElementById('rf-search').value='';renderRoster()" class="text-xs text-zinc-500 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition">✕ Clear</button>
+          <button type="button" onclick="clearRosterFilters()" class="text-xs text-zinc-500 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition">✕ Clear</button>
         </div>
 
         <!-- Import diff modal -->
@@ -2017,6 +2036,32 @@
       document.getElementById('roster-diff-panel').classList.add('hidden');
     }
 
+    function updateMultiSelectLabel(type) {
+      const checked = [...document.querySelectorAll('.rf-ms-'+type+':checked')].map(el => el.value);
+      const label = document.getElementById('ms-'+type+'-label');
+      if (!label) return;
+      const defaults = { status: 'Status', source: 'Source', access: 'Access Type' };
+      label.textContent = checked.length === 0 ? defaults[type] : checked.length === 1 ? checked[0] : checked.length + ' selected';
+      // Highlight button if active
+      const btn = label.closest('button');
+      if (btn) btn.classList.toggle('border-green-500/40', checked.length > 0);
+      if (btn) btn.classList.toggle('text-green-400', checked.length > 0);
+    }
+
+    function toggleMultiSelect(type) {
+      ['status','source','access'].forEach(t => {
+        if (t !== type) document.getElementById('ms-'+t+'-menu')?.classList.add('hidden');
+      });
+      document.getElementById('ms-'+type+'-menu')?.classList.toggle('hidden');
+    }
+
+    function clearRosterFilters() {
+      document.querySelectorAll('.rf-ms').forEach(el => el.checked = false);
+      ['status','source','access'].forEach(t => updateMultiSelectLabel(t));
+      document.getElementById('rf-search').value='';
+      renderRoster();
+    }
+
     // ── Roster sort state ──
     let rosterSortField = 'joined';
     let rosterSortDir = 'desc';
@@ -2034,8 +2079,8 @@
 
     // ── Render roster ──
     function renderRoster() {
-      const statusFilter = document.getElementById('rf-status')?.value || '';
-      const sourceFilter = document.getElementById('rf-source')?.value || '';
+      const statusFilter = [...document.querySelectorAll('.rf-ms-status:checked')].map(el => el.value);
+      const sourceFilter = [...document.querySelectorAll('.rf-ms-source:checked')].map(el => el.value);
       const search = (document.getElementById('rf-search')?.value || '').toLowerCase();
 
       // Stats
@@ -2071,11 +2116,11 @@
         return va < vb ? -sortDir : va > vb ? sortDir : 0;
       });
 
-      const accessFilter = document.getElementById('rf-access')?.value || '';
+      const accessFilter = [...document.querySelectorAll('.rf-ms-access:checked')].map(el => el.value);
       let filtered = rosterData.filter(r => {
-        if (statusFilter && r.status !== statusFilter) return false;
-        if (sourceFilter && r.source !== sourceFilter) return false;
-        if (accessFilter && (r.planName||r.accessType) !== accessFilter) return false;
+        if (statusFilter.length && !statusFilter.includes(r.status)) return false;
+        if (sourceFilter.length && !sourceFilter.includes(r.source)) return false;
+        if (accessFilter.length && !accessFilter.includes(r.planName||r.accessType)) return false;
         if (search) {
           const haystack = [r.name, r.email, r.discordName, r.tvUsername, r.whopUsername, r.notes].join(' ').toLowerCase();
           if (!haystack.includes(search)) return false;
