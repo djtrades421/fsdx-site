@@ -496,14 +496,14 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left min-w-[900px]">
               <thead><tr class="bg-zinc-950 border-b border-white/10 text-[10px] text-zinc-500 uppercase tracking-wider">
-                <th class="px-4 py-3">Name / Discord</th>
+                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortRoster('name')">Name / Discord <span id="sort-name" class="text-zinc-700">↕</span></th>
                 <th class="px-4 py-3">Email</th>
                 <th class="px-4 py-3">TV Username</th>
-                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortRoster('status')">Status <span id="sort-status" class="text-zinc-700">↕</span></th>
                 <th class="px-4 py-3">Access Type</th>
                 <th class="px-4 py-3">Source</th>
-                <th class="px-4 py-3">Joined</th>
-                <th class="px-4 py-3">Renewal / TV Renew</th>
+                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortRoster('joined')">Joined <span id="sort-joined" class="text-zinc-700">↕</span></th>
+                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortRoster('renewal')">Renewal <span id="sort-renewal" class="text-zinc-700">↕</span></th>
                 <th class="px-4 py-3">Site</th>
                 <th class="px-4 py-3">Flags</th>
                 <th class="px-4 py-3">Notes</th>
@@ -530,16 +530,45 @@
         <!-- Payment stats -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5" id="payment-stats"></div>
 
-        <!-- Upcoming renewals -->
-        <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 mb-5">
-          <div class="text-xs font-black text-white uppercase tracking-wider mb-3">⏰ Renewals in Next 14 Days</div>
-          <div id="upcoming-renewals" class="text-xs text-zinc-600">Import memberships CSV to see upcoming renewals.</div>
+        <!-- Upcoming renewals collapsible -->
+        <div class="border border-white/10 bg-zinc-950/40 rounded-2xl mb-5 overflow-hidden">
+          <div class="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition" onclick="toggleSection('upcoming-body','upcoming-arrow')">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black text-white uppercase tracking-wider">⏰ Renewals in Next 14 Days</span>
+              <span id="upcoming-count" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"></span>
+            </div>
+            <svg id="upcoming-arrow" class="w-4 h-4 text-zinc-500 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+          </div>
+          <div id="upcoming-body" class="px-5 pb-5 hidden">
+            <div id="upcoming-renewals" class="text-xs text-zinc-600">Import memberships CSV to see upcoming renewals.</div>
+          </div>
         </div>
 
-        <!-- Failed payments -->
-        <div class="border border-red-500/10 bg-zinc-950/40 rounded-2xl p-5 mb-5">
-          <div class="text-xs font-black text-red-400 uppercase tracking-wider mb-3">⚠️ Failed Payments</div>
-          <div id="failed-payments" class="text-xs text-zinc-600">No failed payments found.</div>
+        <!-- Failed payments collapsible -->
+        <div class="border border-red-500/10 bg-zinc-950/40 rounded-2xl mb-5 overflow-hidden">
+          <div class="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition" onclick="toggleSection('failed-body','failed-arrow')">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black text-red-400 uppercase tracking-wider">⚠️ Failed Payments</span>
+              <span id="failed-count" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20"></span>
+            </div>
+            <svg id="failed-arrow" class="w-4 h-4 text-zinc-500 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+          </div>
+          <div id="failed-body" class="px-5 pb-5 hidden">
+            <div id="failed-payments" class="text-xs text-zinc-600">No failed payments found.</div>
+          </div>
+        </div>
+
+        <!-- Payment Calendar -->
+        <div class="border border-white/10 bg-zinc-950/40 rounded-2xl mb-5 overflow-hidden">
+          <div class="px-5 py-4 flex items-center justify-between">
+            <div class="text-xs font-black text-white uppercase tracking-wider">📅 Payment Calendar</div>
+            <div class="flex items-center gap-2">
+              <button onclick="payCalPrev()" class="p-1.5 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+              <span id="pay-cal-title" class="text-sm font-black text-white w-32 text-center cursor-pointer hover:text-green-400 transition" onclick="openCalPicker('paycal')" title="Jump to month"></span>
+              <button onclick="payCalNext()" class="p-1.5 hover:bg-white/5 rounded-lg transition"><svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg></button>
+            </div>
+          </div>
+          <div id="pay-cal-grid" class="px-5 pb-5"></div>
         </div>
 
         <!-- Full payments table -->
@@ -553,10 +582,10 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left min-w-[700px]">
               <thead><tr class="bg-zinc-950 border-b border-white/10 text-[10px] text-zinc-500 uppercase tracking-wider">
-                <th class="px-4 py-3">Date</th>
+                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortPayments('date')">Date <span id="psort-date" class="text-zinc-400">↓</span></th>
                 <th class="px-4 py-3">Name / Email</th>
                 <th class="px-4 py-3">Discord</th>
-                <th class="px-4 py-3">Amount</th>
+                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortPayments('amount')">Amount <span id="psort-amount" class="text-zinc-700">↕</span></th>
                 <th class="px-4 py-3">Status</th>
                 <th class="px-4 py-3">Type</th>
                 <th class="px-4 py-3">Failure Reason</th>
@@ -1619,22 +1648,29 @@
         'plan_WDBtpCQLgdO6K': 'VIP Annual',
         'plan_yO1Ma62pSUYFu': 'Lifetime',
         'plan_hbtb1mgoj9BRW': 'VIP+',
-        'plan_aXiLFJZu79HYG': 'ORB Pro',
-        'plan_mhrt4tqPQYjNH': 'Trial',
+        'plan_aXiLFJZu79HYG': 'VIP Legacy',
+        'plan_mhrt4tqPQYjNH': 'Lifetime',
+        'plan_gs2owPJ8MtUgk': 'ORB Pro',
+        'plan_8IvI1MMosoCf9': 'ORB Pro Trial',
+        'plan_qPUdhXCOGcZsu': 'VIP+',
+        'plan_UrMJmbJlwxUhV': 'VIP+',
       };
       return rows.map(r => {
         const subStatus = (r['Subscription status'] || '').toLowerCase();
+        const planType = (r['Plan type'] || '').toLowerCase();
         let status = 'active';
         if (subStatus === 'canceled') status = 'cancelled';
         else if (subStatus === 'trialing') status = 'trialing';
+        else if (subStatus === 'completed' && planType === 'one_time') status = 'lifetime';
         else if (subStatus === 'completed') status = 'lifetime';
         else if (subStatus === 'paused') status = 'inactive';
 
         const planId = r['Plan'] || '';
         const planName = PLAN_NAMES[planId] || planId;
         let accessType = 'VIP';
-        if (planId === 'plan_yO1Ma62pSUYFu') accessType = 'Lifetime';
+        if (planId === 'plan_yO1Ma62pSUYFu' || planId === 'plan_mhrt4tqPQYjNH') accessType = 'Lifetime';
         else if (planId === 'plan_WDBtpCQLgdO6K') accessType = 'Yearly';
+        else if (planId === 'plan_aXiLFJZu79HYG') accessType = 'VIP Legacy';
 
         const whopKey = r['Key'] || '';
         const nextPayment = r['Next payment date'] || '';
@@ -1844,6 +1880,21 @@
       document.getElementById('roster-diff-panel').classList.add('hidden');
     }
 
+    // ── Roster sort state ──
+    let rosterSortField = 'joined';
+    let rosterSortDir = 'desc';
+
+    function sortRoster(field) {
+      if (rosterSortField === field) rosterSortDir = rosterSortDir === 'asc' ? 'desc' : 'asc';
+      else { rosterSortField = field; rosterSortDir = 'asc'; }
+      // Update sort indicators
+      ['name','status','joined','renewal'].forEach(f => {
+        const el = document.getElementById('sort-'+f);
+        if (el) el.textContent = f === rosterSortField ? (rosterSortDir === 'asc' ? '↑' : '↓') : '↕';
+      });
+      renderRoster();
+    }
+
     // ── Render roster ──
     function renderRoster() {
       const statusFilter = document.getElementById('rf-status')?.value || '';
@@ -1871,6 +1922,17 @@
           <div class="text-xl font-black" style="color:${c}">${v}</div>
         </div>`).join('');
       }
+
+      // Sort
+      const sortDir = rosterSortDir === 'asc' ? 1 : -1;
+      rosterData.sort((a,b) => {
+        let va = '', vb = '';
+        if (rosterSortField === 'name') { va = (a.name||a.discordName||'').toLowerCase(); vb = (b.name||b.discordName||'').toLowerCase(); }
+        else if (rosterSortField === 'status') { va = a.status||''; vb = b.status||''; }
+        else if (rosterSortField === 'joined') { va = a.joined||''; vb = b.joined||''; }
+        else if (rosterSortField === 'renewal') { va = a.renewal||''; vb = b.renewal||''; }
+        return va < vb ? -sortDir : va > vb ? sortDir : 0;
+      });
 
       let filtered = rosterData.filter(r => {
         if (statusFilter && r.status !== statusFilter) return false;
@@ -1977,6 +2039,128 @@
       alert('✅ ' + paymentsData.length + ' payments imported.');
     }
 
+    // ── Collapsible sections ──
+    function toggleSection(bodyId, arrowId) {
+      const body = document.getElementById(bodyId);
+      const arrow = document.getElementById(arrowId);
+      if (!body) return;
+      const isHidden = body.classList.contains('hidden');
+      body.classList.toggle('hidden', !isHidden);
+      if (arrow) arrow.style.transform = isHidden ? 'rotate(180deg)' : '';
+    }
+
+    // ── Payment Calendar ──
+    let payCalYear = new Date().getFullYear();
+    let payCalMonth = new Date().getMonth();
+
+    function payCalPrev() { payCalMonth--; if(payCalMonth<0){payCalMonth=11;payCalYear--;} renderPayCalendar(); }
+    function payCalNext() { payCalMonth++; if(payCalMonth>11){payCalMonth=0;payCalYear++;} renderPayCalendar(); }
+
+    function renderPayCalendar() {
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const titleEl = document.getElementById('pay-cal-title');
+      if (titleEl) titleEl.textContent = months[payCalMonth] + ' ' + payCalYear;
+
+      const grid = document.getElementById('pay-cal-grid');
+      if (!grid) return;
+
+      // Build renewal map for this month from roster
+      const renewalMap = {};
+      rosterData.forEach(r => {
+        if (!r.renewal || r.status === 'cancelled') return;
+        const d = r.renewal.slice(0,10);
+        if (!d) return;
+        const [y,m] = d.split('-').map(Number);
+        if (y === payCalYear && m-1 === payCalMonth) {
+          if (!renewalMap[d]) renewalMap[d] = [];
+          renewalMap[d].push(r);
+        }
+      });
+
+      // Build payment map for this month from payments
+      const paymentMap = {};
+      paymentsData.forEach(p => {
+        if (!p.paidAt) return;
+        const d = p.paidAt.slice(0,10);
+        const [y,m] = d.split('-').map(Number);
+        if (y === payCalYear && m-1 === payCalMonth) {
+          if (!paymentMap[d]) paymentMap[d] = { paid: 0, failed: 0, amount: 0 };
+          if (p.status === 'paid') { paymentMap[d].paid++; paymentMap[d].amount += p.amount; }
+          else paymentMap[d].failed++;
+        }
+      });
+
+      const today = new Date().toISOString().slice(0,10);
+      const daysInMonth = new Date(payCalYear, payCalMonth+1, 0).getDate();
+      const weekdays = [];
+      for (let d=1; d<=daysInMonth; d++) {
+        const dow = new Date(payCalYear, payCalMonth, d).getDay();
+        if (dow !== 0 && dow !== 6) weekdays.push(d);
+      }
+      if (!weekdays.length) { grid.innerHTML = '<div class="text-xs text-zinc-600 py-4 text-center">No weekdays this month.</div>'; return; }
+
+      const firstDow = new Date(payCalYear, payCalMonth, weekdays[0]).getDay() - 1;
+      let cells = [];
+      for (let i=0; i<firstDow; i++) cells.push(null);
+      weekdays.forEach(d => cells.push(d));
+      while (cells.length % 5 !== 0) cells.push(null);
+
+      // Header
+      let html = '<div class="grid grid-cols-5 border-b border-white/5 mb-1">' +
+        ['Mon','Tue','Wed','Thu','Fri'].map(d => `<div class="py-2 text-[10px] text-zinc-600 font-bold uppercase tracking-wider text-center">${d}</div>`).join('') +
+        '</div>';
+
+      // Weeks
+      for (let r=0; r<cells.length/5; r++) {
+        html += '<div class="grid grid-cols-5 border-b border-white/[0.04] last:border-0">';
+        for (let c=0; c<5; c++) {
+          const d = cells[r*5+c];
+          if (!d) { html += '<div class="min-h-[70px] p-2"></div>'; continue; }
+          const ds = payCalYear+'-'+String(payCalMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+          const renewals = renewalMap[ds] || [];
+          const payments = paymentMap[ds];
+          const isToday = ds === today;
+          const isPast = ds < today;
+
+          html += `<div class="min-h-[70px] p-2 border-r border-white/[0.04] last:border-0 ${isToday?'bg-green-500/5':''}">`;
+          html += `<div class="text-[10px] font-bold mb-1 ${isToday?'text-green-400':isPast?'text-zinc-600':'text-zinc-400'}">${payCalMonth+1}/${d}</div>`;
+
+          // Renewals coming up
+          if (renewals.length > 0) {
+            html += `<div class="text-[9px] font-bold text-yellow-400 mb-0.5">⏰ ${renewals.length} renewing</div>`;
+            renewals.slice(0,2).forEach(r => {
+              html += `<div class="text-[9px] text-zinc-500 truncate">${r.name||r.discordName||r.email||'—'}</div>`;
+            });
+            if (renewals.length > 2) html += `<div class="text-[9px] text-zinc-600">+${renewals.length-2} more</div>`;
+          }
+
+          // Actual payments that day
+          if (payments) {
+            if (payments.paid > 0) html += `<div class="text-[9px] font-bold text-green-400 mt-0.5">+$${payments.amount.toFixed(0)} (${payments.paid})</div>`;
+            if (payments.failed > 0) html += `<div class="text-[9px] font-bold text-red-400">✗ ${payments.failed} failed</div>`;
+          }
+
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+      grid.innerHTML = html;
+    }
+
+    // ── Payments sort ──
+    let paymentsSortField = 'date';
+    let paymentsSortDir = 'desc';
+
+    function sortPayments(field) {
+      if (paymentsSortField === field) paymentsSortDir = paymentsSortDir === 'asc' ? 'desc' : 'asc';
+      else { paymentsSortField = field; paymentsSortDir = 'asc'; }
+      ['date','amount'].forEach(f => {
+        const el = document.getElementById('psort-'+f);
+        if (el) el.textContent = f === paymentsSortField ? (paymentsSortDir === 'asc' ? '↑' : '↓') : '↕';
+      });
+      renderPayments();
+    }
+
     // ── Render payments ──
     function renderPayments() {
       const statusFilter = document.getElementById('pf-status')?.value || '';
@@ -2002,17 +2186,15 @@
 
       // Upcoming renewals from roster
       const upcomingEl = document.getElementById('upcoming-renewals');
+      const upcomingCount = document.getElementById('upcoming-count');
       if (upcomingEl) {
         const now = new Date();
         const in14 = new Date(now.getTime() + 14*24*60*60*1000);
         const upcoming = rosterData.filter(r => {
           if (!r.renewal || r.status === 'cancelled') return false;
-          try {
-            const rd = new Date(r.renewal);
-            return rd >= now && rd <= in14;
-          } catch(e) { return false; }
+          try { const rd = new Date(r.renewal); return rd >= now && rd <= in14; } catch(e) { return false; }
         }).sort((a,b) => new Date(a.renewal) - new Date(b.renewal));
-
+        if (upcomingCount) upcomingCount.textContent = upcoming.length ? upcoming.length + ' upcoming' : '';
         if (upcoming.length) {
           upcomingEl.innerHTML = upcoming.map(r => {
             const d = new Date(r.renewal);
@@ -2021,6 +2203,7 @@
               <div>
                 <span class="text-white font-bold">${r.name||r.discordName||r.email}</span>
                 <span class="text-zinc-500 ml-2">${r.email}</span>
+                <span class="text-zinc-600 ml-2 text-[10px]">${r.planName||r.accessType||''}</span>
               </div>
               <div class="flex items-center gap-3">
                 <span class="text-zinc-500">${r.renewal.slice(0,10)}</span>
@@ -2028,6 +2211,10 @@
               </div>
             </div>`;
           }).join('');
+          // Auto-expand if there are renewals
+          const body = document.getElementById('upcoming-body');
+          const arrow = document.getElementById('upcoming-arrow');
+          if (body) { body.classList.remove('hidden'); if(arrow) arrow.style.transform='rotate(180deg)'; }
         } else {
           upcomingEl.textContent = 'No renewals in the next 14 days.';
         }
@@ -2035,8 +2222,10 @@
 
       // Failed payments
       const failedEl = document.getElementById('failed-payments');
+      const failedCount = document.getElementById('failed-count');
       if (failedEl) {
         const failedPays = paymentsData.filter(p => p.status === 'open' && p.failureReason);
+        if (failedCount) failedCount.textContent = failedPays.length ? failedPays.length + ' failed' : '';
         if (failedPays.length) {
           failedEl.innerHTML = failedPays.map(p => `<div class="flex items-start justify-between py-2 border-b border-white/5 last:border-0">
             <div>
@@ -2046,15 +2235,26 @@
             </div>
             <span class="text-zinc-500 text-[10px]">$${p.amount.toFixed(2)}</span>
           </div>`).join('');
+          // Auto-expand if there are failed payments
+          const body = document.getElementById('failed-body');
+          const arrow = document.getElementById('failed-arrow');
+          if (body) { body.classList.remove('hidden'); if(arrow) arrow.style.transform='rotate(180deg)'; }
         } else {
           failedEl.textContent = 'No failed payments.';
         }
       }
 
+      // Render calendar
+      renderPayCalendar();
+
       // Full table
       const tbody = document.getElementById('payments-table');
       let filtered = statusFilter ? paymentsData.filter(p => p.status === statusFilter) : paymentsData;
-      filtered = [...filtered].sort((a,b) => (b.paidAt||'') < (a.paidAt||'') ? -1 : 1);
+      const pDir = paymentsSortDir === 'asc' ? 1 : -1;
+      filtered = [...filtered].sort((a,b) => {
+        if (paymentsSortField === 'amount') return (a.amount - b.amount) * pDir;
+        return ((a.paidAt||'') < (b.paidAt||'') ? -1 : 1) * pDir;
+      });
       if (!paymentsData.length) {
         tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-zinc-600">No payments data — import Whop payments CSV.</td></tr>';
         return;
