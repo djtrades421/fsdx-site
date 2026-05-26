@@ -76,6 +76,7 @@
         <button onclick="switchTab('roster')" id="tab-roster" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">Roster</button>
         <button onclick="switchTab('payments')" id="tab-payments" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">Payments</button>
         <button onclick="switchTab('flags')" id="tab-flags" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">🚩 Flags</button>
+        <button onclick="switchTab('analytics')" id="tab-analytics" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">📊 Analytics</button>
       </div>
 
       <!-- MEMBERS TAB -->
@@ -455,8 +456,7 @@
 
         <!-- Stats row -->
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3" id="roster-stats"></div>
-        <!-- Cancel reasons breakdown -->
-        <div id="cancel-reasons-section" class="hidden mb-5"></div>
+
 
         <!-- Filters -->
         <div class="flex gap-2 mb-4 flex-wrap items-center">
@@ -639,13 +639,26 @@
         </div>
       </div>
 
+      <!-- ANALYTICS TAB -->
+      <div id="panel-analytics" class="tab-panel">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-sm font-black text-white">📊 Analytics</h2>
+            <p class="text-xs text-zinc-600 mt-0.5">Member growth, churn patterns, and retention insights</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mb-5" id="analytics-monthly"></div>
+        <div id="analytics-growth" class="mb-5"></div>
+        <div id="analytics-churn" class="mb-5"></div>
+      </div>
+
   <script>
     const API = 'https://nexus-validator.dfuentes4211.workers.dev';
     let allMembers = [];
     let allRecaps = [];
 
     function switchTab(tab) {
-      ['members','recaps','announce','updates','migrate','roster','payments','flags'].forEach(t => {
+      ['members','recaps','announce','updates','migrate','roster','payments','flags','analytics'].forEach(t => {
         document.getElementById('panel-' + t).classList.remove('active');
         const btn = document.getElementById('tab-' + t);
         btn.classList.remove('active','text-green-400','border-green-500');
@@ -657,6 +670,7 @@
       if (tab === 'roster') renderRoster();
       if (tab === 'payments') renderPayments();
       if (tab === 'flags') renderFlags();
+      if (tab === 'analytics') renderAnalytics();
       const activeBtn = document.getElementById('tab-' + tab);
       activeBtn.classList.add('active','text-green-400','border-green-500');
       activeBtn.classList.remove('text-zinc-500','border-transparent');
@@ -2065,12 +2079,102 @@
       renderRoster();
     }
 
+    // ── Analytics tab ──
+    function renderAnalytics() {
+      if (!rosterData.length) {
+        document.getElementById('analytics-monthly').innerHTML = '<div class="col-span-3 text-center py-12 text-zinc-600 text-sm">Import roster data to see analytics.</div>';
+        document.getElementById('analytics-churn').innerHTML = '';
+        document.getElementById('analytics-growth').innerHTML = '';
+        return;
+      }
+
+      const now = new Date();
+      const thisYear = now.getFullYear();
+      const thisMonth = now.getMonth();
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+      // Monthly metrics
+      const gained = rosterData.filter(r => {
+        if (!r.joined) return false;
+        try { const d = new Date(r.joined); return d.getFullYear()===thisYear && d.getMonth()===thisMonth; } catch(e){ return false; }
+      }).length;
+      const lost = rosterData.filter(r => {
+        if (r.status !== 'cancelled' || !r.cancelingDate) return false;
+        try { const d = new Date(r.cancelingDate); return d.getFullYear()===thisYear && d.getMonth()===thisMonth; } catch(e){ return false; }
+      }).length;
+      const trialed = rosterData.filter(r => {
+        if (!['trialing','trial_cancelled'].includes(r.status) || !r.joined) return false;
+        try { const d = new Date(r.joined); return d.getFullYear()===thisYear && d.getMonth()===thisMonth; } catch(e){ return false; }
+      }).length;
+      const net = gained - lost;
+      const monthLabel = months[thisMonth] + ' ' + thisYear;
+
+      document.getElementById('analytics-monthly').innerHTML = [
+        ['📈 Gained', '+'+gained, '#22c55e', 'New members this month'],
+        ['📉 Lost', '-'+lost, lost>0?'#ef4444':'#71717a', 'Cancelled this month'],
+        ['🧪 Trialed', trialed, '#60a5fa', 'New trials this month'],
+      ].map(([l,v,c,sub]) => `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 text-center">
+        <div class="text-xs text-zinc-500 mb-2">${l} — ${monthLabel}</div>
+        <div class="text-3xl font-black mb-1" style="color:${c}">${v}</div>
+        <div class="text-[10px] text-zinc-600">${sub}</div>
+      </div>`).join('');
+
+      // Member growth by month (last 6 months)
+      const monthlyData = {};
+      for (let i=5; i>=0; i--) {
+        const d = new Date(thisYear, thisMonth-i, 1);
+        const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+        monthlyData[key] = { gained: 0, lost: 0, label: months[d.getMonth()]+' '+d.getFullYear() };
+      }
+      rosterData.forEach(r => {
+        if (r.joined) {
+          const d = new Date(r.joined);
+          const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+          if (monthlyData[key]) monthlyData[key].gained++;
+        }
+        if (r.status === 'cancelled' && r.cancelingDate) {
+          const d = new Date(r.cancelingDate);
+          const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+          if (monthlyData[key]) monthlyData[key].lost++;
+        }
+      });
+
+      const growthRows = Object.values(monthlyData);
+      const maxVal = Math.max(...growthRows.map(r => Math.max(r.gained, r.lost)), 1);
+      const growthHtml = `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5">
+        <div class="text-xs font-black text-white uppercase tracking-wider mb-4">Member Growth — Last 6 Months</div>
+        <div class="space-y-3">
+          ${growthRows.map(r => `<div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs text-zinc-500 w-20">${r.label}</span>
+              <div class="flex-1 mx-3 space-y-1">
+                <div class="flex items-center gap-2">
+                  <div class="h-2 rounded-full bg-green-400/60" style="width:${Math.round(r.gained/maxVal*100)}%;min-width:${r.gained?4:0}px"></div>
+                  <span class="text-[10px] text-green-400">+${r.gained}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="h-2 rounded-full bg-red-400/60" style="width:${Math.round(r.lost/maxVal*100)}%;min-width:${r.lost?4:0}px"></div>
+                  <span class="text-[10px] text-red-400">-${r.lost}</span>
+                </div>
+              </div>
+              <span class="text-xs font-bold ${r.gained-r.lost>=0?'text-green-400':'text-red-400'} w-10 text-right">${r.gained-r.lost>=0?'+':''}${r.gained-r.lost}</span>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+      document.getElementById('analytics-growth').innerHTML = growthHtml;
+
+      // Churn reasons
+      renderCancelReasons('analytics-churn');
+    }
+
     // ── Cancel reasons breakdown ──
-    function renderCancelReasons() {
+    function renderCancelReasons(targetId) {
+      const section = document.getElementById(targetId || 'cancel-reasons-section');
       const section = document.getElementById('cancel-reasons-section');
       if (!section) return;
       const cancelled = rosterData.filter(r => r.status === 'cancelled' && r.cancelReason);
-      if (!cancelled.length) { section.classList.add('hidden'); return; }
+      if (!cancelled.length) { if (section) section.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs">No cancel reasons yet — import the memberships export to add reasons.</div>'; return; }
 
       // Group by reason
       const reasons = {};
@@ -2088,7 +2192,7 @@
       const total = cancelled.length;
       const withReason = Object.values(reasons).reduce((s,v)=>s+v,0);
 
-      section.classList.remove('hidden');
+      if (!section) return;
       section.innerHTML = `<div class="border border-white/5 bg-zinc-900/30 rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <div class="text-[10px] font-black text-zinc-400 uppercase tracking-wider">📊 Churn Reasons — ${withReason} of ${total} cancelled members</div>
@@ -2172,23 +2276,7 @@
           <div class="text-[10px] text-zinc-500 mb-1">${l}</div>
           <div class="text-xl font-black" style="color:${c}">${v}</div>
         </div>`).join('') +
-        `<div class="col-span-2 sm:col-span-5 border border-white/5 bg-zinc-900/30 rounded-xl p-4 mt-1">
-          <div class="text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-3">${monthLabel} — Member Activity</div>
-          <div class="grid grid-cols-3 gap-4">
-            <div class="text-center">
-              <div class="text-lg font-black text-green-400">+${gained}</div>
-              <div class="text-[10px] text-zinc-600 mt-0.5">Gained</div>
-            </div>
-            <div class="text-center">
-              <div class="text-lg font-black text-red-400">-${lost}</div>
-              <div class="text-[10px] text-zinc-600 mt-0.5">Lost</div>
-            </div>
-            <div class="text-center">
-              <div class="text-lg font-black text-blue-400">${trialed}</div>
-              <div class="text-[10px] text-zinc-600 mt-0.5">Trialed</div>
-            </div>
-          </div>
-        </div>`;
+``;
       }
 
       // Sort
@@ -2226,9 +2314,6 @@
       const filterCount = document.getElementById('roster-filter-count');
       const hasFilters = statusFilter.length || sourceFilter.length || accessFilter.length || document.getElementById('rf-search')?.value;
       if (filterCount) filterCount.textContent = hasFilters ? filtered.length + ' member' + (filtered.length!==1?'s':'') + ' shown' : '';
-
-      // Cancel reasons breakdown
-      renderCancelReasons();
 
       if (!filtered.length) {
         tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-zinc-600">No records match filters.</td></tr>';
