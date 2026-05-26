@@ -535,6 +535,8 @@
           <div class="flex gap-2">
             <input type="file" id="payments-import-input" accept=".csv" class="hidden" onchange="handlePaymentsImport(this.files[0])">
             <button onclick="document.getElementById('payments-import-input').click()" class="px-4 py-2 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">↑ Import Payments CSV</button>
+            <button onclick="exportPaymentsCSV()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 font-bold text-xs rounded-xl transition">↓ Export</button>
+            <button onclick="clearPaymentsData()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-500 font-bold text-xs rounded-xl transition">Clear Data</button>
           </div>
         </div>
 
@@ -2648,6 +2650,30 @@
       a.href=url; a.download='fsdx_roster_'+new Date().toISOString().slice(0,10)+'.csv';
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+
+    function exportPaymentsCSV() {
+      if (!paymentsData.length) { alert('No payments data to export.'); return; }
+      const headers = ['Date','Customer Name','Email','Discord','Amount','Currency','Status','Type','Failure Reason','Receipt'];
+      const rows = paymentsData.map(p => [
+        p.paidAt?p.paidAt.slice(0,10):'', p.customerName||'', p.email||'', p.discordName||'',
+        p.amount||0, p.currency||'usd', p.status||'', p.billingReason||'',
+        p.failureReason||'', p.receiptNumber||''
+      ].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));
+      const csv = [headers.join(','),...rows].join('\n');
+      const blob = new Blob([csv],{type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url; a.download='fsdx_payments_'+new Date().toISOString().slice(0,10)+'.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    async function clearPaymentsData() {
+      if (!confirm('Clear all payments data? This cannot be undone.')) return;
+      paymentsData = [];
+      await savePaymentsToKV();
+      renderPayments();
     }
 
     async function clearRosterData() {
