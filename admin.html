@@ -528,7 +528,7 @@
         </div>
 
         <!-- Payment stats -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5" id="payment-stats"></div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5" id="payment-stats"></div>
 
         <!-- Upcoming renewals collapsible -->
         <div class="border border-white/10 bg-zinc-950/40 rounded-2xl mb-5 overflow-hidden">
@@ -2172,15 +2172,56 @@
 
       // Stats
       const statsEl = document.getElementById('payment-stats');
-      if (statsEl && paymentsData.length) {
+      if (statsEl) {
+        const now = new Date();
+        const thisYear = now.getFullYear();
+        const thisMonth = now.getMonth();
+        const nextMonth = thisMonth === 11 ? 0 : thisMonth + 1;
+        const nextMonthYear = thisMonth === 11 ? thisYear + 1 : thisYear;
+
+        // Revenue calculations
+        const ytdRev = paid.filter(p => {
+          if (!p.paidAt) return false;
+          return new Date(p.paidAt).getFullYear() === thisYear;
+        }).reduce((s,p) => s+p.amount, 0);
+
+        const monthRev = paid.filter(p => {
+          if (!p.paidAt) return false;
+          const d = new Date(p.paidAt);
+          return d.getFullYear() === thisYear && d.getMonth() === thisMonth;
+        }).reduce((s,p) => s+p.amount, 0);
+
+        // Upcoming revenue from roster renewals
+        // Estimate $12.50 per active VIP renewal (can refine later)
+        const RENEWAL_PRICE = 12.50;
+        const thisMonthRenewals = rosterData.filter(r => {
+          if (!r.renewal || r.status === 'cancelled' || r.status === 'lifetime') return false;
+          try {
+            const d = new Date(r.renewal);
+            return d.getFullYear() === thisYear && d.getMonth() === thisMonth && d >= now;
+          } catch(e) { return false; }
+        });
+        const nextMonthRenewals = rosterData.filter(r => {
+          if (!r.renewal || r.status === 'cancelled' || r.status === 'lifetime') return false;
+          try {
+            const d = new Date(r.renewal);
+            return d.getFullYear() === nextMonthYear && d.getMonth() === nextMonth;
+          } catch(e) { return false; }
+        });
+        const thisMonthUpcoming = thisMonthRenewals.length * RENEWAL_PRICE;
+        const nextMonthUpcoming = nextMonthRenewals.length * RENEWAL_PRICE;
+
         statsEl.innerHTML = [
-          ['Total Revenue', '$'+totalRev.toFixed(2), '#22c55e'],
-          ['Paid', paid.length, '#fff'],
-          ['Failed / Open', (failed.length+open.length), '#ef4444'],
-          ['New Subscribers', newSubs, '#22c55e'],
-        ].map(([l,v,c]) => `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4 text-center">
+          ['YTD Revenue', '$'+ytdRev.toFixed(2), '#22c55e', thisYear+' total collected'],
+          ['This Month', '$'+monthRev.toFixed(2), '#22c55e', paid.filter(p=>p.paidAt&&new Date(p.paidAt).getMonth()===thisMonth&&new Date(p.paidAt).getFullYear()===thisYear).length+' payments'],
+          ['Coming This Month', '~$'+thisMonthUpcoming.toFixed(0), '#f59e0b', thisMonthRenewals.length+' renewals due'],
+          ['Coming Next Month', '~$'+nextMonthUpcoming.toFixed(0), '#a78bfa', nextMonthRenewals.length+' renewals due'],
+          ['Failed / Open', (failed.length+open.length), '#ef4444', 'needs attention'],
+          ['New Subscribers', newSubs, '#22c55e', 'this export'],
+        ].map(([l,v,c,sub]) => `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-4 text-center">
           <div class="text-[10px] text-zinc-500 mb-1">${l}</div>
           <div class="text-xl font-black" style="color:${c}">${v}</div>
+          ${sub ? `<div class="text-[10px] text-zinc-600 mt-1">${sub}</div>` : ''}
         </div>`).join('');
       }
 
