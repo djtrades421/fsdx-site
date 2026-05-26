@@ -454,7 +454,9 @@
         </div>
 
         <!-- Stats row -->
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5" id="roster-stats"></div>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3" id="roster-stats"></div>
+        <!-- Cancel reasons breakdown -->
+        <div id="cancel-reasons-section" class="hidden mb-5"></div>
 
         <!-- Filters -->
         <div class="flex gap-2 mb-4 flex-wrap items-center">
@@ -500,6 +502,7 @@
           </div>
           <input type="text" id="rf-search" oninput="renderRoster()" placeholder="Search name, email, Discord, TV..." class="bg-zinc-900 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none placeholder-zinc-600 w-52">
           <button type="button" onclick="clearRosterFilters()" class="text-xs text-zinc-500 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition">✕ Clear</button>
+          <span id="roster-filter-count" class="text-xs text-zinc-500 ml-1"></span>
         </div>
 
         <!-- Import diff modal -->
@@ -2009,6 +2012,8 @@
             tvRemoval: item.tvRemoval || existing.tvRemoval,
             // Cancel reason from memberships, canceling date from users
             cancelReason: isMembershipsExport ? (item.cancelReason || existing.cancelReason) : existing.cancelReason,
+            // Also update status to trial_cancelled if memberships shows cancel reason on trialing member
+            ...(isMembershipsExport && item.cancelReason && existing.status === 'trialing' ? { status: 'trial_cancelled' } : {}),
             cancelingDate: isUsersExport ? (item.cancelingDate || existing.cancelingDate) : existing.cancelingDate,
             // Notes — merge both
             notes: [existing.notes, item.notes && item.notes !== existing.notes ? item.notes : ''].filter(Boolean).join(' · ') || existing.notes,
@@ -2060,6 +2065,51 @@
       renderRoster();
     }
 
+    // ── Cancel reasons breakdown ──
+    function renderCancelReasons() {
+      const section = document.getElementById('cancel-reasons-section');
+      if (!section) return;
+      const cancelled = rosterData.filter(r => r.status === 'cancelled' && r.cancelReason);
+      if (!cancelled.length) { section.classList.add('hidden'); return; }
+
+      // Group by reason
+      const reasons = {};
+      cancelled.forEach(r => {
+        // Clean up reason — strip "Other: " prefix, normalize
+        let reason = (r.cancelReason || '').trim();
+        if (reason.toLowerCase().startsWith('other: ')) reason = reason.slice(7).trim();
+        if (!reason || reason === 'Other') reason = 'No reason given';
+        reason = reason.charAt(0).toUpperCase() + reason.slice(1);
+        reasons[reason] = (reasons[reason]||0) + 1;
+      });
+
+      const sorted = Object.entries(reasons).sort((a,b) => b[1]-a[1]);
+      const max = sorted[0]?.[1] || 1;
+      const total = cancelled.length;
+      const withReason = Object.values(reasons).reduce((s,v)=>s+v,0);
+
+      section.classList.remove('hidden');
+      section.innerHTML = `<div class="border border-white/5 bg-zinc-900/30 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-[10px] font-black text-zinc-400 uppercase tracking-wider">📊 Churn Reasons — ${withReason} of ${total} cancelled members</div>
+        </div>
+        <div class="space-y-2">
+          ${sorted.map(([reason, count]) => {
+            const pct = Math.round(count/max*100);
+            const share = Math.round(count/total*100);
+            return `<div class="flex items-center gap-3">
+              <div class="text-xs text-zinc-400 w-48 truncate shrink-0" title="${reason}">${reason}</div>
+              <div class="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full bg-red-400/60 rounded-full" style="width:${pct}%"></div>
+              </div>
+              <div class="text-xs font-bold text-zinc-400 w-8 text-right shrink-0">${count}</div>
+              <div class="text-[10px] text-zinc-600 w-8 shrink-0">${share}%</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
     // ── Roster sort state ──
     let rosterSortField = 'joined';
     let rosterSortDir = 'desc';
@@ -2087,20 +2137,58 @@
       const statsEl = document.getElementById('roster-stats');
       if (statsEl) {
         const total = rosterData.length;
-        const active = (statusCounts['active']||0) + (statusCounts['trialing']||0) + (statusCounts['canceling']||0) + (statusCounts['trial_cancelled']||0);
-        const legacy = (statusCounts['legacy']||0) + (statusCounts['lifetime']||0) + (statusCounts['yearly']||0);
-        const cancelled = statusCounts['cancelled']||0;
+        const activeCount = statusCounts['active']||0;
+        const trialingCount = statusCounts['trialing']||0;
+        const cancelingCount = (statusCounts['canceling']||0) + (statusCounts['trial_cancelled']||0);
         const flags = flagsData.filter(f => !f.dismissed).length;
+
+        // Monthly metrics — based on joined/churned dates
+        const now = new Date();
+        const thisYear = now.getFullYear();
+        const thisMonth = now.getMonth();
+        const gained = rosterData.filter(r => {
+          if (!r.joined) return false;
+          try { const d = new Date(r.joined); return d.getFullYear()===thisYear && d.getMonth()===thisMonth; } catch(e){ return false; }
+        }).length;
+        const lost = rosterData.filter(r => {
+          if (r.status !== 'cancelled' || !r.cancelingDate) return false;
+          try { const d = new Date(r.cancelingDate); return d.getFullYear()===thisYear && d.getMonth()===thisMonth; } catch(e){ return false; }
+        }).length;
+        const trialed = rosterData.filter(r => {
+          if (!['trialing','trial_cancelled'].includes(r.status) || !r.joined) return false;
+          try { const d = new Date(r.joined); return d.getFullYear()===thisYear && d.getMonth()===thisMonth; } catch(e){ return false; }
+        }).length;
+
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const monthLabel = months[thisMonth] + ' ' + thisYear;
+
         statsEl.innerHTML = [
-          ['Total', total, '#fff'],
-          ['Active', active, '#22c55e'],
-          ['Legacy / Lifetime', legacy, '#a78bfa'],
-          ['Cancelled', cancelled, '#ef4444'],
-          ['🚩 Active Flags', flags, '#f59e0b'],
-        ].map(([l,v,c]) => `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center">
+          ['Total Members', total, '#fff', ''],
+          ['Active', activeCount, '#22c55e', ''],
+          ['Trialing', trialingCount, '#60a5fa', ''],
+          ['Cancelling', cancelingCount, '#f59e0b', ''],
+          ['🚩 Flags', flags, flags>0?'#f59e0b':'#71717a', ''],
+        ].map(([l,v,c,sub]) => `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center">
           <div class="text-[10px] text-zinc-500 mb-1">${l}</div>
           <div class="text-xl font-black" style="color:${c}">${v}</div>
-        </div>`).join('');
+        </div>`).join('') +
+        `<div class="col-span-2 sm:col-span-5 border border-white/5 bg-zinc-900/30 rounded-xl p-4 mt-1">
+          <div class="text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-3">${monthLabel} — Member Activity</div>
+          <div class="grid grid-cols-3 gap-4">
+            <div class="text-center">
+              <div class="text-lg font-black text-green-400">+${gained}</div>
+              <div class="text-[10px] text-zinc-600 mt-0.5">Gained</div>
+            </div>
+            <div class="text-center">
+              <div class="text-lg font-black text-red-400">-${lost}</div>
+              <div class="text-[10px] text-zinc-600 mt-0.5">Lost</div>
+            </div>
+            <div class="text-center">
+              <div class="text-lg font-black text-blue-400">${trialed}</div>
+              <div class="text-[10px] text-zinc-600 mt-0.5">Trialed</div>
+            </div>
+          </div>
+        </div>`;
       }
 
       // Sort
@@ -2134,6 +2222,14 @@
         tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-zinc-600">No roster data — import a CSV to get started.</td></tr>';
         return;
       }
+      // Update filter count
+      const filterCount = document.getElementById('roster-filter-count');
+      const hasFilters = statusFilter.length || sourceFilter.length || accessFilter.length || document.getElementById('rf-search')?.value;
+      if (filterCount) filterCount.textContent = hasFilters ? filtered.length + ' member' + (filtered.length!==1?'s':'') + ' shown' : '';
+
+      // Cancel reasons breakdown
+      renderCancelReasons();
+
       if (!filtered.length) {
         tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-zinc-600">No records match filters.</td></tr>';
         return;
@@ -2192,7 +2288,11 @@
           <td class="px-4 py-3 text-zinc-400">${renewalDisplay}</td>
           <td class="px-4 py-3 text-center">${siteDot}</td>
           <td class="px-4 py-3">${flagBadges||'—'}</td>
-          <td class="px-4 py-3 text-zinc-600 text-[10px] max-w-[140px] truncate" title="${r.notes||''}">${r.notes||'—'}</td>
+          <td class="px-4 py-3 text-[10px] max-w-[160px]">
+            ${r.cancelReason ? `<div class="text-red-400/70 truncate" title="Cancel: ${r.cancelReason}">✗ ${r.cancelReason}</div>` : ''}
+            ${r.notes && r.notes !== r.cancelReason ? `<div class="text-zinc-600 truncate" title="${r.notes}">${r.notes}</div>` : ''}
+            ${!r.cancelReason && !r.notes ? '<span class="text-zinc-700">—</span>' : ''}
+          </td>
         </tr>`;
       }).join('');
     }
