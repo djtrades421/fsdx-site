@@ -2171,7 +2171,6 @@
     // ── Cancel reasons breakdown ──
     function renderCancelReasons(targetId) {
       const section = document.getElementById(targetId || 'cancel-reasons-section');
-      const section = document.getElementById('cancel-reasons-section');
       if (!section) return;
       const cancelled = rosterData.filter(r => r.status === 'cancelled' && r.cancelReason);
       if (!cancelled.length) { if (section) section.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs">No cancel reasons yet — import the memberships export to add reasons.</div>'; return; }
