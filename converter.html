@@ -76,7 +76,7 @@
                   <div class="text-xs font-bold text-white">Tradovate Live Orders</div>
                   <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 uppercase tracking-wide">Beta</span>
                 </div>
-                <div class="text-[11px] text-zinc-500">Live trade history from Tradovate. Export from Account Reports → Orders tab.</div>
+                <div class="text-[11px] text-zinc-500">Live trade history from Tradovate. Export from Account → Orders tab. Entry/exit pairs matched automatically.</div>
               </div>
             </div>
           </div>
@@ -534,147 +534,109 @@
 
     // ── Tradovate parser ──
     function parseTradovate(rows, ticker, fromDate, toDate) {
-      // Tradovate exports individual fills — need to pair buys with sells
       // Filter to filled orders only
       const fills = rows.filter(r => {
-        const status = (r['Status'] || '').toLowerCase();
-        return status === 'filled' || status === 'completelyfilled' || r['Avg Fill Price'] || r['avgPrice'] || r['Avg Price'];
+        const status = (r['Status'] || '').trim().toLowerCase();
+        return status === 'filled' || status === 'completelyfilled';
       });
 
-      // Group by contract/product
-      const byContract = {};
-      fills.forEach(r => {
-        const contract = r['Contract'] || r['Product'] || r['Symbol'] || ticker;
-        if (!byContract[contract]) byContract[contract] = [];
-        byContract[contract].push(r);
+      // Sort by fill time chronologically
+      fills.sort((a, b) => {
+        const at = a['Fill Time'] || a['Timestamp'] || '';
+        const bt = b['Fill Time'] || b['Timestamp'] || '';
+        return new Date(at) - new Date(bt);
       });
+
+      const TICK_MAP = {
+        MNQ: { tick: 0.25, value: 0.50 }, NQ: { tick: 0.25, value: 5.00 },
+        MES: { tick: 0.25, value: 1.25 }, ES: { tick: 0.25, value: 12.50 },
+        MGC: { tick: 0.10, value: 1.00 }, GC: { tick: 0.10, value: 10.00 },
+        MCL: { tick: 0.01, value: 1.00 }, CL: { tick: 0.01, value: 10.00 },
+        MYM: { tick: 1.00, value: 0.50 }, YM: { tick: 1.00, value: 5.00 },
+        M2K: { tick: 0.10, value: 0.50 }, RTY: { tick: 0.10, value: 5.00 },
+        ZB: { tick: 0.03125, value: 31.25 }, ZN: { tick: 0.015625, value: 15.625 },
+      };
+
+      // Helper — strip expiry suffix from contract (MNQM6 → MNQ)
+      function stripExpiry(contract) {
+        return (contract || '').replace(/[A-Z]\d{1,2}$/, '').replace(/\d+$/, '') || ticker;
+      }
 
       const trades = [];
+      const pending = []; // unmatched entry fills
       unmatchedRows = 0;
 
-      Object.entries(byContract).forEach(([contract, contractFills]) => {
-        // Sort by fill time
-        contractFills.sort((a, b) => {
-          const at = a['Fill Time'] || a['Timestamp'] || a['Date'] || '';
-          const bt = b['Fill Time'] || b['Timestamp'] || b['Date'] || '';
-          return at < bt ? -1 : 1;
-        });
+      fills.forEach(fill => {
+        const bs = (fill['B/S'] || '').trim();  // ' Buy' or ' Sell'
+        const side = bs.trim().toUpperCase();    // 'BUY' or 'SELL'
+        const text = (fill['Text'] || fill['text'] || '').trim().toLowerCase();
+        const qty = parseInt(fill['filledQty'] || fill['Filled Qty'] || fill['Qty'] || '1') || 1;
+        const price = parseFloat(fill['avgPrice'] || fill['Avg Fill Price'] || fill['Price'] || '0') || 0;
+        const fillTime = fill['Fill Time'] || fill['Timestamp'] || fill['Date'] || '';
+        const rawContract = stripExpiry(fill['Contract'] || fill['Product'] || fill['Symbol'] || ticker);
+        const account = fill['Account'] || '';
+        const date = formatDate(fillTime);
+        const time = formatTime(fillTime);
 
-        // Pair buys with sells using a stack
-        const openPositions = [];
+        // Entry = Text contains "tradingview" (or not "exit")
+        // Exit = Text is "exit"
+        const isEntry = text.includes('tradingview') || (text !== 'exit' && (text === '' || text.includes('entry')));
+        const isExit = text === 'exit' || text.includes('exit');
 
-        contractFills.forEach(fill => {
-          const side = (fill['B/S'] || fill['Action'] || fill['Side'] || '').toUpperCase();
-          const qty = parseInt(fill['Filled Qty'] || fill['filledQty'] || fill['Qty'] || fill['Quantity'] || '1') || 1;
-          const price = parseFloat(fill['Avg Fill Price'] || fill['Avg Price'] || fill['avgPrice'] || fill['Price'] || '0') || 0;
-          const fillTime = fill['Fill Time'] || fill['Date/Time'] || fill['Timestamp'] || fill['Date'] || '';
-          const date = formatDate(fillTime);
-          const time = formatTime(fillTime);
+        if (isEntry && !isExit) {
+          // Push as open position
+          pending.push({ side, qty, price, date, time, rawContract, account });
+        } else if (isExit && pending.length > 0) {
+          // Match to oldest open entry of same contract
+          const entryIdx = pending.findIndex(p => p.rawContract === rawContract);
+          if (entryIdx === -1) { unmatchedRows++; return; }
+          const entry = pending.splice(entryIdx, 1)[0];
 
-          if (side === 'B' || side === 'BUY') {
-            openPositions.push({ qty, price, date, time, fill });
-          } else if (side === 'S' || side === 'SELL') {
-            if (openPositions.length) {
-              const entry = openPositions.shift();
-              // Normalize ticker — strip expiry (MNQZ5 → MNQ)
-              const rawContract = contract.replace(/[A-Z]\d+$/, '').replace(/[A-Z]\d\d$/, '').replace(/\d+$/, '') || ticker;
-              const tradeDate = entry.date || date;
+          // Determine direction from entry side
+          const direction = entry.side === 'BUY' ? 'LONG' : 'SHORT';
 
-              // Date filter
-              if (fromDate && tradeDate < fromDate) return;
-              if (toDate && tradeDate > toDate) return;
+          // Date filter
+          if (fromDate && entry.date < fromDate) return;
+          if (toDate && entry.date > toDate) return;
 
-              // P&L: (exit - entry) * contracts * $ per point
-              // Use raw price diff — let member sort out $ value since we don't know their tick value
-              // Just store raw prices and let them see P&L as price diff × contracts
-              // Actually calculate using TICKER_MAP if we know the ticker
-              const TICK_MAP = {
-                MNQ: { tick: 0.25, value: 0.50 }, NQ: { tick: 0.25, value: 5.00 },
-                MES: { tick: 0.25, value: 1.25 }, ES: { tick: 0.25, value: 12.50 },
-                MGC: { tick: 0.10, value: 1.00 }, GC: { tick: 0.10, value: 10.00 },
-                MCL: { tick: 0.01, value: 1.00 }, CL: { tick: 0.01, value: 10.00 },
-                MYM: { tick: 1.00, value: 0.50 }, YM: { tick: 1.00, value: 5.00 },
-                M2K: { tick: 0.10, value: 0.50 }, RTY: { tick: 0.10, value: 5.00 },
-              };
-              const spec = TICK_MAP[rawContract] || TICK_MAP[ticker] || { tick: 0.25, value: 0.50 };
-              const priceDiff = price - entry.price;
-              const pnl = (priceDiff / spec.tick) * spec.value * Math.min(qty, entry.qty);
+          // P&L
+          const spec = TICK_MAP[rawContract] || TICK_MAP[ticker] || { tick: 0.25, value: 0.50 };
+          const matchedQty = Math.min(qty, entry.qty);
+          const priceDiff = direction === 'LONG' ? (price - entry.price) : (entry.price - price);
+          const pnl = parseFloat(((priceDiff / spec.tick) * spec.value * matchedQty).toFixed(2));
 
-              trades.push({
-                id: Date.now().toString() + Math.random().toString(36).slice(2),
-                date: tradeDate,
-                entryTime: entry.time,
-                exitTime: time,
-                ticker: rawContract || ticker,
-                direction: 'LONG', // buy first = long
-                grade: '',
-                result: getResult(pnl),
-                netPnl: parseFloat(pnl.toFixed(2)),
-                tp1Pnl: parseFloat(pnl.toFixed(2)), tp1Contracts: Math.min(qty, entry.qty),
-                tp2Pnl: 0, tp2Contracts: 0,
-                contracts: Math.min(qty, entry.qty).toString(),
-                entryPrice: entry.price.toString(),
-                exitPrice: price.toString(),
-                strategy: 'Live Trade',
-                notes: `Tradovate · ${contract}`,
-                source: 'tradovate'
-              });
-            } else {
-              // Sell without matching buy = short trade — push as open
-              openPositions.push({ qty, price, date, time, fill, isShort: true });
-            }
-          }
-        });
-
-        // Handle short trades (sells first, buys to close)
-        // Re-run for shorts
-        const shortFills = [...contractFills];
-        const openShorts = [];
-        shortFills.forEach(fill => {
-          const side = (fill['B/S'] || fill['Action'] || fill['Side'] || '').toUpperCase();
-          const qty = parseInt(fill['Filled Qty'] || fill['filledQty'] || fill['Qty'] || fill['Quantity'] || '1') || 1;
-          const price = parseFloat(fill['Avg Fill Price'] || fill['Avg Price'] || fill['avgPrice'] || fill['Price'] || '0') || 0;
-          const fillTime = fill['Fill Time'] || fill['Date/Time'] || fill['Timestamp'] || fill['Date'] || '';
-          const date = formatDate(fillTime);
-          const time = formatTime(fillTime);
-
-          if (side === 'S' || side === 'SELL') {
-            openShorts.push({ qty, price, date, time });
-          } else if ((side === 'B' || side === 'BUY') && openShorts.length) {
-            const entry = openShorts.shift();
-            const rawContract = contract.replace(/[A-Z]\d+$/, '').replace(/[A-Z]\d\d$/, '').replace(/\d+$/, '') || ticker;
-            const tradeDate = entry.date || date;
-            if (fromDate && tradeDate < fromDate) return;
-            if (toDate && tradeDate > toDate) return;
-
-            const TICK_MAP = { MNQ:{tick:0.25,value:0.50},NQ:{tick:0.25,value:5.00},MES:{tick:0.25,value:1.25},ES:{tick:0.25,value:12.50} };
-            const spec = TICK_MAP[rawContract] || TICK_MAP[ticker] || { tick: 0.25, value: 0.50 };
-            const priceDiff = entry.price - price; // short: sell high buy low
-            const pnl = (priceDiff / spec.tick) * spec.value * Math.min(qty, entry.qty);
-
-            // Only add if not already added as long
-            const alreadyAdded = trades.some(t => t.date === tradeDate && t.entryTime === entry.time && t.direction === 'SHORT');
-            if (!alreadyAdded) {
-              trades.push({
-                id: Date.now().toString() + Math.random().toString(36).slice(2),
-                date: tradeDate, entryTime: entry.time, exitTime: time,
-                ticker: rawContract || ticker, direction: 'SHORT', grade: '',
-                result: getResult(pnl), netPnl: parseFloat(pnl.toFixed(2)),
-                tp1Pnl: parseFloat(pnl.toFixed(2)), tp1Contracts: Math.min(qty, entry.qty),
-                tp2Pnl: 0, tp2Contracts: 0,
-                contracts: Math.min(qty, entry.qty).toString(),
-                entryPrice: entry.price.toString(), exitPrice: price.toString(),
-                strategy: 'Live Trade', notes: `Tradovate · ${contract}`, source: 'tradovate'
-              });
-            }
-          }
-        });
-
-        unmatchedRows += openPositions.filter(p => !p.isShort).length;
+          trades.push({
+            id: Date.now().toString() + Math.random().toString(36).slice(2),
+            date: entry.date,
+            entryTime: entry.time,
+            exitTime: time,
+            ticker: rawContract,
+            direction,
+            grade: '',
+            result: getResult(pnl),
+            netPnl: pnl,
+            tp1Pnl: pnl,
+            tp1Contracts: matchedQty,
+            tp2Pnl: 0,
+            tp2Contracts: 0,
+            contracts: matchedQty.toString(),
+            entryPrice: entry.price.toString(),
+            exitPrice: price.toString(),
+            strategy: 'Live Trade',
+            notes: `Tradovate · ${fill['Contract'] || rawContract}`,
+            accountName: account,
+            source: 'tradovate',
+          });
+        } else {
+          unmatchedRows++;
+        }
       });
 
-      return trades.sort((a,b) => (a.date||'') < (b.date||'') ? -1 : 1);
+      // Any remaining in pending = open positions (no exit yet) — skip
+      unmatchedRows += pending.length;
+      return trades;
     }
+
 
     // ── Main convert function ──
     function convert() {
