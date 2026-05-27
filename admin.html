@@ -2633,7 +2633,7 @@
         const now = new Date();
         const in14 = new Date(now.getTime() + 14*24*60*60*1000);
         const upcoming = rosterData.filter(r => {
-          if (!r.renewal || ['cancelled','canceling','trial_cancelled','inactive'].includes(r.status)) return false;
+          if (!r.renewal || ['cancelled','canceling','trial_cancelled','inactive','lifetime','yearly'].includes(r.status)) return false;
           try { const rd = new Date(r.renewal); return rd >= now && rd <= in14; } catch(e) { return false; }
         }).sort((a,b) => new Date(a.renewal) - new Date(b.renewal));
         if (upcomingCount) upcomingCount.textContent = upcoming.length ? upcoming.length + ' upcoming' : '';
