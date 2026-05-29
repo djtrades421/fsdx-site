@@ -614,6 +614,7 @@
       if (!token) { window.location.href = 'login.html'; return; }
 
       let whopKey = null, tier = 'pro', whopStatus = 'active', whopExpiresAt = null, whopRenewalEnd = null, whopCancelAtPeriodEnd = false, createdAt = null;
+      let rosterRenewal = null, rosterStatus = null, rosterPlanName = null;
       let firstName = localStorage.getItem('fsdx_name') || 'Member';
       try {
         const res = await fetch(`${API}/api/auth/profile`, { headers:{'Authorization':`Bearer ${token}`} });
@@ -627,6 +628,10 @@
           whopCancelAtPeriodEnd = data.user.whopCancelAtPeriodEnd || false;
           createdAt = data.user.createdAt || null;
           firstName = data.user.firstName || firstName;
+          // Roster enrichment from admin panel imports
+          rosterRenewal = data.user.rosterRenewal || null;
+          rosterStatus = data.user.rosterStatus || null;
+          rosterPlanName = data.user.rosterPlanName || null;
           localStorage.setItem('fsdx_tier', tier);
           localStorage.setItem('fsdx_name', firstName);
         }
@@ -672,7 +677,9 @@
       document.getElementById('status-label').className = `text-[10px] text-${sc.color}-400 uppercase tracking-wider`;
       document.getElementById('status-tier').textContent = sc.label;
       document.getElementById('status-tier').className = `text-2xl font-black ${sc.textCls}`;
-      document.getElementById('status-sub').textContent = sc.sub;
+      // Show plan name if available from roster
+      const planDisplay = rosterPlanName && rosterPlanName !== 'VIP' ? rosterPlanName : null;
+      document.getElementById('status-sub').textContent = planDisplay || sc.sub;
       document.getElementById('status-sub').className = `text-[10px] ${sc.textCls} opacity-60 mt-1`;
       document.getElementById('access-chevron').className = `w-3.5 h-3.5 ${sc.textCls} opacity-60 transition-transform`;
 
@@ -690,15 +697,30 @@
       const joinedEl = document.getElementById('expand-joined');
       const renewalEl = document.getElementById('expand-renewal');
       if (createdAt) joinedEl.textContent = 'Joined: ' + fmtDate(createdAt);
+      // Use roster renewal date as most reliable source (from admin Whop exports)
+      // Fall back to KV timestamps if roster not available
+      const effectiveRenewal = rosterRenewal || null;
       const renewalTs = whopRenewalEnd || whopExpiresAt;
-      if (renewalTs && whopStatus !== 'completed') {
+      const isLifetime = whopStatus === 'completed' || rosterStatus === 'lifetime';
+
+      if (isLifetime) {
+        renewalEl.textContent = 'Lifetime — no renewal needed';
+      } else if (effectiveRenewal) {
+        // Roster date is a YYYY-MM-DD string
+        const [ry, rm, rd] = effectiveRenewal.split('-').map(Number);
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const renewalDate = months[rm-1] + ' ' + rd + ', ' + ry;
+        const msUntil = new Date(ry, rm-1, rd).getTime() - Date.now();
+        const daysUntil = Math.ceil(msUntil / (1000*60*60*24));
+        const countdown = daysUntil > 0 ? ' · in ' + daysUntil + ' day' + (daysUntil===1?'':'s') : ' · today';
+        const isCanceling = ['canceling','trial_cancelled'].includes(rosterStatus) || whopCancelAtPeriodEnd;
+        renewalEl.textContent = (isCanceling ? 'Access ends: ' : 'Renews: ') + renewalDate + countdown;
+      } else if (renewalTs) {
         const renewalDate = fmtDate(renewalTs);
         const msUntil = (typeof renewalTs === 'number' ? renewalTs * 1000 : new Date(renewalTs).getTime()) - Date.now();
         const daysUntil = Math.ceil(msUntil / (1000 * 60 * 60 * 24));
-        const countdown = daysUntil > 0 ? ` · in ${daysUntil} day${daysUntil === 1 ? '' : 's'}` : ' · today';
+        const countdown = daysUntil > 0 ? ' · in ' + daysUntil + ' day' + (daysUntil===1?'':'s') : ' · today';
         renewalEl.textContent = (whopCancelAtPeriodEnd ? 'Access ends: ' : 'Renews: ') + renewalDate + countdown;
-      } else if (whopStatus === 'completed') {
-        renewalEl.textContent = 'Lifetime — no renewal needed';
       }
 
       document.getElementById('access-grid').innerHTML = renderAccessGrid(tier);
