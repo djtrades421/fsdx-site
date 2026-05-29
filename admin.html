@@ -744,13 +744,40 @@
           ? new Date(m.lastLogin).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '—';
 
-        // Renewal / expiry date
-        const renewalTs = m.whopRenewalEnd || m.whopExpiresAt || null;
-        const renewalDate = renewalTs
-          ? new Date(renewalTs * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : m.whopStatus === 'completed' ? 'Never' : '—';
-        const cancelWarning = m.whopCancelAtPeriodEnd
-          ? `<span class="ml-1 text-[9px] text-yellow-500 font-bold uppercase">cancels</span>` : '';
+        // Renewal — pull from roster data first (most up to date from Whop exports)
+        // Fall back to KV stored timestamps for members not in roster
+        let renewalDate = '—';
+        let cancelWarning = '';
+
+        // Try to match this member in rosterData by email or whopKey
+        const rosterMatch = rosterData.find(r =>
+          (m.email && r.email && r.email.toLowerCase() === m.email.toLowerCase()) ||
+          (m.whopKey && r.whopKey && r.whopKey === m.whopKey)
+        );
+
+        if (rosterMatch) {
+          if (rosterMatch.status === 'lifetime') {
+            renewalDate = 'Never';
+          } else if (rosterMatch.renewal) {
+            // Format from roster date string (YYYY-MM-DD)
+            const [y,mo,d] = rosterMatch.renewal.split('-').map(Number);
+            if (y && mo && d) {
+              const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              renewalDate = months[mo-1] + ' ' + d + ', ' + y;
+            }
+            if (['canceling','trial_cancelled'].includes(rosterMatch.status)) {
+              cancelWarning = '<span class="ml-1 text-[9px] text-yellow-500 font-bold uppercase">cancels</span>';
+            }
+          }
+        } else {
+          // Fall back to KV timestamps
+          const renewalTs = m.whopRenewalEnd || m.whopExpiresAt || null;
+          renewalDate = renewalTs
+            ? new Date(renewalTs * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : m.whopStatus === 'completed' ? 'Never' : '—';
+          cancelWarning = m.whopCancelAtPeriodEnd
+            ? '<span class="ml-1 text-[9px] text-yellow-500 font-bold uppercase">cancels</span>' : '';
+        }
 
         return `
         <tr class="hover:bg-white/[0.02] transition">
