@@ -634,6 +634,7 @@
           rosterPlanName = data.user.rosterPlanName || null;
           localStorage.setItem('fsdx_tier', tier);
           localStorage.setItem('fsdx_name', firstName);
+          localStorage.setItem('fsdx_whop_status', data.user.whopStatus || '');
         }
       } catch(e) { tier = localStorage.getItem('fsdx_tier') || 'pro'; }
 
