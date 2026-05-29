@@ -310,6 +310,7 @@
           localStorage.setItem('fsdx_token', data.token);
           localStorage.setItem('fsdx_name', data.firstName || '');
           localStorage.setItem('fsdx_tier', data.tier || 'pro');
+          localStorage.setItem('fsdx_whop_status', data.whopStatus || '');
           window.location.href = 'dashboard.html';
         } else if (data.inactive) {
           // Membership inactive — show friendly message with clickable link
@@ -357,6 +358,7 @@
           localStorage.setItem('fsdx_token', data.token);
           localStorage.setItem('fsdx_name', data.firstName || '');
           localStorage.setItem('fsdx_tier', data.tier || 'pro');
+          localStorage.setItem('fsdx_whop_status', data.whopStatus || '');
           window.location.href = 'dashboard.html';
         } else {
           showMsg('signup-msg', data.error || 'Signup failed. Please try again.', 'error');
