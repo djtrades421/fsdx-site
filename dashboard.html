@@ -816,7 +816,7 @@
           const [nm,nd,ny] = nev.date.split('-');
           const nisoStr = parseInt(ny)+'-'+nm+'-'+nd+'T'+String(nh).padStart(2,'0')+':'+String(nmin||0).padStart(2,'0')+':00';
           const nprobe = new Date(nisoStr+'Z');
-          const nsrcMs = new Date(nprobe.toLocaleString('en-US',{timeZone:'UTC'})) - nprobe;
+          const nsrcMs = new Date(nprobe.toLocaleString('en-US',{timeZone:'America/Chicago'})) - nprobe;
           const nevUtcMs = nprobe.getTime() - nsrcMs;
           if (nevUtcMs <= nowMs) { nextIdx = ni; } else { break; }
         } catch(e2) {}
