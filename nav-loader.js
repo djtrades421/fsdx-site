@@ -53,7 +53,8 @@
         const tierEl = document.getElementById('nav-tier');
         if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
         if (username) username.textContent = name;
-        if (tierEl) tierEl.textContent = tier === 'trial' ? 'VIP Trial' : 'VIP Member';
+        const whopStatus = localStorage.getItem('fsdx_whop_status') || '';
+        if (tierEl) tierEl.textContent = tier === 'trial' ? 'VIP Trial' : whopStatus === 'completed' ? 'VIP Lifetime' : 'VIP Member';
       }
     })
     .catch(err => console.error('[nav] Failed to load nav.html:', err));
