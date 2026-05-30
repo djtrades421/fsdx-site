@@ -418,9 +418,15 @@
       if (rows.some(r => /ORB\s+(Long|Short)\s+(A\+|A|B\+|B|C\+|C)/i.test(r['Signal'] || ''))) {
         return 'fsdx';
       }
-      // Standard TradingView strategy export
+      // Standard TradingView strategy export (old format)
       if (firstLine.includes('Trade #') && (firstLine.includes('Net P&L') || firstLine.includes('Profit'))) {
         return 'tv';
+      }
+      // New TradingView export format (2025+): "Trade number", "Net PnL USD", "Size (qty)"
+      if (firstLine.includes('Trade number') && firstLine.includes('Net PnL')) {
+        // Check if it's FSD-X ORB Pro signals
+        if (rows.some(r => /ORB\s+(Long|Short)/i.test(r['Signal'] || ''))) return 'fsdx_new';
+        return 'tv_new';
       }
       return 'unknown';
     }
@@ -428,7 +434,9 @@
     function getFormatBadgeHTML(mode) {
       const configs = {
         fsdx: { bg: 'bg-green-500/10 border-green-500/30 text-green-400', dot: 'bg-green-400', label: 'FSD-X ORB Pro Detected ✓' },
+        fsdx_new: { bg: 'bg-green-500/10 border-green-500/30 text-green-400', dot: 'bg-green-400', label: 'FSD-X ORB Pro (New Format) ✓' },
         tv:   { bg: 'bg-blue-500/10 border-blue-500/30 text-blue-400',   dot: 'bg-blue-400',   label: 'TradingView Strategy Detected ✓' },
+        tv_new: { bg: 'bg-blue-500/10 border-blue-500/30 text-blue-400', dot: 'bg-blue-400',   label: 'TradingView Strategy (New Format) ✓' },
         tradovate: { bg: 'bg-purple-500/10 border-purple-500/30 text-purple-400', dot: 'bg-purple-400', label: 'Tradovate Orders Detected ✓' },
         unknown: { bg: 'bg-zinc-800 border-white/10 text-zinc-400', dot: 'bg-zinc-400', label: 'Unknown Format' },
       };
@@ -439,7 +447,9 @@
     function getFormatInfoHTML(mode) {
       const configs = {
         fsdx: { bg: 'bg-green-500/5 border-green-500/20 text-green-300/80', label: 'FSD-X Mode', labelColor: 'text-green-400', desc: 'Full conversion with grades (A+/A/B+/B/C+/C), direction, contracts, entry/exit times extracted from signal data automatically.' },
+        fsdx_new: { bg: 'bg-green-500/5 border-green-500/20 text-green-300/80', label: 'FSD-X Mode (New TV Format)', labelColor: 'text-green-400', desc: 'New TradingView export format detected. Full conversion with grades, direction, and contracts extracted from signal data.' },
         tv:   { bg: 'bg-blue-500/5 border-blue-500/20 text-blue-300/80',   label: 'TradingView Mode', labelColor: 'text-blue-400', desc: 'Standard strategy export. Direction, entry/exit prices, P&L and timestamps mapped automatically. Grade column will be blank.' },
+        tv_new: { bg: 'bg-blue-500/5 border-blue-500/20 text-blue-300/80', label: 'TradingView Mode (New Format)', labelColor: 'text-blue-400', desc: 'New TradingView export format. Direction, entry/exit prices, P&L and timestamps mapped automatically. Grade column will be blank.' },
         tradovate: { bg: 'bg-purple-500/5 border-purple-500/20 text-purple-300/80', label: 'Tradovate Mode', labelColor: 'text-purple-400', desc: 'Live order history. Entry/exit fills paired by symbol and time sequence. P&L calculated from fill prices. Grade column will be blank — tag trades manually after import.' },
         unknown: { bg: 'bg-zinc-900 border-white/10 text-zinc-400', label: 'Unknown Format', labelColor: 'text-zinc-300', desc: 'Could not auto-detect format. Make sure you are exporting from the correct tab in your platform.' },
       };
@@ -467,7 +477,11 @@
 
       // Auto-detect date range
       let dates = [];
-      if (detectedMode === 'tradovate') {
+      if (detectedMode === 'fsdx_new' || detectedMode === 'tv_new') {
+        dates = rows.filter(r => r['Type'] && r['Type'].toLowerCase().includes('entry'))
+          .map(r => r['Date and time'] ? r['Date and time'].split(' ')[0] : null)
+          .filter(Boolean).sort();
+      } else if (detectedMode === 'tradovate') {
         dates = rows.filter(r => (r['B/S'] === 'B' || r['B/S'] === 'Buy' || r['Action'] === 'Buy'))
           .map(r => {
             const ft = r['Fill Time'] || r['Date/Time'] || r['Timestamp'] || r['Date'] || '';
@@ -648,8 +662,60 @@
 
       if (detectedMode === 'tradovate') {
         trades = parseTradovate(rows, ticker, fromDate, toDate);
+      } else if (detectedMode === 'fsdx_new' || detectedMode === 'tv_new') {
+        // New TradingView format: "Trade number", "Net PnL USD", "Size (qty)", Entry comes AFTER Exit in CSV
+        const tradeMap = {};
+        rows.forEach(r => {
+          const num = r['Trade number'];
+          if (!num) return;
+          if (!tradeMap[num]) tradeMap[num] = {};
+          const type = (r['Type'] || '').toLowerCase();
+          if (type.includes('entry')) tradeMap[num].entry = r;
+          if (type.includes('exit')) tradeMap[num].exit = r;
+        });
+
+        Object.values(tradeMap).forEach(t => {
+          if (!t.entry || !t.exit) return;
+          const date = formatDate(t.entry['Date and time']);
+          if (!date) return;
+          if (fromDate && date < fromDate) return;
+          if (toDate && date > toDate) return;
+
+          // New format uses "Net PnL USD" and "Size (qty)"
+          const pnl = cleanPnl(t.exit['Net PnL USD'] || t.exit['Net PnL'] || t.exit['Net P&L USD'] || t.exit['Net P&L'] || '0');
+          const entryPrice = t.entry['Price USD'] || t.entry['Price'] || '';
+          const exitPrice = t.exit['Price USD'] || t.exit['Price'] || '';
+          const contractsRaw = parseInt(t.entry['Size (qty)'] || t.entry['Contracts'] || t.entry['Qty'] || '1') || 1;
+
+          if (detectedMode === 'fsdx_new') {
+            const signal = t.entry['Signal'] || '';
+            trades.push({
+              id: Date.now().toString() + Math.random().toString(36).slice(2),
+              date, entryTime: formatTime(t.entry['Date and time']), exitTime: formatTime(t.exit['Date and time']),
+              ticker, direction: extractDirectionFromSignal(signal), grade: extractGrade(signal),
+              result: getResult(pnl), netPnl: parseFloat(pnl.toFixed(2)),
+              tp1Pnl: parseFloat(pnl.toFixed(2)), tp1Contracts: extractContracts(signal) || contractsRaw,
+              tp2Pnl: 0, tp2Contracts: 0,
+              contracts: (extractContracts(signal) || contractsRaw).toString(),
+              entryPrice, exitPrice, strategy: 'FSD-X ORB PRO', notes: signal, source: 'fsdx_converter'
+            });
+          } else {
+            const signal = t.entry['Signal'] || '';
+            trades.push({
+              id: Date.now().toString() + Math.random().toString(36).slice(2),
+              date, entryTime: formatTime(t.entry['Date and time']), exitTime: formatTime(t.exit['Date and time']),
+              ticker, direction: extractDirectionFromType(t.entry['Type'] || ''), grade: '',
+              result: getResult(pnl), netPnl: parseFloat(pnl.toFixed(2)),
+              tp1Pnl: parseFloat(pnl.toFixed(2)), tp1Contracts: contractsRaw,
+              tp2Pnl: 0, tp2Contracts: 0,
+              contracts: contractsRaw.toString(),
+              entryPrice, exitPrice, strategy: signal || 'TradingView Strategy',
+              notes: [signal, t.exit['Signal'] || ''].filter(Boolean).join(' → '), source: 'tv_converter'
+            });
+          }
+        });
       } else {
-        // TV / FSD-X
+        // TV / FSD-X old format
         const tradeMap = {};
         rows.forEach(r => {
           const num = r['Trade #'];
