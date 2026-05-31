@@ -903,7 +903,7 @@
         const timeColor = isNext ? '#22c55e' : isFuture ? '#ffffff' : '#444';
         const timeFw = isNext ? '700' : isFuture ? '500' : '400';
         html += `<div style="display:grid;grid-template-columns:${GRID};${rowBg};align-items:center;" class="px-4 py-2 border-b border-white/[0.04] gap-2">
-          <div style="font-size:10px;color:${timeColor};font-weight:${timeFw};white-space:nowrap;font-family:monospace">${isNext ? '▶ ' : ''}${dispTime}</div>
+          <div style="font-size:10px;color:${timeColor};font-weight:${timeFw};white-space:nowrap">${isNext ? '▶ ' : ''}${dispTime}</div>
           <div style="font-size:10px;color:${impC};font-weight:700">${ev.country}</div>
           <div style="display:flex;align-items:center">${dots(ev.impact)}</div>
           <div style="font-size:10px;color:${isPast?'#444':titleColor};font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ev.title}</div>
