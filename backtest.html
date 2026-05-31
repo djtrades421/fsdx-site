@@ -455,6 +455,41 @@
   </main>
 
   <!-- Edit Session Modal -->
+  <!-- Overlap warning modal -->
+  <div id="bt-overlap-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-4">
+    <div class="bg-zinc-950 border border-yellow-500/20 rounded-2xl w-full max-w-md p-6">
+      <div class="text-3xl mb-3 text-center">⚠️</div>
+      <h2 class="text-base font-black text-white mb-1 text-center">Date Overlap Detected</h2>
+      <p class="text-zinc-500 text-xs mb-5 text-center">Your import overlaps with existing trades in this session.</p>
+      <div class="space-y-3 mb-5">
+        <div class="border border-white/10 bg-zinc-900/60 rounded-xl p-4 grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <div class="text-zinc-600 uppercase tracking-wider text-[10px] mb-1">Already in session</div>
+            <div class="text-white font-bold" id="btol-existing-range">—</div>
+            <div class="text-zinc-500 mt-1" id="btol-existing-times">—</div>
+          </div>
+          <div>
+            <div class="text-zinc-600 uppercase tracking-wider text-[10px] mb-1">Your import</div>
+            <div class="text-white font-bold" id="btol-import-range">—</div>
+            <div class="text-zinc-500 mt-1" id="btol-import-times">—</div>
+          </div>
+        </div>
+        <div class="border border-yellow-500/20 bg-yellow-500/5 rounded-xl px-4 py-3 text-xs text-yellow-300/80" id="btol-detail"></div>
+      </div>
+      <div class="space-y-2">
+        <button onclick="executeBtCSVImport('skip')" class="w-full py-2.5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition">
+          Skip Overlapping Dates — Import New Only
+        </button>
+        <button onclick="executeBtCSVImport('all')" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition">
+          Import Everything Anyway
+        </button>
+        <button onclick="document.getElementById('bt-overlap-modal').classList.add('hidden')" class="w-full py-2 text-xs text-zinc-600 hover:text-zinc-400 transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="edit-session-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-4">
     <div class="bg-zinc-950 border border-white/10 rounded-2xl w-full max-w-md p-6">
       <div class="flex items-center justify-between mb-6">
@@ -2991,6 +3026,8 @@
       return trades;
     }
 
+    let _btCsvPending = [];
+
     function initBtImportListener() {
       const input = document.getElementById('bt-csv-import-input');
       if (!input) return;
@@ -3002,42 +3039,83 @@
         const text = await file.text();
         const imported = parseJournalCSV(text);
         if (!imported.length) { alert('No valid trades found. Make sure this is a Nexus-format CSV.'); return; }
-        const newTrades = imported.map(t => ({ ...t, id: Date.now().toString() + Math.random().toString(36).slice(2) }));
-        const merged = [...btTrades, ...newTrades].sort((a,b) => (a.date||'') < (b.date||'') ? -1 : 1);
-        try {
+        _btCsvPending = imported.map(t => ({ ...t, id: Date.now().toString() + Math.random().toString(36).slice(2) }));
+
+        // Check for overlap with current session trades (btTrades already loaded)
+        if (btTrades.length > 0) {
+          const existDates = btTrades.map(t=>t.date).filter(Boolean).sort();
+          const importDates = _btCsvPending.map(t=>t.date).filter(Boolean).sort();
+          const existMin = existDates[0], existMax = existDates[existDates.length-1];
+          const importMin = importDates[0], importMax = importDates[importDates.length-1];
+          const hasOverlap = importMin <= existMax && importMax >= existMin;
+
+          if (hasOverlap) {
+            const existDateSet = new Set(existDates);
+            const overlapDates = importDates.filter(d => existDateSet.has(d));
+            const overlapTrades = _btCsvPending.filter(t => existDateSet.has(t.date));
+            const existTimes = btTrades.map(t=>t.entryTime).filter(Boolean).sort();
+            const importTimes = _btCsvPending.map(t=>t.entryTime).filter(Boolean).sort();
+            const existTimeRange = existTimes.length ? existTimes[0].slice(0,5) + ' – ' + existTimes[existTimes.length-1].slice(0,5) : 'No times recorded';
+            const importTimeRange = importTimes.length ? importTimes[0].slice(0,5) + ' – ' + importTimes[importTimes.length-1].slice(0,5) : 'No times recorded';
+            document.getElementById('btol-existing-range').textContent = existMin + ' to ' + existMax;
+            document.getElementById('btol-existing-times').textContent = 'Entry times: ' + existTimeRange;
+            document.getElementById('btol-import-range').textContent = importMin + ' to ' + importMax;
+            document.getElementById('btol-import-times').textContent = 'Entry times: ' + importTimeRange;
+            document.getElementById('btol-detail').innerHTML =
+              `<span class="font-bold text-yellow-400">${overlapDates.length} overlapping date${overlapDates.length!==1?'s':''}</span> — ${overlapTrades.length} trade${overlapTrades.length!==1?'s':''} in your import land on dates already in this session.<br><br>
+              <span class="text-zinc-400">If these are different sessions (e.g. London vs NY), choose <span class="text-white font-bold">Import Everything</span>. If you accidentally included dates you already have, choose <span class="text-white font-bold">Skip Overlapping</span>.</span>`;
+            document.getElementById('bt-overlap-modal').classList.remove('hidden');
+            return;
+          }
+        }
+
+        await executeBtCSVImport('all');
+      });
+    }
+
+    async function executeBtCSVImport(mode) {
+      document.getElementById('bt-overlap-modal').classList.add('hidden');
+      let tradesToAdd = _btCsvPending;
+      if (mode === 'skip') {
+        const existDateSet = new Set(btTrades.map(t=>t.date).filter(Boolean));
+        tradesToAdd = _btCsvPending.filter(t => !existDateSet.has(t.date));
+      }
+      const skipped = _btCsvPending.length - tradesToAdd.length;
+      const merged = [...btTrades, ...tradesToAdd].sort((a,b) => (a.date||'') < (b.date||'') ? -1 : 1);
+      try {
+        await fetch(JOURNAL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save-all', key: 'backtest:' + whopKey + ':' + currentBtSessionId, payload: { trades: merged } })
+        });
+        btTrades = merged;
+        filteredBtTrades = [...btTrades];
+        updateBtSummary();
+        updateBtFilterBadge();
+        const sessionIdx = btSessions.findIndex(s => s.id === currentBtSessionId);
+        if (sessionIdx !== -1) {
+          const wins = merged.filter(t => t.result === 'WIN').length;
+          const decided = wins + merged.filter(t => t.result === 'LOSS').length;
+          btSessions[sessionIdx].tradeCount = merged.length;
+          btSessions[sessionIdx].winRate = decided ? Math.round(wins/decided*100) : 0;
+          btSessions[sessionIdx].netPnl = merged.reduce((s,t) => s + (parseFloat(t.netPnl)||0), 0);
           await fetch(JOURNAL_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'save-all', key: 'backtest:' + whopKey + ':' + currentBtSessionId, payload: { trades: merged } })
+            body: JSON.stringify({ action: 'save-all', key: 'backtest_sessions:' + whopKey, payload: { trades: btSessions } })
           });
-          btTrades = merged;
-          filteredBtTrades = [...btTrades];
-          updateBtSummary();
-          updateBtFilterBadge();
-          // Update session summary stats
-          const sessionIdx = btSessions.findIndex(s => s.id === currentBtSessionId);
-          if (sessionIdx !== -1) {
-            const wins = merged.filter(t => t.result === 'WIN').length;
-            const decided = wins + merged.filter(t => t.result === 'LOSS').length;
-            btSessions[sessionIdx].tradeCount = merged.length;
-            btSessions[sessionIdx].winRate = decided ? Math.round(wins/decided*100) : 0;
-            btSessions[sessionIdx].netPnl = merged.reduce((s,t) => s + (parseFloat(t.netPnl)||0), 0);
-            await fetch(JOURNAL_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'save-all', key: 'backtest_sessions:' + whopKey, payload: { trades: btSessions } })
-            });
-          }
-          const activeSub = [...document.querySelectorAll('[id^="btsub-"]')].find(b => b.classList.contains('active'))?.id?.replace('btsub-','') || 'trades';
-          if (activeSub === 'trades') renderBtTrades();
-          else if (activeSub === 'stats') renderBtStats();
-          else if (activeSub === 'calendar') renderBtCal();
-          alert('✅ Imported ' + newTrades.length + ' trade' + (newTrades.length !== 1 ? 's' : '') + ' successfully!');
-        } catch(err) {
-          alert('Import failed. Please try again.');
-          console.error(err);
         }
-      });
+        const activeSub = [...document.querySelectorAll('[id^="btsub-"]')].find(b => b.classList.contains('active'))?.id?.replace('btsub-','') || 'trades';
+        if (activeSub === 'trades') renderBtTrades();
+        else if (activeSub === 'stats') renderBtStats();
+        else if (activeSub === 'calendar') renderBtCal();
+        const msg = '✅ Imported ' + tradesToAdd.length + ' trade' + (tradesToAdd.length!==1?'s':'') + ' successfully!' +
+          (skipped > 0 ? ' (' + skipped + ' overlapping date' + (skipped!==1?'s':'') + ' skipped)' : '');
+        alert(msg);
+      } catch(err) {
+        alert('Import failed. Please try again.');
+        console.error(err);
+      }
     }
 
     init();
