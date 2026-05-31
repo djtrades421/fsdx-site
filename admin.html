@@ -2387,15 +2387,14 @@
         const idx = (emailKey && emailMap[emailKey] !== undefined ? emailMap[emailKey] :
                      discordKey && discordMap[discordKey] !== undefined ? discordMap[discordKey] :
                      tvKey && tvMap[tvKey] !== undefined ? tvMap[tvKey] : -1);
+
+        // Memberships cancelled records — skip roster entirely, handle in leads below
+        if (isMembershipsExport && item.status === 'cancelled') return;
+
         if (idx >= 0) {
           const existing = rosterData[idx];
-          // Users export has authoritative real-time status — always wins
-          // Memberships export has authoritative key, plan, spend — wins for those fields
-          // Manual fields (tvUsername, notes from discord CSV) — never overwrite
           rosterData[idx] = {
             ...existing,
-            // Status: users export wins (real-time), memberships wins if no users data yet
-            // Users status wins UNLESS it would downgrade lifetime/cancelled to inactive
             status: isUsersExport
               ? (['lifetime','cancelled'].includes(existing.status) && item.status === 'inactive' ? existing.status : item.status)
               : (existing.source_detail === 'whop_users' ? existing.status : item.status || existing.status),
@@ -2408,67 +2407,58 @@
             name: item.name || existing.name,
             discordName: item.discordName || existing.discordName,
             discordId: item.discordId || existing.discordId,
-            // Key only from memberships export
             whopKey: isMembershipsExport ? (item.whopKey || existing.whopKey) : existing.whopKey,
-            // Spend, country from either
             spend: item.spend || existing.spend,
             country: item.country || existing.country,
             tvRemoval: item.tvRemoval || existing.tvRemoval,
-            // Cancel reason from memberships, canceling date from users
             cancelReason: isMembershipsExport ? (item.cancelReason || existing.cancelReason) : existing.cancelReason,
-            // Also update status to trial_cancelled if memberships shows cancel reason on trialing member
             ...(isMembershipsExport && item.cancelReason && existing.status === 'trialing' ? { status: 'trial_cancelled' } : {}),
             cancelingDate: isUsersExport ? (item.cancelingDate || existing.cancelingDate) : existing.cancelingDate,
-            // Notes — merge both
             notes: [existing.notes, item.notes && item.notes !== existing.notes ? item.notes : ''].filter(Boolean).join(' · ') || existing.notes,
-            // Track which exports have been applied
             source_detail: existing.source_detail || item.source_detail,
           };
-        } else {
+        } else if (!isMembershipsExport) {
+          // Only non-memberships imports can add new roster members
           rosterData.push(item);
         }
+        // Memberships active/completed/trialing that don't match roster — skip, not our member
       });
 
-      // Pull cancelled records from memberships import into leads (they have cancel reasons)
+      // Cancelled memberships → leads only (never touches roster)
       if (isMembershipsExport) {
         const cancelledFromMemberships = incoming.filter(item => item.status === 'cancelled' && item.email);
-        const rosterEmails2 = new Set(rosterData.map(r => r.email?.toLowerCase()).filter(Boolean));
+        let newLeadCount2 = 0;
         cancelledFromMemberships.forEach(item => {
           const emailKey = item.email?.toLowerCase();
           const existIdx = leadsData.findIndex(l => l.email?.toLowerCase() === emailKey);
-          const leadRecord = {
-            id: item.id || (Date.now() + Math.random()).toString(36),
-            name: item.name || '',
-            whopUsername: item.whopUsername || '',
-            whopKey: item.whopKey || '',
-            email: item.email || '',
-            discordName: item.discordName || '',
-            discordId: item.discordId || '',
-            city: '',
-            state: '',
-            country: item.country || '',
-            spend: item.spend || '0',
-            joined: item.joined || '',
-            leftDate: item.renewal || '', // for memberships, renewal date = when access ended
-            cancelReason: item.cancelReason || '',
-            planName: item.planName || item.accessType || '',
-            converted: false,
-            source: 'whop_memberships',
-          };
           if (existIdx >= 0) {
-            // Update cancel reason if we now have it
-            if (leadRecord.cancelReason && !leadsData[existIdx].cancelReason) {
-              leadsData[existIdx].cancelReason = leadRecord.cancelReason;
-            }
-            if (leadRecord.planName && !leadsData[existIdx].planName) {
-              leadsData[existIdx].planName = leadRecord.planName;
-            }
+            // Enrich existing lead with cancel reason and plan if missing
+            if (item.cancelReason && !leadsData[existIdx].cancelReason) leadsData[existIdx].cancelReason = item.cancelReason;
+            if (item.planName && !leadsData[existIdx].planName) leadsData[existIdx].planName = item.planName;
+            if (item.whopKey && !leadsData[existIdx].whopKey) leadsData[existIdx].whopKey = item.whopKey;
+            if (item.spend && parseFloat(item.spend) > parseFloat(leadsData[existIdx].spend||0)) leadsData[existIdx].spend = item.spend;
           } else {
-            leadsData.push(leadRecord);
+            // New lead from cancelled membership
+            leadsData.push({
+              id: item.id || (Date.now() + Math.random()).toString(36),
+              name: item.name || '',
+              whopUsername: item.whopUsername || '',
+              whopKey: item.whopKey || '',
+              email: item.email || '',
+              discordName: item.discordName || '',
+              discordId: item.discordId || '',
+              city: '', state: '',
+              country: item.country || '',
+              spend: item.spend || '0',
+              joined: item.joined || '',
+              leftDate: '',
+              cancelReason: item.cancelReason || '',
+              planName: item.planName || item.accessType || '',
+              converted: false,
+              source: 'whop_memberships',
+            });
+            newLeadCount2++;
           }
-          // Remove from rosterData — cancelled members shouldn't be in roster
-          const rosterIdx = rosterData.findIndex(r => r.email?.toLowerCase() === emailKey);
-          if (rosterIdx >= 0) rosterData.splice(rosterIdx, 1);
         });
         await saveLeadsToKV();
       }
