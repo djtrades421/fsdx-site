@@ -118,7 +118,7 @@
           </div>
 
           <!-- KPI cards -->
-          <div id="stats-top" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+          <div id="stats-top" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
 
           <!-- Cumulative P&L chart -->
           <div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-6">
@@ -137,11 +137,43 @@
 
         <!-- QUICK ACCESS + COMING SOON -->
         <!-- QUICK ACCESS + COMING SOON -->
-        <div class="grid md:grid-cols-2 gap-6">
+        <!-- MINI TRADE CALENDAR + ECONOMIC CALENDAR side by side -->
+        <div class="grid lg:grid-cols-2 gap-6">
 
-          <!-- ECONOMIC CALENDAR — left, always visible -->
+          <!-- MINI TRADE CALENDAR -->
           <div class="border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden">
-            <!-- Widget header -->
+            <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <h3 class="text-sm font-black text-white">Trade Calendar</h3>
+                <a href="journal.html" class="text-[10px] text-zinc-500 hover:text-green-400 transition font-bold">Open Journal →</a>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="miniCalPrev()" class="w-6 h-6 flex items-center justify-center rounded hover:bg-white/10 transition text-zinc-400 hover:text-white">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+                </button>
+                <span id="mini-cal-title" class="text-xs font-black text-white w-28 text-center"></span>
+                <button onclick="miniCalNext()" class="w-6 h-6 flex items-center justify-center rounded hover:bg-white/10 transition text-zinc-400 hover:text-white">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+                </button>
+              </div>
+            </div>
+            <!-- Day headers -->
+            <div class="grid grid-cols-5 border-b border-white/[0.06] px-3 pt-2 pb-1">
+              <div class="text-[9px] text-zinc-600 uppercase tracking-wider text-center font-bold">Mon</div>
+              <div class="text-[9px] text-zinc-600 uppercase tracking-wider text-center font-bold">Tue</div>
+              <div class="text-[9px] text-zinc-600 uppercase tracking-wider text-center font-bold">Wed</div>
+              <div class="text-[9px] text-zinc-600 uppercase tracking-wider text-center font-bold">Thu</div>
+              <div class="text-[9px] text-zinc-600 uppercase tracking-wider text-center font-bold">Fri</div>
+            </div>
+            <div id="mini-cal-grid" class="px-3 pb-3 pt-1 space-y-1">
+              <div class="text-center py-6 text-zinc-600 text-xs">Loading...</div>
+            </div>
+            <!-- Monthly summary -->
+            <div id="mini-cal-summary" class="px-5 py-3 border-t border-white/[0.06] flex items-center gap-4 text-[10px] text-zinc-500"></div>
+          </div>
+
+          <!-- ECONOMIC CALENDAR -->
+          <div class="border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden">
             <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-3 flex-wrap">
               <h3 class="text-sm font-black text-white shrink-0">Economic Calendar</h3>
               <div class="flex flex-wrap items-center gap-2">
@@ -182,6 +214,11 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- LATEST SESSION RECAP + QUICK ACCESS -->
+        <div class="grid lg:grid-cols-2 gap-6">
+
           <!-- LATEST SESSION RECAP -->
           <div class="border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden flex flex-col">
             <div class="px-6 pt-5 pb-4 border-b border-white/10 flex items-center justify-between">
@@ -193,10 +230,7 @@
             </div>
           </div>
 
-        </div>
-
-        <!-- QUICK ACCESS — collapsible, half width -->
-        <div class="grid md:grid-cols-2 gap-6">
+          <!-- QUICK ACCESS -->
           <div class="border border-white/10 bg-zinc-950/40 rounded-2xl overflow-hidden">
             <button onclick="toggleQuickAccess()" class="w-full px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition">
               <h3 class="text-sm font-black text-white">Quick Access</h3>
@@ -224,6 +258,7 @@
               </a>
             </div>
           </div>
+
         </div>
 
       </div>
@@ -352,25 +387,28 @@
     }
 
     // ── Helpers (matching journal style) ──
-    const statCard = (label, val, color, sub='') => `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 flex flex-col items-center justify-center text-center"><div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">${label}</div><div class="text-2xl font-black" style="color:${color}">${val}</div>${sub?`<div class="text-xs text-zinc-600 mt-1">${sub}</div>`:''}</div>`;
+    const statCard = (label, val, color, sub='') => `<div class="border border-white/10 bg-zinc-950/40 rounded-xl px-4 py-3 flex items-center gap-3"><div class="flex-1 min-w-0"><div class="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">${label}</div><div class="text-xl font-black leading-tight" style="color:${color}">${val}</div>${sub?`<div class="text-[10px] text-zinc-600 mt-0.5 truncate">${sub}</div>`:''}</div></div>`;
 
     function renderWinRateCard(wr, decided, wins, losses, bes) {
       const color = wr >= 50 ? '#22c55e' : '#ef4444';
-      const r = 28, circ = 2 * Math.PI * r;
+      const r = 18, circ = 2 * Math.PI * r;
       const dash = (wr / 100) * circ, gap = circ - dash;
       const beSub = bes > 0 ? ` · ${bes} BE` : '';
-      return `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
-        <div class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Win Rate</div>
-        <div class="relative flex items-center justify-center" style="width:80px;height:80px">
-          <svg width="80" height="80" viewBox="0 0 80 80" style="transform:rotate(-90deg);position:absolute;inset:0">
-            <circle cx="40" cy="40" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
-            <circle cx="40" cy="40" r="${r}" fill="none" stroke="${color}" stroke-width="8"
+      return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div class="relative flex items-center justify-center shrink-0" style="width:48px;height:48px">
+          <svg width="48" height="48" viewBox="0 0 48 48" style="transform:rotate(-90deg);position:absolute;inset:0">
+            <circle cx="24" cy="24" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+            <circle cx="24" cy="24" r="${r}" fill="none" stroke="${color}" stroke-width="6"
               stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}"
               stroke-linecap="round" opacity="0.9"/>
           </svg>
-          <div style="color:${color}" class="text-lg font-black relative z-10">${wr}%</div>
+          <div style="color:${color}" class="text-xs font-black relative z-10">${wr}%</div>
         </div>
-        <div class="text-xs text-zinc-600 mt-2">${wins}W · ${losses}L${beSub}</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Win Rate</div>
+          <div class="text-xl font-black leading-tight" style="color:${color}">${wr}%</div>
+          <div class="text-[10px] text-zinc-600 mt-0.5">${wins}W · ${losses}L${beSub}</div>
+        </div>
       </div>`;
     }
 
@@ -378,10 +416,12 @@
       const color = netPnl > 0 ? '#22c55e' : netPnl < 0 ? '#ef4444' : '#71717a';
       const sign = netPnl >= 0 ? '+' : '-';
       const formatted = sign + '$' + Math.abs(netPnl).toFixed(2);
-      return `<div class="border border-white/10 bg-zinc-950/40 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
-        <div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">Net P&L</div>
-        <div class="text-2xl font-black" style="color:${color}">${formatted}</div>
-        <div class="text-xs mt-2" style="color:${color};opacity:0.55">${netPnl >= 0 ? '▲ Profitable' : '▼ In drawdown'}</div>
+      return `<div class="border border-white/10 bg-zinc-950/40 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+          <div class="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Net P&amp;L</div>
+          <div class="text-xl font-black leading-tight" style="color:${color}">${formatted}</div>
+          <div class="text-[10px] mt-0.5" style="color:${color};opacity:0.6">${netPnl >= 0 ? '▲ Profitable' : '▼ In drawdown'}</div>
+        </div>
       </div>`;
     }
 
@@ -735,6 +775,7 @@
       loadAnnouncement(token);
       loadLatestRecap(token);
       loadUpdates(token);
+      loadMiniCalTrades(token);
     }
 
     // ── Economic Calendar ──
@@ -921,6 +962,127 @@
         const body = document.getElementById('cal-body');
         if (body) body.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs">Could not load calendar.</div>';
       }
+    }
+
+
+    // ── MINI TRADE CALENDAR ──
+    let miniCalYear = new Date().getFullYear();
+    let miniCalMonth = new Date().getMonth();
+    let miniCalTrades = {}; // { 'YYYY-MM-DD': { pnl, count } }
+
+    async function loadMiniCalTrades(token) {
+      try {
+        const res = await fetch(JOURNAL_URL, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        const trades = data.trades || [];
+        miniCalTrades = {};
+        trades.forEach(t => {
+          if (!t.date) return;
+          if (!miniCalTrades[t.date]) miniCalTrades[t.date] = { pnl: 0, count: 0 };
+          miniCalTrades[t.date].pnl += parseFloat(t.netPnl) || 0;
+          miniCalTrades[t.date].count++;
+        });
+        renderMiniCal();
+      } catch(e) {
+        renderMiniCal();
+      }
+    }
+
+    function renderMiniCal() {
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const titleEl = document.getElementById('mini-cal-title');
+      if (titleEl) titleEl.textContent = months[miniCalMonth] + ' ' + miniCalYear;
+
+      const grid = document.getElementById('mini-cal-grid');
+      if (!grid) return;
+
+      const today = new Date().toISOString().slice(0, 10);
+      const daysInMonth = new Date(miniCalYear, miniCalMonth + 1, 0).getDate();
+
+      // Weekdays only (Mon–Fri)
+      const weekdays = [];
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dow = new Date(miniCalYear, miniCalMonth, d).getDay();
+        if (dow !== 0 && dow !== 6) weekdays.push(d);
+      }
+
+      // Offset so first day aligns to correct Mon–Fri column (0=Mon … 4=Fri)
+      const firstDow = new Date(miniCalYear, miniCalMonth, weekdays[0]).getDay(); // 1=Mon … 5=Fri
+      const offset = firstDow - 1; // 0–4
+      let cells = [];
+      for (let i = 0; i < offset; i++) cells.push(null);
+      weekdays.forEach(d => cells.push(d));
+      while (cells.length % 5 !== 0) cells.push(null);
+
+      // Monthly summary
+      let monthPnl = 0, tradedDays = 0, wins = 0, total = 0;
+      Object.keys(miniCalTrades).forEach(ds => {
+        const d = new Date(ds + 'T00:00:00');
+        if (d.getFullYear() === miniCalYear && d.getMonth() === miniCalMonth) {
+          monthPnl += miniCalTrades[ds].pnl;
+          tradedDays++;
+          total += miniCalTrades[ds].count;
+        }
+      });
+      const summaryEl = document.getElementById('mini-cal-summary');
+      if (summaryEl) {
+        const pnlColor = monthPnl >= 0 ? '#22c55e' : '#ef4444';
+        const pnlStr = (monthPnl >= 0 ? '+' : '-') + '$' + Math.abs(monthPnl).toFixed(2);
+        summaryEl.innerHTML = `
+          <span>Month P&L: <span style="color:${pnlColor};font-weight:700">${pnlStr}</span></span>
+          <span class="text-zinc-600">·</span>
+          <span>${tradedDays} day${tradedDays !== 1 ? 's' : ''} traded</span>
+          <span class="text-zinc-600">·</span>
+          <span>${total} trade${total !== 1 ? 's' : ''}</span>
+        `;
+      }
+
+      // Build rows
+      let html = '';
+      for (let r = 0; r < cells.length / 5; r++) {
+        html += '<div class="grid grid-cols-5 gap-1">';
+        for (let c = 0; c < 5; c++) {
+          const d = cells[r * 5 + c];
+          if (!d) {
+            html += '<div></div>';
+            continue;
+          }
+          const ds = miniCalYear + '-' + String(miniCalMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+          const data = miniCalTrades[ds];
+          const isToday = ds === today;
+
+          if (data) {
+            const isWin = data.pnl >= 0;
+            const pnlStr = (isWin ? '+' : '-') + '$' + Math.abs(data.pnl).toFixed(0);
+            const bg = isWin ? 'background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2)' : 'background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2)';
+            const pnlColor = isWin ? '#22c55e' : '#ef4444';
+            const todayRing = isToday ? ';outline:1px solid rgba(34,197,94,0.5)' : '';
+            html += `<div style="${bg}${todayRing};border-radius:8px;cursor:pointer;padding:5px 4px" onclick="window.location.href='journal.html?date=${ds}&tab=history'" title="View ${ds} in journal">
+              <div style="font-size:9px;color:#71717a;font-weight:600;margin-bottom:2px">${miniCalMonth + 1}/${d}</div>
+              <div style="font-size:11px;font-weight:800;color:${pnlColor};line-height:1">${pnlStr}</div>
+              <div style="font-size:9px;color:#52525b;margin-top:1px">${data.count}t</div>
+            </div>`;
+          } else {
+            const todayRing = isToday ? 'outline:1px solid rgba(34,197,94,0.3);' : '';
+            html += `<div style="${todayRing}border:1px solid rgba(255,255,255,0.04);border-radius:8px;padding:5px 4px">
+              <div style="font-size:9px;color:#3f3f46;font-weight:600">${miniCalMonth + 1}/${d}</div>
+            </div>`;
+          }
+        }
+        html += '</div>';
+      }
+      grid.innerHTML = html;
+    }
+
+    function miniCalPrev() {
+      miniCalMonth--;
+      if (miniCalMonth < 0) { miniCalMonth = 11; miniCalYear--; }
+      renderMiniCal();
+    }
+    function miniCalNext() {
+      miniCalMonth++;
+      if (miniCalMonth > 11) { miniCalMonth = 0; miniCalYear++; }
+      renderMiniCal();
     }
 
     loadCalendar();
