@@ -2322,41 +2322,39 @@
 
     async function handleMultiImport(files) {
       if (!files || !files.length) return;
-      document.getElementById('roster-import-input').value = '';
 
       const FORMAT_ORDER = { whop_users: 0, whop_members: 1, discord_csv: 2, whop_memberships: 3, whop_payments: 4, unknown: 5 };
-      const fileList = Array.from(files);
 
-      // Read and detect all files
+      // Read all files FIRST before resetting the input
       const parsed = [];
-      for (const file of fileList) {
+      for (const file of Array.from(files)) {
         const text = await file.text();
         const rows = parseAdminCSV(text);
         if (!rows.length) continue;
         const format = detectImportFormat(Object.keys(rows[0]));
         parsed.push({ file, rows, format });
       }
+
+      // Now safe to reset the input
+      document.getElementById('roster-import-input').value = '';
+
       parsed.sort((a, b) => (FORMAT_ORDER[a.format]??5) - (FORMAT_ORDER[b.format]??5));
 
-      // Separate payments (instant) from roster-type (needs diff preview)
       const payments = parsed.filter(p => p.format === 'whop_payments');
       const rosterFiles = parsed.filter(p => p.format !== 'whop_payments' && p.format !== 'unknown');
       const unknown = parsed.filter(p => p.format === 'unknown');
 
-      if (unknown.length) {
-        console.warn('Unrecognised files skipped:', unknown.map(p => p.file.name).join(', '));
-      }
+      if (unknown.length) console.warn('Unrecognised files skipped:', unknown.map(p => p.file.name).join(', '));
 
-      // Process payments immediately — no preview needed
+      // Payments process immediately
       for (const { file } of payments) {
         await handlePaymentsImport(file);
       }
 
-      // Queue roster files — each one shows a diff preview, user confirms one at a time
-      _multiImportQueue = rosterFiles.slice(1); // save the rest for after first confirm
+      // Queue roster files — show diff preview for each, user confirms one at a time
+      _multiImportQueue = rosterFiles.slice(1);
       if (rosterFiles.length > 0) {
         await handleRosterImport(rosterFiles[0].file);
-        // _multiImportQueue gets processed in confirmImport after each confirm
       }
     }
 
@@ -2368,7 +2366,7 @@
       const headers = Object.keys(rows[0]);
       const format = detectImportFormat(headers);
       if (format === 'unknown') { alert('Could not detect format. Supported: Whop memberships export, Discord/Legacy CSV.'); return; }
-      if (format === 'whop_payments') { alert('This looks like a payments file — use the Payments tab to import it.'); return; }
+      if (format === 'whop_payments') { await handlePaymentsImport(file); return; }
 
       let incoming = [];
       if (format === 'whop_members') incoming = parseWhopMembers(rows);
