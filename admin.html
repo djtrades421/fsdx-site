@@ -77,7 +77,7 @@
         <button onclick="switchTab('payments')" id="tab-payments" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">Payments</button>
         <button onclick="switchTab('flags')" id="tab-flags" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">🚩 Flags</button>
         <button onclick="switchTab('analytics')" id="tab-analytics" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">📊 Analytics</button>
-        <button onclick="switchTab('leads')" id="tab-leads" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">🎯 Leads</button>
+        <button onclick="switchTab('history')" id="tab-history" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition ml-2">📋 History</button>
       </div>
 
       <!-- MEMBERS TAB -->
@@ -679,62 +679,62 @@
         <div id="analytics-churn" class="mb-5"></div>
       </div>
 
-      <!-- LEADS TAB -->
-      <div id="panel-leads" class="tab-panel">
+      <!-- HISTORY TAB -->
+      <div id="panel-history" class="tab-panel">
         <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
-            <h2 class="text-sm font-black text-white">🎯 Leads</h2>
-            <p class="text-xs text-zinc-600 mt-0.5">Whop users who viewed FSD-X but never purchased — auto-populated from your roster import</p>
+            <h2 class="text-sm font-black text-white">📋 History</h2>
+            <p class="text-xs text-zinc-600 mt-0.5">Full record of everyone who ever interacted with FSD-X — auto-populated from your roster import</p>
           </div>
           <div class="flex gap-2">
-            <button onclick="exportLeadsCSV()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 font-bold text-xs rounded-xl transition">↓ Export</button>
-            <button onclick="clearLeadsData()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-500 font-bold text-xs rounded-xl transition">Clear Data</button>
+            <button onclick="exportHistoryCSV()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 font-bold text-xs rounded-xl transition">↓ Export</button>
+            <button onclick="clearHistoryData()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-500 font-bold text-xs rounded-xl transition">Clear Data</button>
           </div>
         </div>
 
         <!-- Stats — clickable to filter -->
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4" id="leads-stats"></div>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4" id="history-stats"></div>
 
         <!-- Filters -->
         <div class="flex gap-2 mb-4 flex-wrap items-center">
           <!-- Discord filter -->
-          <div class="relative" id="ld-discord-wrap">
-            <button type="button" onclick="toggleLeadsFilter('discord')" id="ld-discord-btn"
+          <div class="relative" id="hs-discord-wrap">
+            <button type="button" onclick="toggleHistoryFilter('discord')" id="hs-discord-btn"
               class="flex items-center gap-1.5 bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg hover:border-white/20 transition min-w-[100px]">
-              <span id="ld-discord-label">Discord</span>
+              <span id="hs-discord-label">Discord</span>
               <svg class="w-3 h-3 ml-1 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
             </button>
-            <div id="ld-discord-menu" class="hidden absolute top-full mt-1 left-0 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 min-w-[160px]">
-              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="ld-discord" value="" checked onchange="renderLeads()" class="accent-green-500"><span class="text-xs text-zinc-300">All</span></label>
-              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="ld-discord" value="yes" onchange="renderLeads()" class="accent-green-500"><span class="text-xs text-zinc-300">Has Discord</span></label>
-              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="ld-discord" value="no" onchange="renderLeads()" class="accent-green-500"><span class="text-xs text-zinc-300">No Discord</span></label>
+            <div id="hs-discord-menu" class="hidden absolute top-full mt-1 left-0 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 min-w-[160px]">
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="hs-discord" value="" checked onchange="renderHistory2()" class="accent-green-500"><span class="text-xs text-zinc-300">All</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="hs-discord" value="yes" onchange="renderHistory2()" class="accent-green-500"><span class="text-xs text-zinc-300">Has Discord</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="hs-discord" value="no" onchange="renderHistory2()" class="accent-green-500"><span class="text-xs text-zinc-300">No Discord</span></label>
             </div>
           </div>
           <!-- Type filter -->
-          <div class="relative" id="ld-type-wrap">
-            <button type="button" onclick="toggleLeadsFilter('type')" id="ld-type-btn"
+          <div class="relative" id="hs-type-wrap">
+            <button type="button" onclick="toggleHistoryFilter('type')" id="hs-type-btn"
               class="flex items-center gap-1.5 bg-zinc-900 border border-white/10 text-zinc-400 text-xs px-3 py-1.5 rounded-lg hover:border-white/20 transition min-w-[100px]">
-              <span id="ld-type-label">Type</span>
+              <span id="hs-type-label">Type</span>
               <svg class="w-3 h-3 ml-1 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
             </button>
-            <div id="ld-type-menu" class="hidden absolute top-full mt-1 left-0 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 min-w-[170px]">
-              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="ld-type" value="" checked onchange="renderLeads()" class="accent-green-500"><span class="text-xs text-zinc-300">All</span></label>
-              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="ld-type" value="never" onchange="renderLeads()" class="accent-green-500"><span class="text-xs text-zinc-300">Never purchased</span></label>
-              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="ld-type" value="former" onchange="renderLeads()" class="accent-green-500"><span class="text-xs text-yellow-400">Former members</span></label>
-              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="ld-type" value="converted" onchange="renderLeads()" class="accent-green-500"><span class="text-xs text-green-400">Converted</span></label>
+            <div id="hs-type-menu" class="hidden absolute top-full mt-1 left-0 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 min-w-[170px]">
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="hs-type" value="" checked onchange="renderHistory2()" class="accent-green-500"><span class="text-xs text-zinc-300">All</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="hs-type" value="never" onchange="renderHistory2()" class="accent-green-500"><span class="text-xs text-zinc-300">Never purchased</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="hs-type" value="former" onchange="renderHistory2()" class="accent-green-500"><span class="text-xs text-yellow-400">Former members</span></label>
+              <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-white/5 cursor-pointer"><input type="radio" name="hs-type" value="converted" onchange="renderHistory2()" class="accent-green-500"><span class="text-xs text-green-400">Converted</span></label>
             </div>
           </div>
           <!-- Joined date range -->
           <div class="flex items-center gap-1.5">
             <span class="text-xs text-zinc-600">Joined</span>
-            <input type="date" id="ld-date-from" onchange="renderLeads()" class="bg-zinc-900 border border-white/10 text-zinc-300 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-green-500/40">
+            <input type="date" id="hs-date-from" onchange="renderHistory2()" class="bg-zinc-900 border border-white/10 text-zinc-300 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-green-500/40">
             <span class="text-xs text-zinc-600">to</span>
-            <input type="date" id="ld-date-to" onchange="renderLeads()" class="bg-zinc-900 border border-white/10 text-zinc-300 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-green-500/40">
+            <input type="date" id="hs-date-to" onchange="renderHistory2()" class="bg-zinc-900 border border-white/10 text-zinc-300 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-green-500/40">
           </div>
           <!-- Search -->
-          <input type="text" id="leads-search" oninput="renderLeads()" placeholder="Search name, email, Discord, country..." class="bg-zinc-900 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none placeholder-zinc-600 w-56">
-          <button onclick="clearLeadsFilters()" class="text-xs text-zinc-500 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition">✕ Clear</button>
-          <span id="leads-filter-count" class="text-xs text-zinc-500 ml-1"></span>
+          <input type="text" id="history-search" oninput="renderHistory2()" placeholder="Search name, email, Discord, country..." class="bg-zinc-900 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none placeholder-zinc-600 w-56">
+          <button onclick="clearHistoryFilters()" class="text-xs text-zinc-500 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition">✕ Clear</button>
+          <span id="history-filter-count" class="text-xs text-zinc-500 ml-1"></span>
         </div>
 
         <!-- Table -->
@@ -742,15 +742,15 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left min-w-[800px]">
               <thead><tr class="bg-zinc-950 border-b border-white/10 text-[10px] text-zinc-500 uppercase tracking-wider">
-                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortLeads('name')">Name <span id="lsort-name" class="text-zinc-700">↕</span></th>
+                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortHistory('name')">Name <span id="hsort-name" class="text-zinc-700">↕</span></th>
                 <th class="px-4 py-3">Email</th>
                 <th class="px-4 py-3">Discord</th>
                 <th class="px-4 py-3">Country</th>
-                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortLeads('spend')">Spend <span id="lsort-spend" class="text-zinc-700">↕</span></th>
-                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortLeads('joined')">Joined Whop <span id="lsort-joined" class="text-zinc-400">↓</span></th>
+                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortHistory('spend')">Spend <span id="hsort-spend" class="text-zinc-700">↕</span></th>
+                <th class="px-4 py-3 cursor-pointer hover:text-zinc-300 select-none" onclick="sortHistory('joined')">Joined Whop <span id="hsort-joined" class="text-zinc-400">↓</span></th>
                 <th class="px-4 py-3">Type</th>
               </tr></thead>
-              <tbody id="leads-table" class="divide-y divide-white/5 text-xs">
+              <tbody id="history-table" class="divide-y divide-white/5 text-xs">
                 <tr><td colspan="7" class="px-4 py-8 text-center text-zinc-600">Import a Whop users CSV to populate leads.</td></tr>
               </tbody>
             </table>
@@ -780,7 +780,7 @@
     let allRecaps = [];
 
     function switchTab(tab) {
-      ['members','recaps','announce','updates','migrate','roster','payments','flags','analytics','leads'].forEach(t => {
+      ['members','recaps','announce','updates','migrate','roster','payments','flags','analytics','history'].forEach(t => {
         document.getElementById('panel-' + t).classList.remove('active');
         const btn = document.getElementById('tab-' + t);
         btn.classList.remove('active','text-green-400','border-green-500');
@@ -793,7 +793,7 @@
       if (tab === 'payments') renderPayments();
       if (tab === 'flags') renderFlags();
       if (tab === 'analytics') renderAnalytics();
-      if (tab === 'leads') renderLeads();
+      if (tab === 'history') renderHistory2();
       const activeBtn = document.getElementById('tab-' + tab);
       activeBtn.classList.add('active','text-green-400','border-green-500');
       activeBtn.classList.remove('text-zinc-500','border-transparent');
@@ -1715,7 +1715,7 @@
     // ═══════════════════════════════════════════
     const JOURNAL_URL_ADMIN = 'https://nexus-validator.dfuentes4211.workers.dev/api/nexus-journal';
     let rosterData = [];        // all roster records
-    let leadsData = [];          // Whop users who never purchased
+    let historyData = [];          // Whop users who never purchased
     let paymentsData = [];      // all payment records
     let flagsData = [];         // detected flags
     let pendingImport = null;   // staged import before confirm
@@ -1744,13 +1744,13 @@
           fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'get-trades', key: rosterKey() }) }),
           fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'get-trades', key: paymentsKey() }) }),
           fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'get-trades', key: flagsKey() }) }),
-          fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'get-trades', key: 'roster_leads:' + (window._adminKey||'') }) }),
+          fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'get-trades', key: 'roster_history:' + (window._adminKey||'') }) }),
         ]);
         const [rd, pd, fdx, ld] = await Promise.all([rr.json(), pr.json(), fr.json(), lr.json()]);
         rosterData = Array.isArray(rd.trades) ? rd.trades : [];
         paymentsData = Array.isArray(pd.trades) ? pd.trades : [];
         flagsData = Array.isArray(fdx.trades) ? fdx.trades : [];
-        leadsData = Array.isArray(ld.trades) ? ld.trades : [];
+        historyData = Array.isArray(ld.trades) ? ld.trades : [];
       } catch(e) { console.error('Roster load error:', e); }
 
       // Load site users from allMembers (already loaded by loadData)
@@ -1762,25 +1762,25 @@
       });
     }
 
-    // ── LEADS ──
-    async function saveLeadsToKV() {
+    // ── HISTORY ──
+    async function saveHistoryToKV() {
       await fetch(JOURNAL_URL_ADMIN, { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'save-all', key: 'roster_leads:' + (window._adminKey||''), payload: { trades: leadsData } }) });
+        body: JSON.stringify({ action:'save-all', key: 'roster_history:' + (window._adminKey||''), payload: { trades: historyData } }) });
     }
 
-    let leadsSortField = 'joined', leadsSortDir = 'desc';
+    let historySortField = 'joined', historySortDir = 'desc';
 
-    function sortLeads(field) {
-      if (leadsSortField === field) leadsSortDir = leadsSortDir === 'asc' ? 'desc' : 'asc';
-      else { leadsSortField = field; leadsSortDir = 'asc'; }
+    function sortHistory(field) {
+      if (historySortField === field) historySortDir = historySortDir === 'asc' ? 'desc' : 'asc';
+      else { historySortField = field; historySortDir = 'asc'; }
       ['name','spend','joined'].forEach(f => {
-        const el = document.getElementById('lsort-'+f);
-        if (el) el.textContent = f === leadsSortField ? (leadsSortDir === 'asc' ? '↑' : '↓') : '↕';
+        const el = document.getElementById('hsort-'+f);
+        if (el) el.textContent = f === historySortField ? (historySortDir === 'asc' ? '↑' : '↓') : '↕';
       });
-      renderLeads();
+      renderHistory2();
     }
 
-    function toggleLeadsFilter(type) {
+    function toggleHistoryFilter(type) {
       ['discord','type'].forEach(t => {
         if (t !== type) document.getElementById('ld-'+t+'-menu')?.classList.add('hidden');
       });
@@ -1796,75 +1796,75 @@
       });
     });
 
-    function clearLeadsFilters() {
-      document.querySelectorAll('input[name="ld-discord"]')[0].checked = true;
-      document.querySelectorAll('input[name="ld-type"]')[0].checked = true;
-      document.getElementById('ld-date-from').value = '';
-      document.getElementById('ld-date-to').value = '';
-      document.getElementById('leads-search').value = '';
-      document.getElementById('ld-discord-label').textContent = 'Discord';
-      document.getElementById('ld-type-label').textContent = 'Type';
-      document.getElementById('ld-discord-btn').classList.remove('border-green-500/40','text-green-400');
-      document.getElementById('ld-type-btn').classList.remove('border-green-500/40','text-green-400');
-      renderLeads();
+    function clearHistoryFilters() {
+      document.querySelectorAll('input[name="hs-discord"]')[0].checked = true;
+      document.querySelectorAll('input[name="hs-type"]')[0].checked = true;
+      document.getElementById('hs-date-from').value = '';
+      document.getElementById('hs-date-to').value = '';
+      document.getElementById('history-search').value = '';
+      document.getElementById('hs-discord-label').textContent = 'Discord';
+      document.getElementById('hs-type-label').textContent = 'Type';
+      document.getElementById('hs-discord-btn').classList.remove('border-green-500/40','text-green-400');
+      document.getElementById('hs-type-btn').classList.remove('border-green-500/40','text-green-400');
+      renderHistory2();
     }
 
-    async function clearLeadsData() {
+    async function clearHistoryData() {
       if (!confirm('Clear all leads data? This cannot be undone.')) return;
-      leadsData = [];
-      await saveLeadsToKV();
-      renderLeads();
+      historyData = [];
+      await saveHistoryToKV();
+      renderHistory2();
     }
 
-    function renderLeads() {
-      const search = (document.getElementById('leads-search')?.value || '').toLowerCase();
-      const discordFilter = document.querySelector('input[name="ld-discord"]:checked')?.value || '';
-      const typeFilter = document.querySelector('input[name="ld-type"]:checked')?.value || '';
-      const dateFrom = document.getElementById('ld-date-from')?.value || '';
-      const dateTo = document.getElementById('ld-date-to')?.value || '';
+    function renderHistory2() {
+      const search = (document.getElementById('history-search')?.value || '').toLowerCase();
+      const discordFilter = document.querySelector('input[name="hs-discord"]:checked')?.value || '';
+      const typeFilter = document.querySelector('input[name="hs-type"]:checked')?.value || '';
+      const dateFrom = document.getElementById('hs-date-from')?.value || '';
+      const dateTo = document.getElementById('hs-date-to')?.value || '';
 
       // Update filter button labels
-      const discordLabel = document.getElementById('ld-discord-label');
-      const typeLabel = document.getElementById('ld-type-label');
+      const discordLabel = document.getElementById('hs-discord-label');
+      const typeLabel = document.getElementById('hs-type-label');
       if (discordLabel) discordLabel.textContent = discordFilter === 'yes' ? 'Has Discord' : discordFilter === 'no' ? 'No Discord' : 'Discord';
       if (typeLabel) typeLabel.textContent = typeFilter === 'former' ? 'Former Members' : typeFilter === 'converted' ? 'Converted' : typeFilter === 'never' ? 'Never Purchased' : 'Type';
-      document.getElementById('ld-discord-btn')?.classList.toggle('border-green-500/40', !!discordFilter);
-      document.getElementById('ld-discord-btn')?.classList.toggle('text-green-400', !!discordFilter);
-      document.getElementById('ld-type-btn')?.classList.toggle('border-green-500/40', !!typeFilter);
-      document.getElementById('ld-type-btn')?.classList.toggle('text-green-400', !!typeFilter);
+      document.getElementById('hs-discord-btn')?.classList.toggle('border-green-500/40', !!discordFilter);
+      document.getElementById('hs-discord-btn')?.classList.toggle('text-green-400', !!discordFilter);
+      document.getElementById('hs-type-btn')?.classList.toggle('border-green-500/40', !!typeFilter);
+      document.getElementById('hs-type-btn')?.classList.toggle('text-green-400', !!typeFilter);
 
       // Stats
-      const statsEl = document.getElementById('leads-stats');
+      const statsEl = document.getElementById('history-stats');
       if (statsEl) {
-        const hasDiscord = leadsData.filter(r => r.discordName).length;
-        const countries = [...new Set(leadsData.map(r => r.country).filter(Boolean))].length;
-        const former = leadsData.filter(r => r.leftDate || r.cancelReason).length;
-        const converted = leadsData.filter(r => r.converted).length;
+        const hasDiscord = historyData.filter(r => r.discordName).length;
+        const countries = [...new Set(historyData.map(r => r.country).filter(Boolean))].length;
+        const former = historyData.filter(r => r.leftDate || r.cancelReason).length;
+        const converted = historyData.filter(r => r.converted).length;
         statsEl.innerHTML = [
-          ['Total Leads', leadsData.length, '#fff', ''],
+          ['Total Leads', historyData.length, '#fff', ''],
           ['Have Discord', hasDiscord, '#818cf8', 'discord_yes'],
           ['Countries', countries, '#22c55e', ''],
           ['Former Members', former, '#f59e0b', 'former'],
           ['Converted', converted, '#22c55e', 'converted'],
-        ].map(([l,v,c,filterVal]) => `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center ${filterVal?'cursor-pointer hover:border-white/30 transition':''}" ${filterVal?`onclick="quickFilterLeads('${filterVal}')"`:''}">
+        ].map(([l,v,c,filterVal]) => `<div class="border border-white/10 bg-zinc-950/40 rounded-xl p-3 text-center ${filterVal?'cursor-pointer hover:border-white/30 transition':''}" ${filterVal?`onclick="quickFilterHistory('${filterVal}')"`:''}">
           <div class="text-[10px] text-zinc-500 mb-1">${l}</div>
           <div class="text-xl font-black" style="color:${c}">${v}</div>
         </div>`).join('');
       }
 
-      const tbody = document.getElementById('leads-table');
-      if (!leadsData.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-zinc-600">No leads yet — import a Whop users CSV to populate.</td></tr>';
+      const tbody = document.getElementById('history-table');
+      if (!historyData.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-zinc-600">No history yet — import a Whop users CSV to populate.</td></tr>';
         return;
       }
 
       // Sort
-      const sDir = leadsSortDir === 'asc' ? 1 : -1;
-      let sorted = [...leadsData].sort((a, b) => {
+      const sDir = historySortDir === 'asc' ? 1 : -1;
+      let sorted = [...historyData].sort((a, b) => {
         let va = '', vb = '';
-        if (leadsSortField === 'name') { va = (a.name||a.whopUsername||'').toLowerCase(); vb = (b.name||b.whopUsername||'').toLowerCase(); }
-        else if (leadsSortField === 'spend') { return (parseFloat(a.spend||0) - parseFloat(b.spend||0)) * sDir; }
-        else if (leadsSortField === 'joined') { va = a.joined||''; vb = b.joined||''; }
+        if (historySortField === 'name') { va = (a.name||a.whopUsername||'').toLowerCase(); vb = (b.name||b.whopUsername||'').toLowerCase(); }
+        else if (historySortField === 'spend') { return (parseFloat(a.spend||0) - parseFloat(b.spend||0)) * sDir; }
+        else if (historySortField === 'joined') { va = a.joined||''; vb = b.joined||''; }
         return va < vb ? -sDir : va > vb ? sDir : 0;
       });
 
@@ -1885,7 +1885,7 @@
       });
 
       const hasFilters = discordFilter || typeFilter || dateFrom || dateTo || search;
-      const filterCount = document.getElementById('leads-filter-count');
+      const filterCount = document.getElementById('history-filter-count');
       if (filterCount) filterCount.textContent = hasFilters ? filtered.length + ' shown' : '';
 
       if (!filtered.length) {
@@ -1928,19 +1928,19 @@
       }).join('');
     }
 
-    function quickFilterLeads(val) {
+    function quickFilterHistory(val) {
       if (val === 'discord_yes') {
-        document.querySelector('input[name="ld-discord"][value="yes"]').checked = true;
+        document.querySelector('input[name="hs-discord"][value="yes"]').checked = true;
       } else if (val === 'former' || val === 'converted') {
-        document.querySelector(`input[name="ld-type"][value="${val}"]`).checked = true;
+        document.querySelector(`input[name="hs-type"][value="${val}"]`).checked = true;
       }
-      renderLeads();
+      renderHistory2();
     }
 
-    function exportLeadsCSV() {
-      if (!leadsData.length) { alert('No leads to export.'); return; }
+    function exportHistoryCSV() {
+      if (!historyData.length) { alert('No history to export.'); return; }
       const headers = ['Name','Whop Username','Email','Discord','City','Country','Spend','Joined','Left Date','Plan','Cancel Reason','Type'];
-      const rows = leadsData.map(r => {
+      const rows = historyData.map(r => {
         const type = r.converted ? 'Converted' : (r.leftDate || r.cancelReason) ? 'Former Member' : 'Prospect';
         return [r.name,r.whopUsername,r.email,r.discordName,r.city||'',r.country,r.spend,r.joined,r.leftDate||'',r.planName||'',r.cancelReason||'',type]
           .map(v => '"'+String(v||'').replace(/"/g,'""')+'"').join(',');
@@ -1949,7 +1949,7 @@
       const blob = new Blob([csv],{type:'text/csv'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href=url; a.download='fsdx_leads_'+new Date().toISOString().slice(0,10)+'.csv';
+      a.href=url; a.download='fsdx_history_'+new Date().toISOString().slice(0,10)+'.csv';
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
@@ -2430,16 +2430,16 @@
         let newLeadCount2 = 0;
         cancelledFromMemberships.forEach(item => {
           const emailKey = item.email?.toLowerCase();
-          const existIdx = leadsData.findIndex(l => l.email?.toLowerCase() === emailKey);
+          const existIdx = historyData.findIndex(l => l.email?.toLowerCase() === emailKey);
           if (existIdx >= 0) {
             // Enrich existing lead with cancel reason and plan if missing
-            if (item.cancelReason && !leadsData[existIdx].cancelReason) leadsData[existIdx].cancelReason = item.cancelReason;
-            if (item.planName && !leadsData[existIdx].planName) leadsData[existIdx].planName = item.planName;
-            if (item.whopKey && !leadsData[existIdx].whopKey) leadsData[existIdx].whopKey = item.whopKey;
-            if (item.spend && parseFloat(item.spend) > parseFloat(leadsData[existIdx].spend||0)) leadsData[existIdx].spend = item.spend;
+            if (item.cancelReason && !historyData[existIdx].cancelReason) historyData[existIdx].cancelReason = item.cancelReason;
+            if (item.planName && !historyData[existIdx].planName) historyData[existIdx].planName = item.planName;
+            if (item.whopKey && !historyData[existIdx].whopKey) historyData[existIdx].whopKey = item.whopKey;
+            if (item.spend && parseFloat(item.spend) > parseFloat(historyData[existIdx].spend||0)) historyData[existIdx].spend = item.spend;
           } else {
             // New lead from cancelled membership
-            leadsData.push({
+            historyData.push({
               id: item.id || (Date.now() + Math.random()).toString(36),
               name: item.name || '',
               whopUsername: item.whopUsername || '',
@@ -2460,7 +2460,7 @@
             newLeadCount2++;
           }
         });
-        await saveLeadsToKV();
+        await saveHistoryToKV();
       }
 
       await saveRosterToKV();
@@ -2493,24 +2493,24 @@
         }));
 
         // Merge with existing leads — deduplicate by email
-        const existingLeadEmails = new Set(leadsData.map(l => l.email?.toLowerCase()).filter(Boolean));
+        const existingLeadEmails = new Set(historyData.map(l => l.email?.toLowerCase()).filter(Boolean));
         let newLeadCount = 0;
         newLeads.forEach(lead => {
           const emailKey = lead.email?.toLowerCase();
           if (!emailKey) return;
           // Check if converted status changed
-          const existIdx = leadsData.findIndex(l => l.email?.toLowerCase() === emailKey);
+          const existIdx = historyData.findIndex(l => l.email?.toLowerCase() === emailKey);
           if (existIdx >= 0) {
             // Update converted status if they joined roster
-            if (lead.converted && !leadsData[existIdx].converted) {
-              leadsData[existIdx].converted = true;
+            if (lead.converted && !historyData[existIdx].converted) {
+              historyData[existIdx].converted = true;
             }
           } else {
-            leadsData.push(lead);
+            historyData.push(lead);
             newLeadCount++;
           }
         });
-        await saveLeadsToKV();
+        await saveHistoryToKV();
         cancelImport();
         renderRoster();
         renderFlags();
